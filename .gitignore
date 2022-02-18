@@ -46,4 +46,4 @@ src/version.ts
 datafile-hex
 npm-debug.log
 
-src/omegaEdit/client/*
+src/omegaEdit/client
