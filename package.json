@@ -24,7 +24,7 @@
   },
   "scripts": {
     "vscode:prepublish": "yarn run package-ext",
-    "precompile": "node -p \"'export const LIB_VERSION = ' + JSON.stringify(require('./package.json').version) + ';'\" > src/version.ts",
+    "precompile": "node -p \"'export const LIB_VERSION = ' + JSON.stringify(require('./package.json').version) + ';'\" > src/version.ts && ./compile-proto.sh",
     "compile": "tsc -p ./",
     "lint": "yarn run prettier src -c",
     "watch": "webpack --watch --devtool nosources-source-map --info-verbosity verbose --config ./build/extension.webpack.config.js",
@@ -40,9 +40,15 @@
     "post-build": "rm -rf NOTICE LICENSE && mv tmp.LICENSE LICENSE && mv tmp.NOTICE NOTICE"
   },
   "dependencies": {
+    "@grpc/grpc-js": "^1.5.4",
+    "@grpc/proto-loader": "^0.6.9",
     "await-notify": "1.0.1",
     "child_process": "^1.0.2",
+    "google-protobuf": "^3.19.4",
+    "grpc-tools": "^1.11.2",
+    "grpc_tools_node_protoc_ts": "^5.3.2",
     "hexy": "^0.3.1",
+    "minimist": "^1.2.5",
     "unzip-stream": "^0.3.1",
     "vscode-debugadapter": "^1.46.0",
     "xdg-app-paths": "^7.3.0"
@@ -71,7 +77,8 @@
     "onCommand:extension.dfdl-debug.getDataName",
     "onCommand:extension.dfdl-debug.runEditorContents",
     "onCommand:extension.dfdl-debug.debugEditorContents",
-    "onCommand:launch.config"
+    "onCommand:launch.config",
+    "onCommand:omega.grpc"
   ],
   "workspaceTrust": {
     "request": "never"
@@ -123,6 +130,9 @@
         {
           "command": "extension.dfdl-debug.runEditorContents",
           "when": "resourceLangId == xml"
+        },
+        {
+          "command": "omega.grpc"
         }
       ],
       "debug/variables/context": [
@@ -186,6 +196,16 @@
         "category": "Daffodil Debug",
         "enablement": "!inDebugMode",
         "icon": "$(debug-configure)"
+      },
+      {
+        "command": "omega.version",
+        "title": "Omega Edit Ω Version Info",
+        "category": "Omega"
+      },
+      {
+        "command": "omega.grpc",
+        "title": "Omega Edit Ω gRPC Demo",
+        "category": "Omega"
       }
     ],
     "breakpoints": [
