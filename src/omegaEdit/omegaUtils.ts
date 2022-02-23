@@ -1,10 +1,10 @@
-import { EditorClient } from './client/omega_edit_grpc_pb'
+import { EditorClient } from 'omega-edit/omega_edit_grpc_pb'
 import { Empty } from 'google-protobuf/google/protobuf/empty_pb'
 import {
   CreateSessionRequest,
   CreateViewportRequest,
   ObjectId,
-} from './client/omega_edit_pb'
+} from 'omega-edit/omega_edit_pb'
 
 export function getVersion(c: EditorClient): Promise<string> {
   return new Promise<string>((resolve, reject) => {
@@ -36,7 +36,7 @@ export function newSession(
       if (!id) {
         return reject('undefined version')
       }
-      return resolve(id)
+      return resolve(new ObjectId().setId(id))
     })
   })
 }
@@ -51,7 +51,7 @@ export function newViewport(
   return new Promise<ObjectId>((resolve, reject) => {
     let request = new CreateViewportRequest()
     request.setViewportIdDesired(id)
-    request.setSessionId(sid)
+    request.setSessionId(sid.getId())
     request.setOffset(offset)
     request.setCapacity(capacity)
     c.createViewport(request, (err, r) => {
@@ -62,7 +62,7 @@ export function newViewport(
       if (!id) {
         return reject('undefined version')
       }
-      return resolve(id)
+      return resolve(new ObjectId().setId(id))
     })
   })
 }

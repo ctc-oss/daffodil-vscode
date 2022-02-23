@@ -1,11 +1,11 @@
 import * as vscode from 'vscode'
 import * as grpc from '@grpc/grpc-js'
-import { EditorClient } from './client/omega_edit_grpc_pb'
+import { EditorClient } from 'omega-edit/omega_edit_grpc_pb'
 import {
   ChangeKind,
   ChangeRequest,
   ViewportDataRequest,
-} from './client/omega_edit_pb'
+} from 'omega-edit/omega_edit_pb'
 import { getVersion, newSession, newViewport } from './omegaUtils'
 import * as hexy from 'hexy'
 
@@ -37,7 +37,7 @@ export function activate(ctx: vscode.ExtensionContext) {
       let vp3 = await newViewport('3', c, s, 128, 64)
 
       let vpdrin = new ViewportDataRequest()
-      vpdrin.setViewportId(vpin)
+      vpdrin.setViewportId(vpin.getId())
       c.getViewportData(vpdrin, (err, r) => {
         let data = r?.getData_asB64()
         if (data) {
@@ -48,7 +48,7 @@ export function activate(ctx: vscode.ExtensionContext) {
 
       c.subscribeToViewportEvents(vp1).on('data', () => {
         let vpdr1 = new ViewportDataRequest()
-        vpdr1.setViewportId(vp1)
+        vpdr1.setViewportId(vp1.getId())
         c.getViewportData(vpdr1, (err, r) => {
           let data = r?.getData_asB64()
           if (data) {
@@ -62,7 +62,7 @@ export function activate(ctx: vscode.ExtensionContext) {
       })
       c.subscribeToViewportEvents(vp1).on('data', () => {
         let vpdr2 = new ViewportDataRequest()
-        vpdr2.setViewportId(vp2)
+        vpdr2.setViewportId(vp2.getId())
         c.getViewportData(vpdr2, (err, r) => {
           let data = r?.getData_asB64()
           if (data) {
@@ -73,7 +73,7 @@ export function activate(ctx: vscode.ExtensionContext) {
       })
       c.subscribeToViewportEvents(vp1).on('data', () => {
         let vpdr3 = new ViewportDataRequest()
-        vpdr3.setViewportId(vp3)
+        vpdr3.setViewportId(vp3.getId())
         c.getViewportData(vpdr3, (err, r) => {
           let data = r?.getData_asB64()
           if (data) {
@@ -92,7 +92,7 @@ export function activate(ctx: vscode.ExtensionContext) {
             case 'send':
               let b64 = Buffer.from(message.text, 'binary').toString('base64')
               let change = new ChangeRequest()
-              change.setSessionId(s)
+              change.setSessionId(s.getId())
               change.setKind(ChangeKind.CHANGE_OVERWRITE)
               change.setData(b64)
               change.setOffset(0)
