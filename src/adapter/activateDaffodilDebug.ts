@@ -21,7 +21,7 @@ import * as fs from 'fs'
 import * as infoset from '../infoset'
 import { getConfig, setCurrentConfig } from '../utils'
 import * as launchWizard from '../launchWizard/launchWizard'
-import * as omegaClient from '../omegaEdit/omegaEdit'
+import * as omegaClient from '../omegaEdit/client'
 
 // Function for setting up the commands for Run and Debug file
 function createDebugRunFileConfigs(resource: vscode.Uri, runOrDebug: String) {

@@ -1,17 +1,63 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import * as vscode from 'vscode'
-import * as grpc from '@grpc/grpc-js'
-import { EditorClient } from 'omega-edit/omega_edit_grpc_pb'
 import {
   ChangeKind,
   ChangeRequest,
   ViewportDataRequest,
 } from 'omega-edit/omega_edit_pb'
-import { getVersion, newSession, newViewport } from './omegaUtils'
-import * as hexy from 'hexy'
+import {
+  client,
+  getVersion,
+  newSession,
+  newViewport,
+  deleteSession,
+  deleteViewport,
+  randomId,
+  uri,
+  viewportSubscribe,
+} from './omegaUtils'
+import { startServer, stopServer } from './server'
+
+async function cleanupViewportSession(
+  sessionId: string,
+  viewportIds: Array<string>
+) {
+  viewportIds.forEach(async (vId) => {
+    await deleteViewport(vId)
+  })
+
+  await deleteSession(sessionId)
+}
 
 export function activate(ctx: vscode.ExtensionContext) {
   ctx.subscriptions.push(
+    vscode.commands.registerCommand('omega.version', async () => {
+      await startServer(ctx)
+      let v = await getVersion()
+      vscode.window.showInformationMessage(v)
+    })
+  )
+
+  ctx.subscriptions.push(
     vscode.commands.registerCommand('omega.grpc', async () => {
+      await startServer(ctx)
+
       let panel = vscode.window.createWebviewPanel(
         'viewport',
         'Ω Edit gRPC',
@@ -21,24 +67,24 @@ export function activate(ctx: vscode.ExtensionContext) {
         }
       )
 
-      let uri = '127.0.0.1:9000'
       panel.webview.html = getWebviewContent(uri)
 
-      let c = new EditorClient(uri, grpc.credentials.createInsecure())
-      let v = await getVersion(c)
+      let v = await getVersion()
       panel.webview.postMessage({ command: 'version', text: v })
 
-      let s = await newSession(c, 'build.sbt')
-      panel.webview.postMessage({ command: 'session', text: s.getId() })
+      let s = await newSession(
+        '/Users/sdell/workspaces/daffodil/ctc/daffodil-vscode/.gitignore'
+      )
+      panel.webview.postMessage({ command: 'session', text: s })
 
-      let vpin = await newViewport('input', c, s, 0, 1000)
-      let vp1 = await newViewport('1', c, s, 0, 64)
-      let vp2 = await newViewport('2', c, s, 64, 64)
-      let vp3 = await newViewport('3', c, s, 128, 64)
+      let vpin = await newViewport(randomId().toString(), s, 0, 1000)
+      let vp1 = await newViewport(randomId().toString(), s, 0, 64)
+      let vp2 = await newViewport(randomId().toString(), s, 64, 64)
+      let vp3 = await newViewport(randomId().toString(), s, 128, 64)
 
       let vpdrin = new ViewportDataRequest()
-      vpdrin.setViewportId(vpin.getId())
-      c.getViewportData(vpdrin, (err, r) => {
+      vpdrin.setViewportId(vpin)
+      client.getViewportData(vpdrin, (err, r) => {
         let data = r?.getData_asB64()
         if (data) {
           let txt = Buffer.from(data, 'base64').toString('binary')
@@ -46,45 +92,9 @@ export function activate(ctx: vscode.ExtensionContext) {
         }
       })
 
-      c.subscribeToViewportEvents(vp1).on('data', () => {
-        let vpdr1 = new ViewportDataRequest()
-        vpdr1.setViewportId(vp1.getId())
-        c.getViewportData(vpdr1, (err, r) => {
-          let data = r?.getData_asB64()
-          if (data) {
-            let txt = Buffer.from(data, 'base64').toString('binary')
-            panel.webview.postMessage({ command: 'viewport1', text: txt })
-
-            let hxt = hexy.hexy(txt)
-            panel.webview.postMessage({ command: 'hex1', text: hxt })
-          }
-        })
-      })
-      c.subscribeToViewportEvents(vp1).on('data', () => {
-        let vpdr2 = new ViewportDataRequest()
-        vpdr2.setViewportId(vp2.getId())
-        c.getViewportData(vpdr2, (err, r) => {
-          let data = r?.getData_asB64()
-          if (data) {
-            let txt = Buffer.from(data, 'base64').toString('binary')
-            panel.webview.postMessage({ command: 'viewport2', text: txt })
-          }
-        })
-      })
-      c.subscribeToViewportEvents(vp1).on('data', () => {
-        let vpdr3 = new ViewportDataRequest()
-        vpdr3.setViewportId(vp3.getId())
-        c.getViewportData(vpdr3, (err, r) => {
-          let data = r?.getData_asB64()
-          if (data) {
-            let txt = Buffer.from(data, 'base64').toString('binary')
-            panel.webview.postMessage({ command: 'viewport3', text: txt })
-
-            let hxt = hexy.hexy(txt)
-            panel.webview.postMessage({ command: 'hex2', text: hxt })
-          }
-        })
-      })
+      await viewportSubscribe(panel, vp1, vp1, 'viewport1', 'hex1')
+      await viewportSubscribe(panel, vp1, vp2, 'viewport2', null)
+      await viewportSubscribe(panel, vp1, vp3, 'viewport3', 'hex2')
 
       panel.webview.onDidReceiveMessage(
         (message) => {
@@ -92,16 +102,26 @@ export function activate(ctx: vscode.ExtensionContext) {
             case 'send':
               let b64 = Buffer.from(message.text, 'binary').toString('base64')
               let change = new ChangeRequest()
-              change.setSessionId(s.getId())
+              change.setSessionId(s)
               change.setKind(ChangeKind.CHANGE_OVERWRITE)
               change.setData(b64)
               change.setOffset(0)
               change.setLength(1000)
-              c.submitChange(change, (err, r) => {
+              client.submitChange(change, (err, r) => {
                 if (err) console.log(err)
                 else console.log(r)
               })
           }
+        },
+        undefined,
+        ctx.subscriptions
+      )
+
+      panel.onDidDispose(
+        async () => {
+          await cleanupViewportSession(s, [vpin, vp1, vp2, vp3])
+          panel.dispose()
+          await stopServer()
         },
         undefined,
         ctx.subscriptions
