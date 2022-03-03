@@ -153,14 +153,22 @@ export async function startServer(ctx: vscode.ExtensionContext) {
 }
 
 // Function for stopping debugging
-export function stopServer() {
-  vscode.window.activeTerminal?.processId.then((id) => {
-    if (id) {
-      if (os.platform() === 'win32') {
-        child_process.exec(`taskkill /F /PID ${id}`)
-      } else {
-        child_process.exec(`kill -9 ${id}`)
+export async function stopServer() {
+  const action = await vscode.window.showInformationMessage(
+    'Stop Ωedit server?',
+    'Yes',
+    'No'
+  )
+
+  if (action === 'Yes') {
+    vscode.window.activeTerminal?.processId.then((id) => {
+      if (id) {
+        if (os.platform() === 'win32') {
+          child_process.exec(`taskkill /F /PID ${id}`)
+        } else {
+          child_process.exec(`kill -9 ${id}`)
+        }
       }
-    }
-  })
+    })
+  }
 }

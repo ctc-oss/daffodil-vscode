@@ -27,20 +27,22 @@ import {
   newSession,
   newViewport,
   deleteSession,
-  deleteViewport,
+  // deleteViewport,
   randomId,
-  uri,
+  // uri,
   viewportSubscribe,
 } from './omegaUtils'
 import { startServer, stopServer } from './server'
+
+let serverRunning = false
 
 async function cleanupViewportSession(
   sessionId: string,
   viewportIds: Array<string>
 ) {
-  viewportIds.forEach(async (vId) => {
-    await deleteViewport(vId)
-  })
+  // viewportIds.forEach(async (vId) => {
+  //   await deleteViewport(vId)
+  // })
 
   await deleteSession(sessionId)
 }
@@ -48,7 +50,10 @@ async function cleanupViewportSession(
 export function activate(ctx: vscode.ExtensionContext) {
   ctx.subscriptions.push(
     vscode.commands.registerCommand('omega.version', async () => {
-      await startServer(ctx)
+      if (!serverRunning) {
+        await startServer(ctx)
+        serverRunning = true
+      }
       let v = await getVersion()
       vscode.window.showInformationMessage(v)
     })
@@ -56,7 +61,10 @@ export function activate(ctx: vscode.ExtensionContext) {
 
   ctx.subscriptions.push(
     vscode.commands.registerCommand('omega.grpc', async () => {
-      await startServer(ctx)
+      if (!serverRunning) {
+        await startServer(ctx)
+        serverRunning = true
+      }
 
       let panel = vscode.window.createWebviewPanel(
         'viewport',
@@ -67,15 +75,24 @@ export function activate(ctx: vscode.ExtensionContext) {
         }
       )
 
-      panel.webview.html = getWebviewContent(uri)
+      // panel.webview.html = getWebviewContent(uri)
+      panel.webview.html = getWebviewContent()
 
-      let v = await getVersion()
-      panel.webview.postMessage({ command: 'version', text: v })
+      let fileToEdit = await vscode.window
+        .showOpenDialog({
+          canSelectMany: false,
+          openLabel: 'Select',
+          canSelectFiles: true,
+          canSelectFolders: false,
+        })
+        .then((fileUri) => {
+          if (fileUri && fileUri[0]) {
+            return fileUri[0].fsPath
+          }
+        })
 
-      let s = await newSession(
-        '/Users/sdell/workspaces/daffodil/ctc/daffodil-vscode/.gitignore'
-      )
-      panel.webview.postMessage({ command: 'session', text: s })
+      let s = await newSession(fileToEdit)
+      // panel.webview.postMessage({ command: 'session', text: s })
 
       let vpin = await newViewport(randomId().toString(), s, 0, 1000)
       let vp1 = await newViewport(randomId().toString(), s, 0, 64)
@@ -130,7 +147,7 @@ export function activate(ctx: vscode.ExtensionContext) {
   )
 }
 
-function getWebviewContent(uri: string) {
+function getWebviewContent() {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -159,9 +176,8 @@ function getWebviewContent(uri: string) {
   </style>
 </head>
 <body>
-  <div id="server">${uri}</div>
-  <div id="version">v?</div>
-  <div id="session">?</div>
+  <!-- <div id="server">uri</div> -->
+  <!-- <div id="session">?</div> -->
   <div class="grid-container">
       <div class="grid-item" id="viewport1">empty</div>
       <div class="grid-item" id="viewport2">empty</div>
