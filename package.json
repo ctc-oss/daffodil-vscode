@@ -36,9 +36,13 @@
     "pretest": "yarn run compile",
     "test": "node node_modules/mocha/bin/_mocha -u tdd --timeout 999999 --colors ./out/tests",
     "sbt": "sbt universal:packageBin",
-    "pre-build": "move LICENSE tmp.LICENSE && move NOTICE tmp.NOTICE && copy build/bin.LICENSE LICENSE && copy build/bin.NOTICE NOTICE",
+    "pre-build": "run-script-os",
+    "pre-build:linux": "mv LICENSE tmp.LICENSE && mv NOTICE tmp.NOTICE && cp build/bin.LICENSE LICENSE && cp build/bin.NOTICE NOTICE",
+    "pre-build:default": "move LICENSE tmp.LICENSE && move NOTICE tmp.NOTICE && copy build/bin.LICENSE LICENSE && copy build/bin.NOTICE NOTICE",
     "build": "yarn pre-build && yarn sbt && yarn install && yarn compile && yarn package && yarn post-build",
-    "post-build": "del /q NOTICE && del /q LICENSE && move tmp.LICENSE LICENSE && move tmp.NOTICE NOTICE"
+    "post-build": "run-script-os",
+    "post-build:linux": "rm NOTICE && rm LICENSE && mv tmp.LICENSE LICENSE && mv tmp.NOTICE NOTICE",
+    "post-build:default": "del /q NOTICE && del /q LICENSE && move tmp.LICENSE LICENSE && move tmp.NOTICE NOTICE"
   },
   "dependencies": {
     "@grpc/grpc-js": "^1.5.4",
@@ -50,6 +54,7 @@
     "@types/moo": "^0.5.5",
     "moo": "^0.5.1",
     "omega-edit": "0.8.3",
+    "run-script-os": "^1.1.6",
     "unzip-stream": "^0.3.1",
     "vscode-debugadapter": "^1.46.0",
     "xdg-app-paths": "^7.3.0"
