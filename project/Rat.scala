@@ -23,7 +23,9 @@ object Rat {
     // git files
     file(".git"),
     // json files -- these ones do not support comments
-    file("snippets/dfdl.json"),
+    file("language/dfdl.json"), // license file at language/json-license.txt
+    file("language/syntax.json"), // license file at language/json-license.txt
+    file("language/syntaxes/dfdl.tmLanguage.json"), // license file at language/json-license.txt
     file("package.json"),
     file(".prettierrc"),
     // ignore images - daffiodil.ico
@@ -34,6 +36,11 @@ object Rat {
   )
 
   lazy val MIT_LICENSE_NAME = "MIT License"
+
+  lazy val MIT_LICENSE_TEXT =
+    """
+Licensed under the MIT License. See License.txt in the project root for license information.
+"""
 
   lazy val MIT_LICENSE_TEXT_MICROSOFT =
     """
