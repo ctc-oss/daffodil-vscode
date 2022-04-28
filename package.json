@@ -35,14 +35,19 @@
     "pretest": "yarn run compile",
     "test": "node node_modules/mocha/bin/_mocha -u tdd --timeout 999999 --colors ./out/tests",
     "sbt": "sbt universal:packageBin",
-    "pre-build": "mv LICENSE tmp.LICENSE && mv NOTICE tmp.NOTICE && cp build/bin.LICENSE LICENSE && cp build/bin.NOTICE NOTICE",
+    "pre-build": "run-script-os",
+    "pre-build:linux": "mv LICENSE tmp.LICENSE && mv NOTICE tmp.NOTICE && cp build/bin.LICENSE LICENSE && cp build/bin.NOTICE NOTICE",
+    "pre-build:default": "move LICENSE tmp.LICENSE && move NOTICE tmp.NOTICE && copy build/bin.LICENSE LICENSE && copy build/bin.NOTICE NOTICE",
     "build": "yarn pre-build && yarn sbt && yarn install && yarn compile && yarn package && yarn post-build",
-    "post-build": "rm -rf NOTICE LICENSE && mv tmp.LICENSE LICENSE && mv tmp.NOTICE NOTICE"
+    "post-build": "run-script-os",
+    "post-build:linux": "rm NOTICE && rm LICENSE && mv tmp.LICENSE LICENSE && mv tmp.NOTICE NOTICE",
+    "post-build:default": "del /q NOTICE && del /q LICENSE && move tmp.LICENSE LICENSE && move tmp.NOTICE NOTICE"
   },
   "dependencies": {
     "await-notify": "1.0.1",
     "child_process": "^1.0.2",
     "hexy": "^0.3.1",
+    "run-script-os": "^1.1.6",
     "unzip-stream": "^0.3.1",
     "vscode-debugadapter": "^1.46.0",
     "xdg-app-paths": "^7.3.0"
