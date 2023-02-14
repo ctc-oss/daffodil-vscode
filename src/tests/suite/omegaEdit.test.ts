@@ -15,18 +15,18 @@
  * limitations under the License.
  */
 
-import * as vscode from 'vscode'
 import * as assert from 'assert'
-import * as path from 'path'
-import { Artifact, Backend } from '../../classes/artifact'
-import * as omegaEditClient from '../../omega_edit/client'
-import { unzipFile, runScript, killProcess, osCheck } from '../../utils'
-import { before, after } from 'mocha'
 import * as fs from 'fs'
-import { PROJECT_ROOT, PACKAGE_PATH, TEST_SCHEMA } from './common'
+import { after, before } from 'mocha'
+import * as path from 'path'
+import * as vscode from 'vscode'
+import { Artifact, Backend } from '../../classes/artifact'
+import { DataEditWebView } from '../../omega_edit/dataEditWebView'
+import * as omegaEditClient from '../../omega_edit/client'
+import { killProcess, osCheck, runScript, unzipFile } from '../../utils'
+import { PACKAGE_PATH, PROJECT_ROOT, TEST_SCHEMA } from './common'
 import { initOmegaEditClient } from '../../omega_edit/utils'
-
-const wait_port = require('wait-port')
+import wait_port from 'wait-port'
 
 const omegaEditPackagePath = path.join(PROJECT_ROOT, 'node_modules/omega-edit')
 const omegaEditVersion =
@@ -45,7 +45,7 @@ export async function runServerForTests() {
     `${extractedFolder}.zip`
   )
   await unzipFile(`${extractedFolder}.zip`, PROJECT_ROOT)
-  initOmegaEditClient('127.0.0.1', port.toString())
+  initOmegaEditClient('127.0.0.1', port)
   return await runScript(
     `${extractedFolder}`,
     localArtifact.scriptName,
@@ -76,24 +76,18 @@ suite('omega-edit Test Suite', () => {
     })
   })
 
-  test('Test toggle.experimental', async () => {
-    // omega-edit related commands should be hidden
-    assert.strictEqual(
-      (await vscode.commands.getCommands()).includes('omega_edit.version'),
-      false
-    )
-    assert.strictEqual(
-      (await vscode.commands.getCommands()).includes('data.edit'),
-      false
-    )
-
-    // Toggle experimental features to be enabled
-    await vscode.commands.executeCommand('toggle.experimental', true)
-
-    // omega-edit related commands should not longer be hidden
+  test('Ωedit version command exists', async () => {
     assert.strictEqual(
       (await vscode.commands.getCommands()).includes('omega_edit.version'),
       true
+    )
+  })
+
+  test('data edit command exists', async () => {
+    // DEBUG: dump the registered commands to a file in the temp directory
+    fs.writeFileSync(
+      '/tmp/commands.txt',
+      (await vscode.commands.getCommands()).sort().join('\n')
     )
     assert.strictEqual(
       (await vscode.commands.getCommands()).includes('data.edit'),
@@ -148,12 +142,12 @@ suite('omega-edit Test Suite', () => {
 
   suite('omega-edit commands', () => {
     test('omega_edit.version returns correct version', async () => {
-      let version = await vscode.commands.executeCommand(
+      const version = await vscode.commands.executeCommand(
         'omega_edit.version',
         false,
         port
       )
-
+      assert.ok(version)
       assert.strictEqual(
         version,
         'v' + omegaEditClient.getOmegaEditPackageVersion(PACKAGE_PATH)
@@ -161,15 +155,17 @@ suite('omega-edit Test Suite', () => {
     })
 
     test('data editor opens', async () => {
-      const panel: vscode.WebviewPanel = await vscode.commands.executeCommand(
-        'data.edit',
-        TEST_SCHEMA,
-        false,
-        false,
-        port
-      )
-
-      assert.strictEqual(panel.active, true)
+      const dataEditWebView: DataEditWebView =
+        await vscode.commands.executeCommand(
+          'data.edit',
+          TEST_SCHEMA,
+          false,
+          false,
+          port
+        )
+      assert.ok(dataEditWebView)
+      assert.strictEqual(dataEditWebView.panel.active, true)
+      assert.strictEqual(dataEditWebView.panel.title, 'Data Editor')
     })
   })
 })

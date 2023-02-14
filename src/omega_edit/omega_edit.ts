@@ -17,13 +17,13 @@
 
 import * as vscode from 'vscode'
 import * as omegaEditChange from 'omega-edit/change'
-import { getFilePath } from './utils'
 import * as omegaEditSession from 'omega-edit/session'
+import { getFilePath } from './utils'
 
 export class OmegaEdit {
   sessionId: string
   offset: number
-  data: string
+  data: string | Uint8Array
   len: number
   panel: vscode.WebviewPanel
 
@@ -68,12 +68,10 @@ export class OmegaEdit {
 
   async save(sessionFile: string, overwrite: boolean, newFile: boolean) {
     let filePath = await getFilePath(sessionFile, overwrite, newFile)
-
     if (filePath) {
       let rootPath = vscode.workspace.workspaceFolders
         ? vscode.workspace.workspaceFolders[0].uri.fsPath
         : ''
-
       if (rootPath !== '' && !filePath.includes(rootPath)) {
         filePath = `${rootPath}/${filePath}`
       }
@@ -86,7 +84,7 @@ export class OmegaEdit {
 
   async search(
     fileSize: number,
-    searchPattern: string,
+    searchPattern: string | Uint8Array,
     caseInsensitive: boolean,
     limit: number = 0 // unlimited for omega-edit is 0
   ): Promise<Array<number>> {
@@ -104,7 +102,7 @@ export class OmegaEdit {
     sessionId: string,
     offset: number,
     len: number,
-    data: string = ''
+    data: string | Uint8Array
   ) {
     await omegaEditChange.replace(sessionId, offset, len, data)
   }
@@ -112,20 +110,25 @@ export class OmegaEdit {
   // Perform search on a single result
   async singleSearch(
     fileSize: number,
-    searchPattern: string,
+    searchPattern: string | Uint8Array,
     caseInsensitive
   ): Promise<number> {
-    var result = await this.search(fileSize, searchPattern, caseInsensitive, 1)
+    const result = await this.search(
+      fileSize,
+      searchPattern,
+      caseInsensitive,
+      1
+    )
     return result[0]
   }
 
   async searchAndReplace(
     fileSize: number,
-    searchPattern: string,
-    replaceText: string,
+    searchPattern: string | Uint8Array,
+    replaceText: string | Uint8Array,
     caseInsensitive: boolean
   ) {
-    var index = await this.singleSearch(
+    let index = await this.singleSearch(
       fileSize,
       searchPattern,
       caseInsensitive
@@ -178,7 +181,7 @@ export class OmegaEdit {
         await this.replace(this.sessionId, this.offset, this.len, this.data)
         break
       case 'search':
-        var searchResults = await this.search(
+        const searchResults = await this.search(
           fileSize,
           searchPattern,
           caseInsensitive
