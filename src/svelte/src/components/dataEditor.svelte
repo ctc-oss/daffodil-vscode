@@ -136,8 +136,8 @@ limitations under the License.
   $: {
     physicalOffsetText = getOffsetDisplay($displayRadix, 'physical')
     logicalOffsetText = getOffsetDisplay($displayRadix, 'logical')
-    if(logical_vwRef){
-      logical_vwRef.style.maxWidth = ($displayRadix === 2)? '105pt' : ''
+    if (logical_vwRef) {
+      logical_vwRef.style.maxWidth = $displayRadix === 2 ? '105pt' : ''
     }
   }
   $: {
@@ -230,15 +230,14 @@ limitations under the License.
   }
 
   function setSelectionEncoding(editorEncoding: string) {
-    if($editMode === 'simple'){
+    if ($editMode === 'simple') {
       vscode.postMessage({
         command: MessageCommand.editorOnChange,
         data: {
           encoding: editorEncoding,
         },
       })
-    }
-    else {
+    } else {
       vscode.postMessage({
         command: MessageCommand.editorOnChange,
         data: {
@@ -389,8 +388,8 @@ limitations under the License.
 
   /**
    * Handle Click vs Select in Viewport Additional function was needed due to event propagation from textarea to
-   * editByteWindow causing another 'select' Event when closing the editByteWindow. 
-   * 
+   * editByteWindow causing another 'select' Event when closing the editByteWindow.
+   *
    * Capture and cancelling event propagation did not resolve due to not parent / child coupling.
    */
   function handleViewportClickEvent(event: Event) {
@@ -638,23 +637,24 @@ limitations under the License.
   }
 
   function moveEditByteWindow() {
-    switch($focusedViewportId){
+    switch ($focusedViewportId) {
       case 'physical':
         {
-          const byteTextPxWidth = logical_vwRef.clientWidth / ($bytesPerRow)
+          const byteTextPxWidth = logical_vwRef.clientWidth / $bytesPerRow
           const byteRowPos = $selectionStartOffset % $bytesPerRow
-          const editByteWindowX = logical_vwRef.offsetLeft + (byteRowPos * byteTextPxWidth)
-          $editByteWindow.style.left = (editByteWindowX).toString() + 'px'
+          const editByteWindowX =
+            logical_vwRef.offsetLeft + byteRowPos * byteTextPxWidth
+          $editByteWindow.style.left = editByteWindowX.toString() + 'px'
           $focusedViewportId = 'logical'
-
         }
         break
       case 'logical':
         {
-          const byteTextPxWidth = physical_vwRef.clientWidth / ($bytesPerRow)
+          const byteTextPxWidth = physical_vwRef.clientWidth / $bytesPerRow
           const byteRowPos = $selectionStartOffset % $bytesPerRow
-          const editByteWindowX = physical_vwRef.offsetLeft + (byteRowPos * byteTextPxWidth)
-          $editByteWindow.style.left = (editByteWindowX).toString() + 'px'
+          const editByteWindowX =
+            physical_vwRef.offsetLeft + byteRowPos * byteTextPxWidth
+          $editByteWindow.style.left = editByteWindowX.toString() + 'px'
           $focusedViewportId = 'physical'
         }
         break
@@ -768,8 +768,11 @@ limitations under the License.
           </label>
         </div>
         <div class="col-item flex-container row center">
-          <label for="computed_file_size" class="two-row-items file-metrics">Computed Size:
-            <div class="two-row-items" id="computed_file_size">{$computedFileSize}</div>
+          <label for="computed_file_size" class="two-row-items file-metrics"
+            >Computed Size:
+            <div class="two-row-items" id="computed_file_size">
+              {$computedFileSize}
+            </div>
           </label>
         </div>
       </div>
@@ -983,59 +986,67 @@ limitations under the License.
     id="editByteWindow"
     bind:this={$editByteWindow}
   >
-  <div class="flex-container row col-item">
-    <input
-      title="byte position {$selectionStartOffset.toString(
-        $addressValue
-      )} {radixToString($addressValue)}"
-      type="text"
-      id="editByteInput"
-      placeholder={$editByte}
-      bind:value={$editorSelection}
-      on:input={handleEditorEvent}
-    />
-    {#if $commitable}
+    <div class="flex-container row col-item">
+      <input
+        title="byte position {$selectionStartOffset.toString(
+          $addressValue
+        )} {radixToString($addressValue)}"
+        type="text"
+        id="editByteInput"
+        placeholder={$editByte}
+        bind:value={$editorSelection}
+        on:input={handleEditorEvent}
+      />
+      {#if $commitable}
+        <button
+          title="insert byte before this location"
+          id="insert-before"
+          class="insert"
+          on:click={commitChanges}>&#8676;</button
+        >
+        <button
+          title="replace byte at this location"
+          id="insert-replace"
+          class="submit"
+          on:click={commitChanges}>&#8645;</button
+        >
+        <button
+          title="insert byte after this location"
+          id="insert-after"
+          class="insert"
+          on:click={commitChanges}>&#8677;</button
+        >
+        <button
+          title="delete this byte"
+          id="insert-delete"
+          class="delete"
+          on:click={commitChanges}>✖</button
+        >
+      {:else}
+        <button
+          title="delete this byte"
+          id="insert-delete"
+          class="delete"
+          on:click={commitChanges}>✖</button
+        >
+        <button class="insert" disabled>&#8676;</button>
+        <button class="submit" disabled>&#8645;</button>
+        <button class="insert" disabled>&#8677;</button>
+      {/if}
+    </div>
+    {#if $focusedViewportId === 'physical'}
       <button
-        title="insert byte before this location"
-        id="insert-before"
-        class="insert"
-        on:click={commitChanges}>&#8676;</button
-      >
-      <button
-        title="replace byte at this location"
-        id="insert-replace"
-        class="submit"
-        on:click={commitChanges}>&#8645;</button
-      >
-      <button
-        title="insert byte after this location"
-        id="insert-after"
-        class="insert"
-        on:click={commitChanges}>&#8677;</button
-      >
-      <button
-        title="delete this byte"
-        id="insert-delete"
-        class="delete"
-        on:click={commitChanges}>✖</button
+        class="flex-container row col-item switch-viewport"
+        title="Show in Logical View"
+        on:click={moveEditByteWindow}>&#8649;</button
       >
     {:else}
       <button
-        title="delete this byte"
-        id="insert-delete"
-        class="delete"
-        on:click={commitChanges}>✖</button
+        class="flex-container row col-item switch-viewport"
+        title="Show in Physical View"
+        on:click={moveEditByteWindow}>&#8647;</button
       >
-      <button class="insert" disabled>&#8676;</button>
-      <button class="submit" disabled>&#8645;</button>
-      <button class="insert" disabled>&#8677;</button>
     {/if}
-  </div>
-  {#if $focusedViewportId === 'physical'}
-    <button class="flex-container row col-item switch-viewport" title="Show in Logical View" on:click={moveEditByteWindow}>&#8649;</button>
-  {:else}
-    <button class="flex-container row col-item switch-viewport" title="Show in Physical View" on:click={moveEditByteWindow}>&#8647;</button>
-  {/if}
   </div>
   <textarea
     class="address_vw"

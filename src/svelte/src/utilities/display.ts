@@ -109,18 +109,18 @@ export function radixBytePad(radix: number): number {
   return 0
 }
 export function isEncodedTextEditable(text: string, encoding: string): boolean {
-  switch(encoding) {
+  switch (encoding) {
     case 'latin1':
       for (let i = 0; i < text.length; i++) {
         if (text.charCodeAt(i) > 255) {
-          return false;
+          return false
         }
       }
       break
-    case 'ascii':      
+    case 'ascii':
       for (let i = 0; i < text.length; i++) {
         if (text.charCodeAt(i) > 127) {
-          return false;
+          return false
         }
       }
       break
@@ -128,7 +128,7 @@ export function isEncodedTextEditable(text: string, encoding: string): boolean {
     case 'utf16le':
       for (let i = 0; i < text.length; i++) {
         if (text.charCodeAt(i) > 65535) {
-          return false;
+          return false
         }
       }
       break
@@ -243,7 +243,11 @@ export function syncScroll(from: HTMLElement, to: HTMLElement) {
 export function getOffsetDisplay(radix, view: string) {
   let spread = offsetDisplays[radix].spread
   if (view === 'logical') {
-    if (radix === 2) return '0 0 0 0 0 0 0 0 <br>0 1 2 3 4 5 6 7  '.replaceAll(' ', '&nbsp;'.repeat(spread))
+    if (radix === 2)
+      return '0 0 0 0 0 0 0 0 <br>0 1 2 3 4 5 6 7  '.replaceAll(
+        ' ',
+        '&nbsp;'.repeat(spread)
+      )
     spread = 1
   }
   return offsetDisplays[radix].text.replaceAll(' ', '&nbsp;'.repeat(spread))
