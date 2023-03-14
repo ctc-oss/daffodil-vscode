@@ -802,6 +802,19 @@ limitations under the License.
           {/if}
           <input bind:value={$searchData} />
         </div>
+        {#if $allowCaseInsensitiveSearch}
+          <div class="case col-item flex-container row center">
+            <label for="search_case_insensitive" class="row-item search-case"
+              >Case Insensitive:</label
+            >
+            <input
+              type="checkbox"
+              id="search_case_insensitive"
+              class="row-item search-case"
+              bind:checked={$searchCaseInsensitive}
+            />
+          </div>
+        {/if}
         <div class="col-item">
           Replace:
           {#if $replaceData.length > 0 && !$replaceable}
@@ -834,19 +847,6 @@ limitations under the License.
             <sub>{$searchIndex + 1} / {$searchResults.length} Results </sub>
           {:else if $replacementsCount > 0}
             <sub>{$replacementsCount} Replacements</sub>
-          {/if}
-        </div>
-        <div class="case col-item flex-container row center">
-          {#if $allowCaseInsensitiveSearch}
-            <label for="search_case_insensitive" class="row-item search-case"
-              >Case Insensitive</label
-            >
-            <input
-              type="checkbox"
-              id="search_case_insensitive"
-              class="row-item search-case"
-              bind:checked={$searchCaseInsensitive}
-            />
           {/if}
         </div>
       </div>
@@ -909,7 +909,7 @@ limitations under the License.
         </div>
         <hr />
         <div class="col-item flex-container row center">
-          <div class="two-row-items">Offset</div>
+          <div class="two-row-items">Offset:</div>
           <div class="two-row-items">
             <input
               class="row-item"
@@ -1151,115 +1151,100 @@ limitations under the License.
           {/if}
         </legend>
         <div class="contentControls" id="content_controls">
-          <div class="grid-container-two-columns">
-            <div class="grid-container-column">
-              {#if $editMode === 'full'}
-                <!-- Commitable was not reactable to selection data zeroing -->
-                {#if $commitable && $selectionOriginalEnd + 1 - $selectionStartOffset > 0}
-                  <button id="commit_btn" on:click={commitChanges}
-                    >Commit</button
-                  >
-                {:else}
-                  <button id="commit_btn" disabled>Commit</button>
-                {/if}
-              {/if}
-              <span>
-                {#if $undoCount > 0}
-                  <button on:click={redo}>Redo ({$undoCount})</button>
-                {:else}
-                  <button disabled>Redo</button>
-                {/if}
-                {#if $changeCount > 0}
-                  <button on:click={undo}>Undo ({$changeCount})</button>
-                {:else}
-                  <button disabled>Undo</button>
-                {/if}
-                {#if $undoCount + $changeCount > 0}
-                  <button on:click={clearChangeStack}>Clear</button>
-                {:else}
-                  <button disabled>Clear</button>
-                {/if}
-              </span>
-            </div>
-            <div class="grid-container-column">
-              <!-- Breakpoint button location -->
+          <!-- Commitable was not reactable to selection data zeroing -->
+          {#if $commitable && $selectionOriginalEnd + 1 - $selectionStartOffset > 0}
+            <button id="commit_btn" on:click={commitChanges}>Commit</button>
+          {:else}
+            <button id="commit_btn" disabled>Commit</button>
+          {/if}
+          <span>
+            {#if $undoCount > 0}
+              <button on:click={redo}>Redo ({$undoCount})</button>
+            {:else}
+              <button disabled>Redo</button>
+            {/if}
+            {#if $changeCount > 0}
+              <button on:click={undo}>Undo ({$changeCount})</button>
+            {:else}
+              <button disabled>Undo</button>
+            {/if}
+            {#if $undoCount + $changeCount > 0}
+              <button on:click={clearChangeStack}>Clear</button>
+            {:else}
+              <button disabled>Clear</button>
+            {/if}
+          </span>
+        </div>
+      </fieldset>
+      <fieldset class="box margin-top">
+        <legend>Data View</legend>
+        <div class="flex-container col">
+          <div class="flex-container col-item center row">
+            <div class="flex-container row center row-item">
+              <label for="endianness">Endianness: </label>
+              <select id="endianness" bind:value={$dataViewEndianness}>
+                {#each endiannessOpt as { name, value }}
+                  <option {value}>{name}</option>
+                {/each}
+              </select>
             </div>
           </div>
-          <hr />
-          <div class="flex-container col">
-            <div class="flex-container col-item center row">
-              <div class="flex-container row center row-item">
-                <label for="endianness">Endianness: </label>
-                <select id="endianness" bind:value={$dataViewEndianness}>
-                  {#each endiannessOpt as { name, value }}
-                    <option {value}>{name}</option>
-                  {/each}
-                </select>
-              </div>
-            </div>
-            <div class="flex-container col-item center row">
-              <div class="grid-container-column">
-                <div id="data_vw">
-                  <label for="offset_dv"
-                    >&nbsp;Offset: <text-field
-                      id="offset_dv"
-                    />{$selectionStartOffset}</label
+          <div class="flex-container col-item center row">
+            <div class="grid-container-column">
+              <div id="data_vw">
+                <label for="offset_dv"
+                  >&nbsp;Offset: <text-field
+                    id="offset_dv"
+                  />{$selectionStartOffset}</label
+                >
+                <span id="b8_dv">
+                  <br /><label for="int8_dv"
+                    >&nbsp;&nbsp;&nbsp;int8: <text-field
+                      id="int8_dv"
+                    />{$int8}</label
                   >
-                  <span id="b8_dv">
-                    <br /><label for="int8_dv"
-                      >&nbsp;&nbsp;&nbsp;int8: <text-field
-                        id="int8_dv"
-                      />{$int8}</label
-                    >
-                    <br /><label for="uint8_dv"
-                      >&nbsp;&nbsp;uint8: <text-field
-                        id="uint8_dv"
-                      />{$uint8}</label
-                    >
-                  </span>
-                  <span id="b16_dv">
-                    <br /><label for="int16_dv"
-                      >&nbsp;&nbsp;int16: <text-field
-                        id="int16_dv"
-                      />{$int16}</label
-                    >
-                    <br /><label for="uint16_dv"
-                      >&nbsp;uint16: <text-field
-                        id="uint16_dv"
-                      />{$uint16}</label
-                    >
-                  </span>
-                  <span id="b32_dv">
-                    <br /><label for="int32_dv"
-                      >&nbsp;&nbsp;int32: <text-field
-                        id="int32_dv"
-                      />{$int32}</label
-                    >
-                    <br /><label for="uint32_dv"
-                      >&nbsp;uint32: <text-field
-                        id="uint32_dv"
-                      />{$uint32}</label
-                    >
-                    <br /><label for="float32_dv"
-                      >float32: <text-field id="float32_dv" />{$float32}</label
-                    >
-                  </span>
-                  <span id="b64_dv">
-                    <br /><label for="int64_dv"
-                      >&nbsp;&nbsp;int64: <text-field
-                        id="int64_dv"
-                      />{$int64}</label
-                    >
-                    <br /><label for="uint64_dv"
-                      >&nbsp;uint64: <text-field
-                        id="uint64_dv"
-                      />{$uint64}</label
-                    >
-                    <br /><label for="float64_dv"
-                      >float64: <text-field id="float64_dv" />{$float64}</label
-                    >
-                  </span>
-                </div>
+                  <br /><label for="uint8_dv"
+                    >&nbsp;&nbsp;uint8: <text-field
+                      id="uint8_dv"
+                    />{$uint8}</label
+                  >
+                </span>
+                <span id="b16_dv">
+                  <br /><label for="int16_dv"
+                    >&nbsp;&nbsp;int16: <text-field
+                      id="int16_dv"
+                    />{$int16}</label
+                  >
+                  <br /><label for="uint16_dv"
+                    >&nbsp;uint16: <text-field id="uint16_dv" />{$uint16}</label
+                  >
+                </span>
+                <span id="b32_dv">
+                  <br /><label for="int32_dv"
+                    >&nbsp;&nbsp;int32: <text-field
+                      id="int32_dv"
+                    />{$int32}</label
+                  >
+                  <br /><label for="uint32_dv"
+                    >&nbsp;uint32: <text-field id="uint32_dv" />{$uint32}</label
+                  >
+                  <br /><label for="float32_dv"
+                    >float32: <text-field id="float32_dv" />{$float32}</label
+                  >
+                </span>
+                <span id="b64_dv">
+                  <br /><label for="int64_dv"
+                    >&nbsp;&nbsp;int64: <text-field
+                      id="int64_dv"
+                    />{$int64}</label
+                  >
+                  <br /><label for="uint64_dv"
+                    >&nbsp;uint64: <text-field id="uint64_dv" />{$uint64}</label
+                  >
+                  <br /><label for="float64_dv"
+                    >float64: <text-field id="float64_dv" />{$float64}</label
+                  >
+                </span>
               </div>
             </div>
           </div>
@@ -1275,102 +1260,95 @@ limitations under the License.
           {/if}
         </legend>
         <div class="contentControls" id="content_controls">
-          <div class="grid-container-two-columns">
-            <div class="grid-container-column">
-              <span>
-                {#if $undoCount > 0}
-                  <button on:click={redo}>Redo ({$undoCount})</button>
-                {:else}
-                  <button disabled>Redo</button>
-                {/if}
-                {#if $changeCount > 0}
-                  <button on:click={undo}>Undo ({$changeCount})</button>
-                {:else}
-                  <button disabled>Undo</button>
-                {/if}
-                {#if $undoCount + $changeCount > 0}
-                  <button on:click={clearChangeStack}>Clear</button>
-                {:else}
-                  <button disabled>Clear</button>
-                {/if}
-              </span>
-            </div>
-          </div>
-          <hr />
-          <div class="grid-container-single-column">
-            <div class="grid-container-column">
-              <div class="flex-container col-item center row">
-                <div class="flex-container row center row-item">
-                  <label for="endianness">Endianness: </label>
-                  <select id="endianness" bind:value={$dataViewEndianness}>
-                    {#each endiannessOpt as { name, value }}
-                      <option {value}>{name}</option>
-                    {/each}
-                  </select>
-                </div>
+          <span>
+            {#if $undoCount > 0}
+              <button on:click={redo}>Redo ({$undoCount})</button>
+            {:else}
+              <button disabled>Redo</button>
+            {/if}
+            {#if $changeCount > 0}
+              <button on:click={undo}>Undo ({$changeCount})</button>
+            {:else}
+              <button disabled>Undo</button>
+            {/if}
+            {#if $undoCount + $changeCount > 0}
+              <button on:click={clearChangeStack}>Clear</button>
+            {:else}
+              <button disabled>Clear</button>
+            {/if}
+          </span>
+        </div>
+      </fieldset>
+      <fieldset class="box margin-top">
+        <legend>Data View</legend>
+
+        <div class="grid-container-single-column">
+          <div class="grid-container-column">
+            <div class="flex-container col-item center row">
+              <div class="flex-container row center row-item">
+                <label for="endianness">Endianness: </label>
+                <select id="endianness" bind:value={$dataViewEndianness}>
+                  {#each endiannessOpt as { name, value }}
+                    <option {value}>{name}</option>
+                  {/each}
+                </select>
               </div>
-              <div class="grid-container-column">
-                <div id="data_vw">
-                  <label for="offset_dv"
+            </div>
+            <div class="grid-container-column">
+              <div id="data_vw">
+                <label for="offset_dv"
                   >&nbsp;Offset: <text-field
-                          id="offset_dv"
+                    id="offset_dv"
                   />{$selectionStartOffset}</label
+                >
+                <span id="b8_dv">
+                  <br /><label for="int8_dv"
+                    >&nbsp;&nbsp;&nbsp;int8: <text-field
+                      id="int8_dv"
+                    />{$int8}</label
                   >
-                  <span id="b8_dv">
-                    <br /><label for="int8_dv"
-                      >&nbsp;&nbsp;&nbsp;int8: <text-field
-                        id="int8_dv"
-                      />{$int8}</label
-                    >
-                    <br /><label for="uint8_dv"
-                      >&nbsp;&nbsp;uint8: <text-field
-                        id="uint8_dv"
-                      />{$uint8}</label
-                    >
-                  </span>
-                  <span id="b16_dv">
-                    <br /><label for="int16_dv"
-                      >&nbsp;&nbsp;int16: <text-field
-                        id="int16_dv"
-                      />{$int16}</label
-                    >
-                    <br /><label for="uint16_dv"
-                      >&nbsp;uint16: <text-field
-                        id="uint16_dv"
-                      />{$uint16}</label
-                    >
-                  </span>
-                  <span id="b32_dv">
-                    <br /><label for="int32_dv"
-                      >&nbsp;&nbsp;int32: <text-field
-                        id="int32_dv"
-                      />{$int32}</label
-                    >
-                    <br /><label for="uint32_dv"
-                      >&nbsp;uint32: <text-field
-                        id="uint32_dv"
-                      />{$uint32}</label
-                    >
-                    <br /><label for="float32_dv"
-                      >float32: <text-field id="float32_dv" />{$float32}</label
-                    >
-                  </span>
-                  <span id="b64_dv">
-                    <br /><label for="int64_dv"
-                      >&nbsp;&nbsp;int64: <text-field
-                        id="int64_dv"
-                      />{$int64}</label
-                    >
-                    <br /><label for="uint64_dv"
-                      >&nbsp;uint64: <text-field
-                        id="uint64_dv"
-                      />{$uint64}</label
-                    >
-                    <br /><label for="float64_dv"
-                      >float64: <text-field id="float64_dv" />{$float64}</label
-                    >
-                  </span>
-                </div>
+                  <br /><label for="uint8_dv"
+                    >&nbsp;&nbsp;uint8: <text-field
+                      id="uint8_dv"
+                    />{$uint8}</label
+                  >
+                </span>
+                <span id="b16_dv">
+                  <br /><label for="int16_dv"
+                    >&nbsp;&nbsp;int16: <text-field
+                      id="int16_dv"
+                    />{$int16}</label
+                  >
+                  <br /><label for="uint16_dv"
+                    >&nbsp;uint16: <text-field id="uint16_dv" />{$uint16}</label
+                  >
+                </span>
+                <span id="b32_dv">
+                  <br /><label for="int32_dv"
+                    >&nbsp;&nbsp;int32: <text-field
+                      id="int32_dv"
+                    />{$int32}</label
+                  >
+                  <br /><label for="uint32_dv"
+                    >&nbsp;uint32: <text-field id="uint32_dv" />{$uint32}</label
+                  >
+                  <br /><label for="float32_dv"
+                    >float32: <text-field id="float32_dv" />{$float32}</label
+                  >
+                </span>
+                <span id="b64_dv">
+                  <br /><label for="int64_dv"
+                    >&nbsp;&nbsp;int64: <text-field
+                      id="int64_dv"
+                    />{$int64}</label
+                  >
+                  <br /><label for="uint64_dv"
+                    >&nbsp;uint64: <text-field id="uint64_dv" />{$uint64}</label
+                  >
+                  <br /><label for="float64_dv"
+                    >float64: <text-field id="float64_dv" />{$float64}</label
+                  >
+                </span>
               </div>
             </div>
           </div>

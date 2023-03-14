@@ -26,10 +26,10 @@ export type ValidationResponse = {
 }
 
 export const radixOpt = [
-  { name: 'HEX', value: 16 },
-  { name: 'DEC', value: 10 },
-  { name: 'OCT', value: 8 },
-  { name: 'BIN', value: 2 },
+  { name: 'Hexadecimal', value: 16 },
+  { name: 'Decimal', value: 10 },
+  { name: 'Octal', value: 8 },
+  { name: 'Binary', value: 2 },
 ]
 
 export const encoding_groups = [
@@ -44,21 +44,21 @@ export const encoding_groups = [
     group: 'Single-byte',
     encodings: [
       { name: 'ASCII (7-bit)', value: 'ascii' },
-      { name: 'ISO-8859-1 (8-bit)', value: 'latin1' },
+      { name: 'Latin-1 (8-bit)', value: 'latin1' },
     ],
   },
   {
     group: 'Multi-byte',
     encodings: [
       { name: 'UTF-8', value: 'utf-8' },
-      { name: 'UTF-16LE', value: 'utf16le' },
+      { name: 'UTF-16LE', value: 'utf-16le' },
     ],
   },
 ]
 
 export const endiannessOpt = [
-  { name: 'Little', value: 'le' },
   { name: 'Big', value: 'be' },
+  { name: 'Little', value: 'le' },
 ]
 
 export const lsbOpt = [
