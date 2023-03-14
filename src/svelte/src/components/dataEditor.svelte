@@ -1200,7 +1200,11 @@ limitations under the License.
             <div class="flex-container col-item center row">
               <div class="grid-container-column">
                 <div id="data_vw">
-                  &nbsp;Offset:
+                  <label for="offset_dv"
+                    >&nbsp;Offset: <text-field
+                      id="offset_dv"
+                    />{$selectionStartOffset}</label
+                  >
                   <span id="b8_dv">
                     <br /><label for="int8_dv"
                       >&nbsp;&nbsp;&nbsp;int8: <text-field
@@ -1307,6 +1311,11 @@ limitations under the License.
               </div>
               <div class="grid-container-column">
                 <div id="data_vw">
+                  <label for="offset_dv"
+                  >&nbsp;Offset: <text-field
+                          id="offset_dv"
+                  />{$selectionStartOffset}</label
+                  >
                   <span id="b8_dv">
                     <br /><label for="int8_dv"
                       >&nbsp;&nbsp;&nbsp;int8: <text-field

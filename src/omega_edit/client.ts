@@ -68,11 +68,9 @@ function setupLogging() {
     .get<string>('logFile', '${workspaceFolder}/dataEditor-${serverPort}.log')
     ?.replace('${workspaceFolder}', appDataPath)
     .replace('${serverPort}', serverPort.toString())
-
   const logLevel =
     process.env.OMEGA_EDIT_CLIENT_LOG_LEVEL ||
     config.get<string>('logLevel', 'info')
-
   setLogger(createSimpleFileLogger(logFile, logLevel))
   vscode.window.showInformationMessage(
     `Logging to '${logFile}', at level '${logLevel}'`
