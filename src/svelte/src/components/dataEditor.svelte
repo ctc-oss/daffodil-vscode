@@ -151,7 +151,11 @@ limitations under the License.
   $: setSelectionEncoding($editorEncoding)
   $: updateLogicalDisplay($bytesPerRow)
   $: {
-    $gotoOffset = parseInt($gotoOffsetInput, $addressValue) + 1
+    $gotoOffset = 
+      ($gotoOffset % $bytesPerRow === 0)
+        ? parseInt($gotoOffsetInput, $addressValue) + 1
+        : parseInt($gotoOffsetInput, $addressValue)
+
     if ($gotoable.valid) goTo($gotoOffset)
   }
   $: {
@@ -686,6 +690,7 @@ limitations under the License.
     $gotoOffsetInput = newGotoInput === 'NaN' ? '0' : newGotoInput
     $gotoOffset = parseInt($gotoOffsetInput, $addressValue)
     $addressValue = parseInt(addrSelect.value)
+    console.log($gotoOffsetInput,$gotoOffset,$addressValue)
   }
 
   window.addEventListener('message', (msg) => {
@@ -856,7 +861,7 @@ limitations under the License.
       <div class="flex-container col">
         <div class="col-item flex-container row center">
           <div class="two-row-items">
-            <label for="edit_mode">Edit Mode:</label>
+            <label for="edit_mode">Byte Edit Mode:</label>
           </div>
           <div class="two-row-items">
             <select
@@ -865,8 +870,8 @@ limitations under the License.
               bind:value={$editMode}
               on:change={closeEphemeralWindows}
             >
-              <option value="simple">Simple</option>
-              <option value="full">Full</option>
+              <option value="simple">Single</option>
+              <option value="full">Multi</option>
             </select>
           </div>
         </div>
