@@ -690,7 +690,6 @@ limitations under the License.
     $gotoOffsetInput = newGotoInput === 'NaN' ? '0' : newGotoInput
     $gotoOffset = parseInt($gotoOffsetInput, $addressValue)
     $addressValue = parseInt(addrSelect.value)
-    console.log($gotoOffsetInput,$gotoOffset,$addressValue)
   }
 
   window.addEventListener('message', (msg) => {
