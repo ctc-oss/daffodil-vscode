@@ -18,33 +18,22 @@
 import { writable, derived } from 'svelte/store'
 import { ThemeType } from '../utilities/colorScheme'
 import {
-  validEncodingStr,
   validRequestableData,
   radixBytePad,
   regexEditDataTest,
 } from '../utilities/display'
+import { fileMetrics } from '../components/Header/fieldsets/FileMetrics'
+import { EditByteModes } from './Configuration'
 
-export const diskFileSize = writable(0)
-export const fileName = writable('')
-export const fileType = writable('')
-export const undoCount = writable(0)
-export const changeCount = writable(0)
-export const computedFileSize = writable(0)
 export const cursorPos = writable(0)
-export const searchData = writable('')
-export const replaceData = writable('')
 export const fileByteStart = writable(0)
 export const displayRadix = writable(16)
 export const addressValue = writable(16)
 export const gotoOffsetMax = writable(0)
 export const commitErrMsg = writable('')
-export const searching = writable(false)
 export const searchCaseInsensitive = writable(false)
 export const gotoOffset = writable(0)
 export const gotoOffsetInput = writable('')
-export const searchResults = writable([])
-export const searchErrMsg = writable('')
-export const replaceErrMsg = writable('')
 export const disableDataView = writable(false)
 export const dataViewEndianness = writable('le') // 'le' for little endian and 'be' for big endian
 export const viewportData = writable(new Uint8Array(0))
@@ -56,14 +45,14 @@ export const editorEncoding = writable('latin1')
 export const selectionStartOffset = writable(0)
 export const rawEditorSelectionTxt = writable('')
 export const editedDataSegment = writable(new Uint8Array(0))
-export const editMode = writable('simple')
+export const editMode = writable(EditByteModes.Single)
 export const editByteWindowHidden = writable(true)
 export const focusedViewportId = writable('')
-export const replacing = writable(false)
-export const replacementsCount = writable(0)
-export const searchIndex = writable(0)
 export const headerHidden = writable(false)
 export const UITheme = writable(ThemeType.Dark)
+export const editedDataStore = writable(new Uint8Array(0))
+
+export const searchable_fn = writable(Function)
 
 export const editByte = derived(
   [
@@ -82,7 +71,7 @@ export const editByte = derived(
   ]) => {
     if (
       $viewportData[$selectionStartOffset] !== undefined &&
-      $editMode === 'simple'
+      $editMode === EditByteModes.Single
     ) {
       return $focusedViewportId === 'logical'
         ? String.fromCharCode($viewportData[$selectionStartOffset])
@@ -106,7 +95,7 @@ export const editedByteIsOriginalByte = derived(
 export const selectionSize = derived(
   [editMode, selectionStartOffset, selectionEndOffset, editorSelection],
   ([$editMode, $selectionStartStore, $selectionEndStore, $editorSelection]) => {
-    if ($editMode === 'simple') return 1
+    if ($editMode === EditByteModes.Single) return 1
 
     return $editorSelection !== ''
       ? $selectionEndStore - $selectionStartStore + 1
@@ -119,9 +108,9 @@ export const bytesPerRow = derived(displayRadix, ($displayRadix) => {
 })
 
 export const fileByteEnd = derived(
-  [bytesPerRow, diskFileSize],
-  ([$bytesPerRow, $diskFileSize]) => {
-    return $diskFileSize / $bytesPerRow
+  [bytesPerRow, fileMetrics],
+  ([$bytesPerRow, $fileMetrics]) => {
+    return $fileMetrics.diskSize / $bytesPerRow
   }
 )
 
@@ -132,8 +121,8 @@ export const allowCaseInsensitiveSearch = derived(
   }
 )
 
-export const saveable = derived([changeCount], ([$changeCount]) => {
-  return $changeCount > 0
+export const saveable = derived([fileMetrics], ([$fileMetrics]) => {
+  return $fileMetrics.changeCount > 0
 })
 
 export const requestable = derived(
@@ -168,7 +157,9 @@ export const requestable = derived(
 export const originalDataSegment = derived(
   [viewportData, selectionStartOffset, selectionOriginalEnd],
   ([$viewportData, $selectionStartOffset, $selectionOriginalEnd]) => {
-    return $viewportData.slice($selectionStartOffset, $selectionOriginalEnd + 1)
+    return !$viewportData
+      ? []
+      : $viewportData.slice($selectionStartOffset, $selectionOriginalEnd + 1)
   }
 )
 
@@ -195,7 +186,10 @@ export const commitable = derived(
     $editMode,
     $editedByteIsOriginalByte,
   ]) => {
-    if (!$requestable || ($editedByteIsOriginalByte && $editMode === 'simple'))
+    if (
+      !$requestable ||
+      ($editedByteIsOriginalByte && $editMode === EditByteModes.Single)
+    )
       return false
     const originalLength = $selectionOriginalEnd - $selectionStartOffset
     const editedLength = $selectionEndOffset - $selectionStartOffset
@@ -207,50 +201,6 @@ export const commitable = derived(
     }
 
     return false
-  }
-)
-
-export const searchable = derived(
-  [searchData, editorEncoding, searching, editMode],
-  ([$searchData, $editorEncoding, $searching, $editMode]) => {
-    if ($searchData.length <= 0 || $searching) {
-      return false
-    }
-    const ret = validEncodingStr($searchData, $editorEncoding, 'full')
-    searchErrMsg.update(() => {
-      return ret.errMsg
-    })
-    return ret.valid
-  }
-)
-
-export const replaceable = derived(
-  [replaceData, editorEncoding, searchable, replacing, selectionActive],
-  ([
-    $replaceData,
-    $editorEncoding,
-    $searchable,
-    $replacing,
-    $selectionActive,
-  ]) => {
-    if ($replaceData.length < 0 || !$searchable || $replacing) {
-      replaceErrMsg.update(() => {
-        return ''
-      })
-      return false
-    }
-    if ($selectionActive) {
-      replaceErrMsg.update(() => {
-        return 'Cannot replace while viewport data is selected'
-      })
-      return false
-    }
-
-    const ret = validEncodingStr($replaceData, $editorEncoding)
-    replaceErrMsg.update(() => {
-      return ret.errMsg
-    })
-    return ret.valid
   }
 )
 
@@ -294,7 +244,7 @@ export const dataViewOffsetText = derived(
 export const dataViewLookAhead = derived(
   [editMode, dataView, byteOffsetPos, disableDataView],
   ([$editMode, $dataView, $byteOffsetPos]) => {
-    return $editMode === 'full'
+    return $editMode === EditByteModes.Multiple
       ? $dataView.byteLength - $byteOffsetPos.valueOf()
       : $dataView.byteLength
   }
