@@ -26,7 +26,7 @@ import {
   getComputedFileSize,
   getCounts,
   getServerHeartbeat,
-  getViewportData,
+  // getViewportData,
   notifyChangedViewports,
   pauseViewportEvents,
   redo,
@@ -433,22 +433,12 @@ export class DataEditWebView implements vscode.Disposable {
   private async setCurrentViewport(viewportId: string) {
     this.currentViewportId = viewportId
     await viewportSubscribe(this.panel, this.currentViewportId)
-
-    const vpResponse = await getViewportData(this.currentViewportId)
-    const data = vpResponse.getData_asU8()
-    const display = Buffer.from(data).toString('hex')
-
     this.panel.webview.postMessage({
       command: MessageCommand.fileInfo,
       data: {
         fileName: this.fileToEdit,
         computedFileSize: await getComputedFileSize(this.omegaSessionId),
       },
-    })
-    this.panel.webview.postMessage({
-      command: MessageCommand.viewportSubscribe,
-      viewportData: data,
-      displayData: display,
     })
   }
 }

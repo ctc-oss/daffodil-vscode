@@ -5,6 +5,9 @@
 // (the "License"); you may not use this file except in compliance with
 // the License.  You may obtain a copy of the License at
 
+import { EditByteModes } from '../stores/Configuration'
+import { SimpleWritable } from '../stores/localStore'
+
 //     http://www.apache.org/licenses/LICENSE-2.0
 
 // Unless required by applicable law or agreed to in writing, software
@@ -23,6 +26,36 @@ const hex_regex = /^[0-9a-fA-F]*$/
 export type ValidationResponse = {
   valid: boolean
   errMsg: string
+}
+
+export type ViewportReferences = {
+  physical: HTMLTextAreaElement
+  address: HTMLTextAreaElement
+  logical: HTMLTextAreaElement
+  // constructor() {
+  //   this.physical = document.getElementById('physical') as HTMLTextAreaElement
+  //   this.address = document.getElementById('address') as HTMLTextAreaElement
+  //   this.logical = document.getElementById('logical') as HTMLTextAreaElement
+  // }
+}
+export type Viewport = 'physical' | 'address' | 'logical'
+
+export function viewport_references(
+  viewport?: Viewport
+): ViewportReferences | HTMLTextAreaElement {
+  if (!viewport) {
+    return {
+      physical: document.getElementById('physical') as HTMLTextAreaElement,
+      address: document.getElementById('address') as HTMLTextAreaElement,
+      logical: document.getElementById('logical') as HTMLTextAreaElement,
+    }
+  }
+
+  return document.getElementById(viewport) as HTMLTextAreaElement
+}
+
+export function edit_byte_window_ref(): HTMLDivElement {
+  return document.getElementById('editByteWindow') as HTMLDivElement
 }
 
 export const radixOpt = [
@@ -218,24 +251,24 @@ export function validStrByteLen(
   switch (dataType) {
     case 'binary':
     case 2:
-      return editMode === 'simple'
+      return editMode === EditByteModes.Single
         ? text.length === radixBytePad(2)
         : text.length % radixBytePad(2) == 0
     case 8:
-      return editMode === 'simple'
+      return editMode === EditByteModes.Single
         ? text.length === radixBytePad(8)
         : text.length % radixBytePad(8) == 0
     case 10:
-      return editMode === 'simple'
+      return editMode === EditByteModes.Single
         ? text.length === radixBytePad(10)
         : text.length % radixBytePad(10) == 0
     case 'hex':
     case 16:
-      return editMode === 'simple'
+      return editMode === EditByteModes.Single
         ? text.length === radixBytePad(16)
         : text.length % radixBytePad(16) == 0
     default:
-      return editMode === 'simple' ? text.length === 1 : true
+      return editMode === EditByteModes.Single ? text.length === 1 : true
   }
 }
 
@@ -259,12 +292,12 @@ export function validRequestableData(
   radix: number
 ): ValidationResponse {
   switch (editMode) {
-    case 'simple':
+    case EditByteModes.Single:
       if (data.length === 0) return { valid: false, errMsg: '' }
       return viewport === 'physical'
         ? validEncodingStr(data, radix, editMode)
         : validEncodingStr(data, 'latin1', editMode)
-    case 'full':
+    case EditByteModes.Multiple:
       return validEncodingStr(data, encoding)
   }
 }

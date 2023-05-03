@@ -37,6 +37,7 @@ export enum MessageCommand {
   replacementsResults,
   setUITheme,
 }
+
 export type EditorMessage = {
   command: MessageCommand
   data: Record<string, any>

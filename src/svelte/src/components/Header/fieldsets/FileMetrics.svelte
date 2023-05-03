@@ -1,0 +1,89 @@
+<!--
+Licensed to the Apache Software Foundation (ASF) under one or more
+contributor license agreements.  See the NOTICE file distributed with
+this work for additional information regarding copyright ownership.
+The ASF licenses this file to You under the Apache License, Version 2.0
+(the "License"); you may not use this file except in compliance with
+the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<script lang="ts">
+  import Button from '../../input/Buttons/Button.svelte'
+  import FlexContainer from '../../layouts/FlexContainer.svelte'
+  import { saveable } from '../../../stores'
+  import { fileMetrics } from './FileMetrics'
+  import { MessageCommand } from '../../../utilities/message'
+  import { vscode } from '../../../utilities/vscode'
+
+  function save_to_disk() {
+    vscode.postMessage({
+      command: MessageCommand.save,
+    })
+  }
+
+  window.addEventListener('message', (msg) => {
+    if (msg.data.command !== MessageCommand.fileInfo) return
+
+    if ('fileName' in msg.data.data) {
+      $fileMetrics.name = msg.data.data.fileName
+    }
+    if ('diskFileSize' in msg.data.data) {
+      $fileMetrics.diskSize = msg.data.data.diskFileSize
+    }
+    if ('computedFileSize' in msg.data.data) {
+      $fileMetrics.computedSize = msg.data.data.computedFileSize
+    }
+    if ('changeCount' in msg.data.data) {
+      $fileMetrics.changeCount = msg.data.data.changeCount
+    }
+    if ('undoCount' in msg.data.data) {
+      $fileMetrics.undoCount = msg.data.data.undoCount
+    }
+  })
+</script>
+
+<fieldset class="file-metrics">
+  <legend>File Metrics</legend>
+  <FlexContainer --dir="column">
+    <label for="file_name">Path</label>
+    <span id="file_name" class="filename">{$fileMetrics.name}</span>
+  </FlexContainer>
+  <hr />
+  <FlexContainer --dir="row">
+    <FlexContainer --dir="column">
+      <label for="disk_file_size">Disk Size</label>
+      <span>{$fileMetrics.diskSize}</span>
+    </FlexContainer>
+    <FlexContainer --dir="column">
+      <label for="computed_file_size">Computed Size</label>
+      <span>{$fileMetrics.computedSize}</span>
+    </FlexContainer>
+  </FlexContainer>
+  <hr />
+  <Button disabledBy={!$saveable} fn={save_to_disk}>
+    <span slot="left" class="btn-icon">&#8615;</span>
+    <span slot="default">Save</span>
+  </Button>
+</fieldset>
+
+<style lang="scss">
+  fieldset {
+    width: 100%;
+    min-width: 175pt;
+  }
+  fieldset label {
+    font-weight: 700;
+  }
+  span.filename {
+    white-space: nowrap;
+    overflow-x: auto;
+    display: inline-block;
+  }
+</style>

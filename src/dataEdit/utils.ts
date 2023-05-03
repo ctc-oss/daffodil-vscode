@@ -28,6 +28,7 @@ import {
   getViewportData,
 } from '@omega-edit/client'
 import { EditorMessage, MessageCommand } from '../svelte/src/utilities/message'
+import { EditByteModes } from '../svelte/src/stores/Configuration'
 
 let client: EditorClient
 export async function initOmegaEditClient(
@@ -45,6 +46,8 @@ export async function setViewportDataForPanel(
     const bufferData: Uint8Array = r.getData_asU8()
     panel.webview.postMessage({
       command: MessageCommand.viewportSubscribe,
+      // viewportData: bufferData,
+      // displayData: Buffer.from(bufferData).toString('hex'),
       data: {
         viewportData: bufferData,
         displayData: Buffer.from(bufferData).toString('hex'),
@@ -143,7 +146,7 @@ export function logicalDisplay(
 export function fillRequestData(message: EditorMessage): [Buffer, string] {
   let selectionByteData: Buffer
   let selectionByteDisplay: string
-  if (message.data.editMode === 'full') {
+  if (message.data.editMode === EditByteModes.Multiple) {
     selectionByteData = encodedStrToData(
       message.data.editedContent,
       message.data.encoding
