@@ -90,7 +90,6 @@ limitations under the License.
   }
 
   window.addEventListener('message', (msg) => {
-    if (msg.data.command !== MessageCommand.search) return
     switch (msg.data.command) {
       case MessageCommand.search:
         $searchQuery.searchResults = msg.data.searchResults
@@ -119,7 +118,7 @@ limitations under the License.
           <span class={inlineClass}>
             <input class={inputClass} bind:value={$searchQuery.input} />
             <button
-              class={$UIThemeCSSClass}
+              class={$UIThemeCSSClass + ' case-btn'}
               on:click={case_sensitive_action}
               class:active={caseInsensitiveToggled}
               title="Toggle Case Sensitive Search"><u>aA</u></button
@@ -157,8 +156,8 @@ limitations under the License.
           <span slot="default">Prev</span></Button
         >
         <Button fn={scrollSearchNext}>
-          <span slot="default" class="btn-icon">Next</span>
-          <span slot="right">&#x23F5;</span></Button
+          <span slot="default">Next</span>
+          <span slot="right" class="btn-icon">&#x23F5;</span></Button
         >
         <sub
           >{$searchQuery.searchIndex + 1} / {$searchQuery.searchResults.length} Results</sub
@@ -184,5 +183,8 @@ limitations under the License.
   .rotate {
     display: inline-block;
     transform: rotate(45deg);
+  }
+  button.case-btn {
+    margin-right: 5px;
   }
 </style>

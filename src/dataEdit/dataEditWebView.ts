@@ -65,6 +65,7 @@ export class DataEditWebView implements vscode.Disposable {
   private fileToEdit: string = ''
   private omegaSessionId = ''
   private contentType = ''
+  private fileSize = 0
   private heartBeatIntervalId: NodeJS.Timer | undefined
 
   constructor(
@@ -79,6 +80,7 @@ export class DataEditWebView implements vscode.Disposable {
     this.svelteWebviewInitializer.initialize(this.view, this.panel.webview)
     this.currentViewportId = ''
     this.contentType = ''
+    this.fileSize = 0
     this.fileToEdit = fileToEdit
     this.displayState = new DisplayState(this.panel)
   }
@@ -131,6 +133,7 @@ export class DataEditWebView implements vscode.Disposable {
         this.contentType = resp.hasContentType()
           ? (resp.getContentType() as string)
           : 'unknown'
+        this.fileSize = await getOnDiskFileSize(this.fileToEdit)
         await this.sendDiskFileSize()
         await this.sendChangesInfo()
       })
@@ -161,7 +164,7 @@ export class DataEditWebView implements vscode.Disposable {
       command: MessageCommand.fileInfo,
       data: {
         fileName: this.fileToEdit,
-        diskFileSize: await getOnDiskFileSize(this.fileToEdit),
+        diskFileSize: this.fileSize,
         type: this.contentType,
       },
     })

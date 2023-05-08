@@ -160,7 +160,6 @@ limitations under the License.
     $viewportData = data
     $gotoOffsetMax = data.length
     $gotoOffset = 0
-    $fileMetrics.diskSize = $fileMetrics.computedSize
     updateLogicalDisplay($bytesPerRow)
   }
 
@@ -318,7 +317,10 @@ limitations under the License.
     <header class="header-container">
       <FlexContainer>
         <FileMetrics />
-        <SearchReplace on:goTo={goToEventHandler} />
+        <SearchReplace
+          on:goTo={goToEventHandler}
+          on:clearDataDisplays={clearDataDisplays}
+        />
         <Settings on:goTo={goToEventHandler} />
       </FlexContainer>
     </header>

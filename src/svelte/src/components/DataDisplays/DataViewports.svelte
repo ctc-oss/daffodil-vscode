@@ -78,6 +78,7 @@ limitations under the License.
   $: {
     if (editByteWindow) change_edit_byte_window($displayRadix)
   }
+
   function scrollHandle(e: Event) {
     const element = e.target as HTMLElement
     isScrolledToTop = element.scrollTop === 0
@@ -255,6 +256,7 @@ limitations under the License.
 
 <textarea
   class={$UIThemeCSSClass + ' address_vw'}
+  class:locked={$selectionActive}
   id="address"
   contenteditable="true"
   readonly
@@ -265,6 +267,7 @@ limitations under the License.
 {#if $editMode === EditByteModes.Single}
   <textarea
     class={$UIThemeCSSClass}
+    class:locked={$selectionActive}
     id="physical"
     contenteditable="true"
     readonly
@@ -275,6 +278,7 @@ limitations under the License.
   />
   <textarea
     class={$UIThemeCSSClass}
+    class:locked={$selectionActive}
     id="logical"
     contenteditable="true"
     readonly
@@ -286,6 +290,7 @@ limitations under the License.
 {:else}
   <textarea
     class={$UIThemeCSSClass}
+    class:locked={$selectionActive}
     id="physical"
     contenteditable="true"
     readonly
@@ -296,6 +301,7 @@ limitations under the License.
   />
   <textarea
     class={$UIThemeCSSClass}
+    class:locked={$selectionActive}
     id="logical"
     contenteditable="true"
     readonly
@@ -305,3 +311,9 @@ limitations under the License.
     on:scroll={scrollHandle}
   />
 {/if}
+
+<style lang="scss">
+  textarea.locked {
+    overflow-y: hidden;
+  }
+</style>

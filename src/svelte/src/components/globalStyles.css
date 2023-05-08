@@ -148,6 +148,8 @@ textarea {
   font-family: var(--vscode-editor-font-family, 'monospace');
   font-size: small;
   resize: none;
+  scrollbar-width: auto;
+  scrollbar-gutter: stable;
 }
 
 .dataEditor {
@@ -369,13 +371,20 @@ span.input-actions button.light {
 }
 
 span.input-actions button.active {
-  outline: #687483;
   outline-style: inset;
   outline-offset: -1px;
   outline-width: 2px;
   opacity: 1;
 }
 
+span.input-actions button.active.dark {
+  background-color: var(--color-primary-light);
+  outline-color: var(--color-primary-lightest);
+}
+span.input-actions button.active.light {
+  background-color: var(--color-primary-dark);
+  outline-color: var(--color-primary-darkest);
+}
 span.input-actions span.inline-container {
   display: flex;
   flex-direction: row;

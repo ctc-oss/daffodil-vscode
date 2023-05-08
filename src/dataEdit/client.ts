@@ -31,13 +31,16 @@ import XDGAppPaths from 'xdg-app-paths'
 import { DataEditWebView } from './dataEditWebView'
 import { initOmegaEditClient } from './utils'
 
+export const dataEditorCommand: string = 'extension.data.edit'
+export const omegaEditHost: string = '127.0.0.1'
+export const serverStartTimeout: number = 15 // in seconds
 export let omegaEditPort: number = 0
-export const appDataPath = XDGAppPaths({ name: 'omega_edit' }).data()
+export const appDataPath: string = XDGAppPaths({ name: 'omega_edit' }).data()
 
 const DEFAULT_OMEGA_EDIT_PORT: number = 9000
 const OMEGA_EDIT_MIN_PORT: number = 1024
 const OMEGA_EDIT_MAX_PORT: number = 65535
-const MAX_LOG_FILES = 5 // Maximum number of log files to keep TODO: make this configurable
+const MAX_LOG_FILES: number = 5 // Maximum number of log files to keep TODO: make this configurable
 
 function rotateLogFiles(logFile: string) {
   interface LogFile {
@@ -158,6 +161,10 @@ function generateLogbackConfigFile(
   logFile: string,
   logLevel: string = 'INFO'
 ): string {
+  const dirname = path.dirname(logFile)
+  if (!fs.existsSync(dirname)) {
+    fs.mkdirSync(dirname, { recursive: true })
+  }
   logLevel = logLevel.toUpperCase()
   const logbackConfig = `<?xml version="1.0" encoding="UTF-8"?>\n
 <configuration>
@@ -212,15 +219,19 @@ async function serverStart(serverPort: number) {
   const serverPid = (await Promise.race([
     startServer(
       omegaEditPort,
-      '127.0.0.1',
+      omegaEditHost,
       getPidFile(serverPort),
       logConfigFile
     ),
     new Promise((resolve, reject) => {
-      setTimeout(
-        () => reject(new Error('Server timed out after 10 seconds')),
-        10000
-      )
+      setTimeout(() => {
+        omegaEditPort = 0
+        reject(
+          new Error(
+            `Server startup timed out after ${serverStartTimeout} seconds`
+          )
+        )
+      }, serverStartTimeout * 1000)
     }),
   ])) as number | undefined
   if (serverPid === undefined || serverPid <= 0) {
@@ -245,7 +256,7 @@ export function activate(ctx: vscode.ExtensionContext) {
 
   ctx.subscriptions.push(
     vscode.commands.registerCommand(
-      'extension.data.edit',
+      dataEditorCommand,
       async (fileToEdit: string = '') => {
         await getOmegaEditPort()
         setupLogging()
