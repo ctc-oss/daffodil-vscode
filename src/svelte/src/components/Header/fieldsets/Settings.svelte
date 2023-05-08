@@ -93,12 +93,10 @@ limitations under the License.
     </FlexContainer>
 
     <FlexContainer --dir="row">
-      <Button disabledBy={!$gotoable.valid} fn={goToEventHandler}
-        >
-          <span slot="left" class="btn-icon">&#10148</span>
-          <span slot="default">Go</span>
-        </Button
-      >
+      <Button disabledBy={!$gotoable.valid} fn={goToEventHandler}>
+        <span slot="left" class="btn-icon">&#10148</span>
+        <span slot="default">Go</span>
+      </Button>
     </FlexContainer>
   </FlexContainer>
 </fieldset>
@@ -114,5 +112,4 @@ limitations under the License.
     width: 100%;
     margin: 5pt 0pt 5pt 0pt;
   }
-  
 </style>

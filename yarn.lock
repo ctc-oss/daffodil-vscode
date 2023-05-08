@@ -14,7 +14,7 @@
   resolved "https://registry.yarnpkg.com/@discoveryjs/json-ext/-/json-ext-0.5.7.tgz#1d572bfbbe14b7704e0ba0f39b74815b84870d70"
   integrity sha512-dBVuXR082gk3jsFp7Rd/JI4kytwGHecnCoTtXFb7DB6CNHp4rg5k1bhg0nWdLGLnOV71lmDzGQaLMy8iPLY0pw==
 
-"@grpc/grpc-js@^1.8.12":
+"@grpc/grpc-js@1.8.14":
   version "1.8.14"
   resolved "https://registry.yarnpkg.com/@grpc/grpc-js/-/grpc-js-1.8.14.tgz#4fe0f9917d6f094cf59245763c275442b182e9ad"
   integrity sha512-w84maJ6CKl5aApCMzFll0hxtFNT6or9WwMslobKaqWUEf1K+zhlL43bSQhFreyYWIWR+Z0xnVFC1KtLm4ZpM/A==
@@ -91,22 +91,22 @@
     "@jridgewell/resolve-uri" "3.1.0"
     "@jridgewell/sourcemap-codec" "1.4.14"
 
-"@omega-edit/client@0.9.63":
-  version "0.9.63"
-  resolved "https://registry.yarnpkg.com/@omega-edit/client/-/client-0.9.63.tgz#495479f52beb8cdc4330b97b2981a2cb90ea9f2b"
-  integrity sha512-Sw5nEL3JPwhZm7NuckY4ugjUKBIE/1fxmcZz/cwxG7gi/rdJ1vZUnYUUuc4aVrUS2c6D/q+2hQ2IOq57pw2yHQ==
+"@omega-edit/client@0.9.64":
+  version "0.9.64"
+  resolved "https://registry.yarnpkg.com/@omega-edit/client/-/client-0.9.64.tgz#1747fcbf9357fb1cb0a7556b4bc0e97e2affcc77"
+  integrity sha512-VxrG7qQ1XPT79ghKbq+F6AsOAgBFdncCBHCj8971CKVbhjv1osKGLOIl4hslWcV5UnCTTIDoeALWciQh7+7tfw==
   dependencies:
-    "@grpc/grpc-js" "^1.8.12"
-    "@omega-edit/server" "0.9.63"
-    "@types/google-protobuf" "^3.15.5"
-    google-protobuf "^3.21.2"
-    pino "^8.11.0"
-    wait-port "^1.0.4"
+    "@grpc/grpc-js" "1.8.14"
+    "@omega-edit/server" "0.9.64"
+    "@types/google-protobuf" "3.15.6"
+    google-protobuf "3.21.2"
+    pino "8.11.0"
+    wait-port "1.0.4"
 
-"@omega-edit/server@0.9.63":
-  version "0.9.63"
-  resolved "https://registry.yarnpkg.com/@omega-edit/server/-/server-0.9.63.tgz#1cdb97c66854bf02ea8e67225c29c3f4803af313"
-  integrity sha512-Y8GpK0eefEPipXvaxIFV0bWr14ZfgrzLf1zqQkJGfPZPdIR/x9t+LLs2+y1XBz7WlDmHKT2o7Yog+d1Ru5YBug==
+"@omega-edit/server@0.9.64":
+  version "0.9.64"
+  resolved "https://registry.yarnpkg.com/@omega-edit/server/-/server-0.9.64.tgz#a7929c22a5230acd49145068c2c55af90ee6cf78"
+  integrity sha512-6k0ClNEA4IJcRGnfOjD7faFXmtDaJSvsf1r0WZwNm3J6Iwsbh0WbdVQc9B48fzI/0zJD6JT1jhcEdImNtKjc2Q==
 
 "@protobufjs/aspromise@^1.1.1", "@protobufjs/aspromise@^1.1.2":
   version "1.1.2"
@@ -242,7 +242,7 @@
     "@types/minimatch" "^5.1.2"
     "@types/node" "*"
 
-"@types/google-protobuf@^3.15.5":
+"@types/google-protobuf@3.15.6":
   version "3.15.6"
   resolved "https://registry.yarnpkg.com/@types/google-protobuf/-/google-protobuf-3.15.6.tgz#674a69493ef2c849b95eafe69167ea59079eb504"
   integrity sha512-pYVNNJ+winC4aek+lZp93sIKxnXt5qMkuKmaqS3WGuTq0Bw1ZDYNBgzG5kkdtwcv+GmYJGo3yEg6z2cKKAiEdw==
@@ -1486,7 +1486,7 @@ glob@^8.1.0:
     minimatch "^5.0.1"
     once "^1.3.0"
 
-google-protobuf@^3.21.2:
+google-protobuf@3.21.2:
   version "3.21.2"
   resolved "https://registry.yarnpkg.com/google-protobuf/-/google-protobuf-3.21.2.tgz#4580a2bea8bbb291ee579d1fefb14d6fa3070ea4"
   integrity sha512-3MSOYFO5U9mPGikIYCzK0SaThypfGgS6bHqrUGXG3DPHCrb+txNqeEcns1W0lkGfk0rCyNXm7xB9rMxnCiZOoA==
@@ -2275,7 +2275,7 @@ pino-std-serializers@^6.0.0:
   resolved "https://registry.yarnpkg.com/pino-std-serializers/-/pino-std-serializers-6.2.0.tgz#169048c0df3f61352fce56aeb7fb962f1b66ab43"
   integrity sha512-IWgSzUL8X1w4BIWTwErRgtV8PyOGOOi60uqv0oKuS/fOA8Nco/OeI6lBuc4dyP8MMfdFwyHqTMcBIA7nDiqEqA==
 
-pino@^8.11.0:
+pino@8.11.0:
   version "8.11.0"
   resolved "https://registry.yarnpkg.com/pino/-/pino-8.11.0.tgz#2a91f454106b13e708a66c74ebc1c2ab7ab38498"
   integrity sha512-Z2eKSvlrl2rH8p5eveNUnTdd4AjJk8tAsLkHYZQKGHP4WTh2Gi1cOSOs3eWPqaj+niS3gj4UkoreoaWgF3ZWYg==
@@ -3074,7 +3074,7 @@ vscode-extension-tester@5.5.2:
     unzip-stream "^0.3.1"
     vscode-extension-tester-locators "^3.4.1"
 
-wait-port@1.0.4, wait-port@^1.0.4:
+wait-port@1.0.4:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/wait-port/-/wait-port-1.0.4.tgz#6f9474645ddbf7701ac100ab6762438edf6e5689"
   integrity sha512-w8Ftna3h6XSFWWc2JC5gZEgp64nz8bnaTp5cvzbJSZ53j+omktWTDdwXxEF0jM8YveviLgFWvNGrSvRHnkyHyw==

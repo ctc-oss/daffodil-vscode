@@ -29,22 +29,31 @@ limitations under the License.
   }
 
   window.addEventListener('message', (msg) => {
-    if (msg.data.command !== MessageCommand.fileInfo) return
-
-    if ('fileName' in msg.data.data) {
-      $fileMetrics.name = msg.data.data.fileName
-    }
-    if ('diskFileSize' in msg.data.data) {
-      $fileMetrics.diskSize = msg.data.data.diskFileSize
-    }
-    if ('computedFileSize' in msg.data.data) {
-      $fileMetrics.computedSize = msg.data.data.computedFileSize
-    }
-    if ('changeCount' in msg.data.data) {
-      $fileMetrics.changeCount = msg.data.data.changeCount
-    }
-    if ('undoCount' in msg.data.data) {
-      $fileMetrics.undoCount = msg.data.data.undoCount
+    switch (msg.data.command) {
+      case MessageCommand.fileInfo:
+        {
+          if ('fileName' in msg.data.data) {
+            $fileMetrics.name = msg.data.data.fileName
+          }
+          if ('type' in msg.data.data) {
+            $fileMetrics.type = msg.data.data.type
+          }
+          if ('diskFileSize' in msg.data.data) {
+            $fileMetrics.diskSize = msg.data.data.diskFileSize
+          }
+          if ('computedFileSize' in msg.data.data) {
+            $fileMetrics.computedSize = msg.data.data.computedFileSize
+          }
+          if ('changeCount' in msg.data.data) {
+            $fileMetrics.changeCount = msg.data.data.changeCount
+          }
+          if ('undoCount' in msg.data.data) {
+            $fileMetrics.undoCount = msg.data.data.undoCount
+          }
+        }
+        break
+      default:
+        break // do nothing
     }
   })
 </script>
@@ -53,17 +62,23 @@ limitations under the License.
   <legend>File Metrics</legend>
   <FlexContainer --dir="column">
     <label for="file_name">Path</label>
-    <span id="file_name" class="filename">{$fileMetrics.name}</span>
+    <span id="file_name" class="nowrap">{$fileMetrics.name}</span>
   </FlexContainer>
   <hr />
   <FlexContainer --dir="row">
     <FlexContainer --dir="column">
       <label for="disk_file_size">Disk Size</label>
-      <span>{$fileMetrics.diskSize}</span>
+      <span id="disk_file_size" class="nowrap">{$fileMetrics.diskSize}</span>
     </FlexContainer>
     <FlexContainer --dir="column">
       <label for="computed_file_size">Computed Size</label>
-      <span>{$fileMetrics.computedSize}</span>
+      <span id="computed_file_size" class="nowrap"
+        >{$fileMetrics.computedSize}</span
+      >
+    </FlexContainer>
+    <FlexContainer --dir="column">
+      <label for="content_type">Content Type</label>
+      <span id="content_type" class="nowrap">{$fileMetrics.type}</span>
     </FlexContainer>
   </FlexContainer>
   <hr />
@@ -81,7 +96,7 @@ limitations under the License.
   fieldset label {
     font-weight: 700;
   }
-  span.filename {
+  span.nowrap {
     white-space: nowrap;
     overflow-x: auto;
     display: inline-block;

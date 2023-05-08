@@ -22,12 +22,16 @@ limitations under the License.
   import FlexContainer from '../../layouts/FlexContainer.svelte'
 </script>
 
-<button class={$UIThemeCSSClass} disabled={disabledBy} on:click={!disabledBy ? fn : ()=>{}}>
+<button
+  class={$UIThemeCSSClass}
+  disabled={disabledBy}
+  on:click={!disabledBy ? fn : () => {}}
+>
   <FlexContainer --align-items="center" --justify-content="space-evenly">
     <svelte:fragment>
-      <slot name="left"/>
+      <slot name="left" />
       <slot />
-      <slot name="right"/>
+      <slot name="right" />
     </svelte:fragment>
   </FlexContainer>
 </button>

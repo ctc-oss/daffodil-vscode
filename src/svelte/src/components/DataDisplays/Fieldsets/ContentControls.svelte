@@ -59,50 +59,36 @@ limitations under the License.
   <FlexContainer>
     <!-- Full Mode Content Controls -->
     {#if $editMode === EditByteModes.Multiple}
-      <Button disabledBy={!$commitable} fn={commitChanges}
-        >
-          <span slot="left" class="btn-icon">&#10003;</span>
-          <span slot="default">Commit</span>
-        </Button
-      >
-      <Button disabledBy={!canRedo} fn={redo}
-        >
-          <span slot="left" class="mirror btn-icon">&#9100;</span>
-          <span slot="default">Redo{redoText}</span>
-        </Button
-      >
-      <Button disabledBy={!canUndo} fn={undo}
-        >
-          <span slot="left" class="btn-icon">&#9100;</span>
-          <span slot="default">Undo{undoText}</span>
-        </Button
-      >
-      <Button disabledBy={!canRevert} fn={clearChangeStack}
-        >
-          <span slot="left" class="btn-icon">&#8635;</span>
-          <span slot="default">Revert All</span>
-        </Button
-      >
+      <Button disabledBy={!$commitable} fn={commitChanges}>
+        <span slot="left" class="btn-icon">&#10003;</span>
+        <span slot="default">Commit</span>
+      </Button>
+      <Button disabledBy={!canRedo} fn={redo}>
+        <span slot="left" class="mirror btn-icon">&#9100;</span>
+        <span slot="default">Redo{redoText}</span>
+      </Button>
+      <Button disabledBy={!canUndo} fn={undo}>
+        <span slot="left" class="btn-icon">&#9100;</span>
+        <span slot="default">Undo{undoText}</span>
+      </Button>
+      <Button disabledBy={!canRevert} fn={clearChangeStack}>
+        <span slot="left" class="btn-icon">&#8635;</span>
+        <span slot="default">Revert All</span>
+      </Button>
     {:else}
       <!-- Simple Mode Content Controls -->
-      <Button disabledBy={!canRedo} fn={redo}
-        >
-          <span slot="left" class="mirror btn-icon">&#9100;</span>
-          <span slot="default">Redo{redoText}</span>
-        </Button
-      >
-      <Button disabledBy={!canUndo} fn={undo}
-        >
-          <span slot="left" class="btn-icon">&#9100;</span>
-          <span slot="default">Undo{undoText}</span>
-        </Button
-      >
-      <Button disabledBy={!canRevert} fn={clearChangeStack}
-        >
-          <span slot="left" class="btn-icon">&#8635;</span>
-          <span slot="default">Revert All</span>
-        </Button
-      >
+      <Button disabledBy={!canRedo} fn={redo}>
+        <span slot="left" class="mirror btn-icon">&#9100;</span>
+        <span slot="default">Redo{redoText}</span>
+      </Button>
+      <Button disabledBy={!canUndo} fn={undo}>
+        <span slot="left" class="btn-icon">&#9100;</span>
+        <span slot="default">Undo{undoText}</span>
+      </Button>
+      <Button disabledBy={!canRevert} fn={clearChangeStack}>
+        <span slot="left" class="btn-icon">&#8635;</span>
+        <span slot="default">Revert All</span>
+      </Button>
     {/if}
   </FlexContainer>
 </fieldset>

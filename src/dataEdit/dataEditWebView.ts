@@ -35,11 +35,13 @@ import {
   saveSession,
   searchSession,
   undo,
+  IOFlags,
+  SaveStatus,
 } from '@omega-edit/client'
 import path from 'path'
 import * as vscode from 'vscode'
 import { EditorMessage, MessageCommand } from '../svelte/src/utilities/message'
-import { omegaEditPort } from './client'
+import { appDataPath, omegaEditPort } from './client'
 import { SvelteWebviewInitializer } from './svelteWebviewInitializer'
 import {
   DisplayState,
@@ -62,6 +64,7 @@ export class DataEditWebView implements vscode.Disposable {
   private currentViewportId: string
   private fileToEdit: string = ''
   private omegaSessionId = ''
+  private contentType = ''
   private heartBeatIntervalId: NodeJS.Timer | undefined
 
   constructor(
@@ -75,6 +78,7 @@ export class DataEditWebView implements vscode.Disposable {
     this.svelteWebviewInitializer = new SvelteWebviewInitializer(context)
     this.svelteWebviewInitializer.initialize(this.view, this.panel.webview)
     this.currentViewportId = ''
+    this.contentType = ''
     this.fileToEdit = fileToEdit
     this.displayState = new DisplayState(this.panel)
   }
@@ -121,7 +125,20 @@ export class DataEditWebView implements vscode.Disposable {
   }
 
   private async setupDataEditor() {
-    this.omegaSessionId = await createSession(this.fileToEdit)
+    await createSession(this.fileToEdit, undefined, appDataPath)
+      .then(async (resp) => {
+        this.omegaSessionId = resp.getSessionId()
+        this.contentType = resp.hasContentType()
+          ? (resp.getContentType() as string)
+          : 'unknown'
+        await this.sendDiskFileSize()
+        await this.sendChangesInfo()
+      })
+      .catch(() => {
+        vscode.window.showErrorMessage(
+          `Failed to create session for ${this.fileToEdit}`
+        )
+      })
     await createViewport(
       undefined,
       this.omegaSessionId,
@@ -137,8 +154,6 @@ export class DataEditWebView implements vscode.Disposable {
           `Failed to create viewport for ${this.fileToEdit}`
         )
       })
-    await this.sendDiskFileSize()
-    await this.sendChangesInfo()
   }
 
   private async sendDiskFileSize() {
@@ -147,6 +162,7 @@ export class DataEditWebView implements vscode.Disposable {
       data: {
         fileName: this.fileToEdit,
         diskFileSize: await getOnDiskFileSize(this.fileToEdit),
+        type: this.contentType,
       },
     })
   }
@@ -332,12 +348,54 @@ export class DataEditWebView implements vscode.Disposable {
           })
           .then(async (uri) => {
             if (uri && uri.fsPath) {
-              await saveSession(this.omegaSessionId, uri.path, true)
-                .then(async (fp) => {
-                  vscode.window.showInformationMessage(`Saved to file: ${fp}`)
-                  if (fp === this.fileToEdit) {
-                    await this.sendChangesInfo()
-                    await this.sendDiskFileSize()
+              await saveSession(
+                this.omegaSessionId,
+                uri.path,
+                IOFlags.IO_FLG_OVERWRITE
+              )
+                .then(async (saveResponse) => {
+                  const status = saveResponse.getSaveStatus()
+                  if (status === SaveStatus.MODIFIED) {
+                    // Query user to overwrite the modified file
+                    const confirmation =
+                      await vscode.window.showInformationMessage(
+                        'File has been modified since being opened overwrite the file anyway?',
+                        { modal: true },
+                        'Yes',
+                        'No'
+                      )
+                    if (confirmation === 'Yes') {
+                      await saveSession(
+                        this.omegaSessionId,
+                        uri.path,
+                        IOFlags.IO_FLG_FORCE_OVERWRITE
+                      )
+                        .then(() => {
+                          vscode.window.showInformationMessage(
+                            `Saved to file: ${uri.path}`
+                          )
+                          if (uri.path === this.fileToEdit) {
+                            this.sendChangesInfo()
+                            this.sendDiskFileSize()
+                          }
+                        })
+                        .catch(() => {
+                          vscode.window.showErrorMessage(
+                            `Failed to save: ${uri.path}`
+                          )
+                        })
+                    } else {
+                      vscode.window.showInformationMessage(
+                        `Save cancelled: ${uri.path}`
+                      )
+                    }
+                  } else {
+                    const fp = saveResponse.getFilePath()
+                    vscode.window.showInformationMessage(`Saved to file: ${fp}`)
+                    if (fp === this.fileToEdit) {
+                      await this.sendChangesInfo()
+                      await this.sendDiskFileSize()
+                    }
                   }
                 })
                 .catch(() => {

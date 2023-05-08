@@ -32,12 +32,12 @@ import { DataEditWebView } from './dataEditWebView'
 import { initOmegaEditClient } from './utils'
 
 export let omegaEditPort: number = 0
+export const appDataPath = XDGAppPaths({ name: 'omega_edit' }).data()
 
 const DEFAULT_OMEGA_EDIT_PORT: number = 9000
 const OMEGA_EDIT_MIN_PORT: number = 1024
 const OMEGA_EDIT_MAX_PORT: number = 65535
 const MAX_LOG_FILES = 5 // Maximum number of log files to keep TODO: make this configurable
-const appDataPath = XDGAppPaths({ name: 'omega_edit' }).data()
 
 function rotateLogFiles(logFile: string) {
   interface LogFile {
@@ -158,6 +158,7 @@ function generateLogbackConfigFile(
   logFile: string,
   logLevel: string = 'INFO'
 ): string {
+  logLevel = logLevel.toUpperCase()
   const logbackConfig = `<?xml version="1.0" encoding="UTF-8"?>\n
 <configuration>
     <appender name="FILE" class="ch.qos.logback.core.FileAppender">
@@ -197,10 +198,11 @@ async function serverStart(serverPort: number) {
     statusBarItem.text = `${serverStartingText} ${frame}`
     ++animationFrame
   }, animationInterval)
-
+  const config = vscode.workspace.getConfiguration('dataEditor')
   const logConfigFile = generateLogbackConfigFile(
     path.join(appDataPath, `serv-${omegaEditPort}.log`),
-    'INFO' // TODO: Make this configurable
+    process.env.OMEGA_EDIT_SERVER_LOG_LEVEL ||
+      config.get<string>('logLevel', 'info')
   )
   if (!fs.existsSync(logConfigFile)) {
     throw new Error(`Log config file '${logConfigFile}' not found`)

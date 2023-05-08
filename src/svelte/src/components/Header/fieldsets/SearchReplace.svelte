@@ -140,27 +140,26 @@ limitations under the License.
     </FlexContainer>
 
     <FlexContainer --dir="row">
-      <Button disabledBy={!$searchable} fn={search}
-        >
-        <span slot="left" class="btn-icon">&#9906;</span>
+      <Button disabledBy={!$searchable} fn={search}>
+        <span slot="left" class="btn-icon rotate">&#9906;</span>
         <span slot="default">Search</span></Button
       >
-      <Button disabledBy={!$replaceable} fn={searchAndReplace}
-        >
+      <Button disabledBy={!$replaceable} fn={searchAndReplace}>
         <span slot="left" class="btn-icon">&#8645;</span>
         <span slot="default">Replace</span>
-        </Button
-      >
+      </Button>
     </FlexContainer>
 
     {#if $searchQuery.searchResults.length > 0}
       <FlexContainer --dir="row">
         <Button fn={scrollSearchPrev}>
           <span slot="left" class="btn-icon">&#x23F4;</span>
-          <span slot="default">Prev</span></Button>
-        <Button fn={scrollSearchNext} >
+          <span slot="default">Prev</span></Button
+        >
+        <Button fn={scrollSearchNext}>
           <span slot="default" class="btn-icon">Next</span>
-          <span slot="right">&#x23F5;</span></Button>
+          <span slot="right">&#x23F5;</span></Button
+        >
         <sub
           >{$searchQuery.searchIndex + 1} / {$searchQuery.searchResults.length} Results</sub
         >
@@ -179,8 +178,11 @@ limitations under the License.
   fieldset input {
     width: 75%;
   }
-  fieldset
-  .checkbox {
+  fieldset .checkbox {
     width: auto;
+  }
+  .rotate {
+    display: inline-block;
+    transform: rotate(45deg);
   }
 </style>

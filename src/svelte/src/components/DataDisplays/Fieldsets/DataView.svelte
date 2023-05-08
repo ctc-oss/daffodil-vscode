@@ -104,7 +104,8 @@ limitations under the License.
   select {
     width: 25%;
   }
-  label, select { 
-    min-width:fit-content;
+  label,
+  select {
+    min-width: fit-content;
   }
 </style>

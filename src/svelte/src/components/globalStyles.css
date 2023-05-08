@@ -18,16 +18,16 @@ limitations under the License. */
 html {
   --container-width: 100%;
   --container-height: auto;
-  --color-primary-darkest: #02060B;
+  --color-primary-darkest: #02060b;
   --color-primary-dark: #101821;
-  --color-primary-mid: #2F3E4F;
+  --color-primary-mid: #2f3e4f;
   --color-primary-light: #687483;
-  --color-primary-lightest: #E1E3E5;
-  --color-secondary-darkest: #110B02;
+  --color-primary-lightest: #e1e3e5;
+  --color-secondary-darkest: #110b02;
   --color-secondary-dark: #322716;
   --color-secondary-mid: #796444;
-  --color-secondary-light: #C8B69B;
-  --color-secondary-lightest: #FFFDFA;
+  --color-secondary-light: #c8b69b;
+  --color-secondary-lightest: #fffdfa;
 }
 
 /* Global BODY Styles */
