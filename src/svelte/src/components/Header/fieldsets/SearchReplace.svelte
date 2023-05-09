@@ -141,8 +141,7 @@ limitations under the License.
     <FlexContainer --dir="row">
       <Button disabledBy={!$searchable} fn={search}>
         <span slot="left" class="btn-icon rotate">&#9906;</span>
-        <span slot="default">Search</span></Button
-      >
+        <span slot="default">Search</span></Button>
       <Button disabledBy={!$replaceable} fn={searchAndReplace}>
         <span slot="left" class="btn-icon">&#8645;</span>
         <span slot="default">Replace</span>

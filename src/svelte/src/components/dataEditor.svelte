@@ -48,9 +48,9 @@ limitations under the License.
     darkUITheme,
   } from '../utilities/colorScheme'
   import {
-    dvHighlightTag,
     type ViewportReferences,
     viewport_references,
+    DOMReady,
   } from '../utilities/display'
   import { MessageCommand } from '../utilities/message'
   import { vscode } from '../utilities/vscode'
@@ -65,18 +65,10 @@ limitations under the License.
   import FlexContainer from './layouts/FlexContainer.svelte'
   import ServerMetrics from './ServerMetrics/ServerMetrics.svelte'
 
-  $: clearOnEditModeChange($editMode)
   $: setSelectionEncoding($editorEncoding)
   $: updateLogicalDisplay($bytesPerRow)
   $: $gotoOffset = parseInt($gotoOffsetInput, $addressValue)
-  $: {
-    if ($editorSelection.includes(dvHighlightTag.start)) {
-      $editorSelection = $editorSelection
-        .replaceAll(dvHighlightTag.start, '')
-        .replaceAll(dvHighlightTag.end, '')
-    }
-    $rawEditorSelectionTxt = $editorSelection
-  }
+  $: $rawEditorSelectionTxt = $editorSelection
   $: $UIThemeCSSClass = $darkUITheme ? CSSThemeClass.Dark : CSSThemeClass.Light
 
   function clearOnEditModeChange(_: string) {
@@ -160,6 +152,7 @@ limitations under the License.
     $viewportData = data
     $gotoOffsetMax = data.length
     $gotoOffset = 0
+    
     updateLogicalDisplay($bytesPerRow)
   }
 
@@ -248,6 +241,8 @@ limitations under the License.
 
   function closeEditByteWindow() {
     $editByteWindowHidden = true
+    let physicalViewportRef = viewport_references("physical") as HTMLTextAreaElement
+    physicalViewportRef.focus()
   }
 
   function clearDataDisplays() {
@@ -341,6 +336,7 @@ limitations under the License.
       </div>
     {/if}
   </FlexContainer>
+
   <Main
     on:clearDataDisplays={clearDataDisplays}
     on:clearChangeStack={clearChangeStack}
@@ -349,7 +345,9 @@ limitations under the License.
     on:undo={undo}
     on:handleEditorEvent={handleEditorEvent}
   />
+
   <hr />
+
   <ServerMetrics />
 </body>
 

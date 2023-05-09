@@ -72,9 +72,7 @@ limitations under the License.
     </FlexContainer>
     <FlexContainer --dir="column">
       <label for="computed_file_size">Computed Size</label>
-      <span id="computed_file_size" class="nowrap"
-        >{$fileMetrics.computedSize}</span
-      >
+      <span id="computed_file_size" class="nowrap">{$fileMetrics.computedSize}</span>
     </FlexContainer>
     <FlexContainer --dir="column">
       <label for="content_type">Content Type</label>

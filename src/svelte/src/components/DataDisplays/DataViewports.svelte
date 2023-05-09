@@ -266,7 +266,7 @@ limitations under the License.
 />
 {#if $editMode === EditByteModes.Single}
   <textarea
-    class={$UIThemeCSSClass}
+    class={$UIThemeCSSClass + " physical"}
     class:locked={$selectionActive}
     id="physical"
     contenteditable="true"
@@ -277,7 +277,7 @@ limitations under the License.
     on:click={handleViewportClickEvent}
   />
   <textarea
-    class={$UIThemeCSSClass}
+    class={$UIThemeCSSClass + " logical"}
     class:locked={$selectionActive}
     id="logical"
     contenteditable="true"
@@ -289,7 +289,7 @@ limitations under the License.
   />
 {:else}
   <textarea
-    class={$UIThemeCSSClass}
+    class={$UIThemeCSSClass + " physical"}
     class:locked={$selectionActive}
     id="physical"
     contenteditable="true"
@@ -300,7 +300,7 @@ limitations under the License.
     on:scroll={scrollHandle}
   />
   <textarea
-    class={$UIThemeCSSClass}
+    class={$UIThemeCSSClass + " logical"}
     class:locked={$selectionActive}
     id="logical"
     contenteditable="true"
@@ -315,5 +315,11 @@ limitations under the License.
 <style lang="scss">
   textarea.locked {
     overflow-y: hidden;
+  }
+  textarea.physical {
+    min-width: 300pt;
+  }
+  textarea.logical {
+    min-width: 200pt;
   }
 </style>

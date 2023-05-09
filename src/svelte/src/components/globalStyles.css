@@ -30,14 +30,7 @@ html {
   --color-secondary-lightest: #fffdfa;
 }
 
-/* Global BODY Styles */
-body.light {
-  color: #02060b;
-}
-body.dark {
-  color: #e1e3e5;
-}
-
+/* Global LEGEND Styles */
 legend {
   font-weight: bold;
 }
@@ -55,33 +48,9 @@ button {
   border-style: solid;
   line-height: 1;
 }
-
-button.dark {
-  background-color: #322716;
-  color: #fffdfa;
-  border-color: #c8b69b;
-}
-
-button.light {
-  background-color: #c8b69b;
-  color: #322716;
-  border-color: #322716;
-}
-
 button:disabled {
   opacity: 0.3;
   cursor: not-allowed;
-}
-
-span.btn-icon {
-  font-size: large;
-}
-span.errMsg {
-  color: red;
-}
-span.mirror {
-  transform: scaleX(-1);
-  display: inline-block;
 }
 
 /* Global HEADER Styles */
@@ -99,11 +68,9 @@ header {
 fieldset {
   width: 100%;
 }
-
 fieldset label {
   font-weight: bold;
 }
-
 fieldset button {
   min-width: 60pt;
   margin: 2pt 5pt 2pt 0;
@@ -119,6 +86,43 @@ select {
   border-style: solid;
   width: var(--width, 100%);
 }
+input:focus,
+select:focus {
+  outline: none;
+}
+
+/* Global HR Styles */
+hr {
+  width: 100%;
+  opacity: 0.7;
+}
+
+/* Global TEXTAREA Syles */
+textarea {
+  font-family: var(--vscode-editor-font-family, 'monospace');
+  font-size: small;
+  resize: none;
+  position: relative;
+  overflow-y: scroll;
+  transition: all 0.25s;
+}
+
+textarea::-webkit-scrollbar {
+  background-color: transparent;
+  width: 10pt;
+}
+textarea::-webkit-scrollbar-thumb {
+  background-color: var(--color-secondary-light);
+  border-radius: 4px;
+}
+
+/* Global Styled Elements */
+body.light {
+  color: #02060b;
+}
+body.dark {
+  color: #e1e3e5;
+}
 
 input.dark,
 select.dark {
@@ -126,7 +130,6 @@ select.dark {
   color: #e1e3e5;
   border-color: #687483;
 }
-
 input.light,
 select.light {
   background-color: #e1e3e5;
@@ -134,209 +137,32 @@ select.light {
   border-color: #2f3e4f;
 }
 
-input:focus,
-select:focus {
-  outline: none;
-}
-
-hr {
-  width: 100%;
-  opacity: 0.7;
-}
-
-textarea {
-  font-family: var(--vscode-editor-font-family, 'monospace');
-  font-size: small;
-  resize: none;
-  scrollbar-width: auto;
-  scrollbar-gutter: stable;
-}
-
-.dataEditor {
-  display: grid;
-  grid-template-columns: max-content max-content max-content auto;
-  grid-template-rows: max-content max-content auto;
-  min-height: 640px;
-  height: 100%;
-  font-family: var(--vscode-editor-font-family, 'monospace');
-}
-
-/* display of binary encoded data takes more space in the physical view */
-.dataEditor.binary {
-  /* I think this should be 16em instead of 10em for 16 characters, but that didn't work */
-  grid-template-columns: max-content max-content 10em auto;
-}
-
-.dataEditor div {
-  resize: none;
-}
-
-.dataEditor div.hd {
-  text-align: center;
-  font-weight: bold;
+button.dark {
+  background-color: #322716;
   color: #fffdfa;
+  border-color: #c8b69b;
+}
+button.light {
+  background-color: #c8b69b;
+  color: #322716;
+  border-color: #322716;
 }
 
-.dataEditor div.hd.dark {
-  background-color: #2f3e4f;
+span.btn-icon {
+  font-size: large;
 }
-
-.dataEditor div.hd.light {
-  background-color: #687483;
+span.errMsg {
+  color: red;
 }
-
-.dataEditor div.measure {
-  display: flex;
+span.mirror {
+  transform: scaleX(-1);
+  display: inline-block;
 }
-
-.dataEditor div.measure.dark {
-  display: flex;
-  background-color: #101821;
-  color: #e1e3e5;
-}
-
-.dataEditor div.measure.light {
-  display: flex;
-  background-color: #e1e3e5;
-  color: #02060b;
-}
-
-.dataEditor div.measure.selection {
-  flex-direction: row;
-}
-
-.dataEditor div.measure.selection sub {
-  opacity: 0.6;
-}
-
-.dataEditor div.measure span {
-  align-self: flex-end;
-}
-
-.dataEditor div.measure div {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.dataEditor div.measure div.clear-selection {
-  width: 20pt;
-  font-size: 11pt;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.25s;
-}
-
-body.light {
-  color: #02060b;
-}
-
-body.dark {
-  color: #e1e3e5;
-}
-
-.dataEditor div.measure div.clear-selection:hover {
-  font-size: 14pt;
-}
-
-.dataEditor div.contentControls .grid-container-two-columns {
-  display: flex;
-}
-
-.dataEditor
-  div.contentControls
-  .grid-container-two-columns
-  div.grid-container-column {
-  width: 50%;
-  padding: 5px;
-}
-
-.dataEditor div.content-select-column {
-  width: 50%;
-}
-
-.dataEditor div.content-select-container {
-  display: flex;
-  align-items: center;
-  margin-bottom: 5px;
-}
-
-.dataEditor div.content-select-container label {
-  width: 100%;
-}
-
-.dataEditor textarea {
-  display: block;
-  word-break: break-all;
-  white-space: break-spaces;
-  box-sizing: content-box;
-  height: 100%;
-  width: 100%;
-  font-family: var(--vscode-editor-font-family, 'monospace');
-}
-
-.dataEditor textarea.address_vw {
-  text-align: right;
-  direction: rtl;
-  user-select: none;
-  cursor: not-allowed;
-  pointer-events: none;
-  max-width: 100px;
-  padding-right: 10pt;
-  font-weight: 700;
-}
-
-.dataEditor select.address_type {
-  height: 100%;
-}
-
-.dataEditor textarea.dark {
-  background-color: #101821;
-  color: #fffdfa;
-}
-
-.dataEditor textarea.light {
-  background-color: #e1e3e5;
-  color: #02060b;
-}
-
-.dataEditor div.editView {
-  display: grid;
-  grid-template-columns: 1fr;
-  grid-template-rows: 1fr max-content;
-  overflow-x: hidden;
-  word-break: break-all;
-}
-
-.dataEditor div.editView textarea {
-  width: auto;
-}
-
-.dataEditor textarea.selectedContent {
-  background: #2c2c2c;
-}
-
-.dataEditor textarea.selectedContent:disabled {
-  background: #252526;
-}
-
-.dataEditor button {
-  padding: 10px;
-  margin-right: 5px;
-  transition: all 0.5s;
-}
-
-.dataEditor select.content-select {
-  float: right;
-  max-width: 110px;
-}
-
 span.input-actions input {
   flex-grow: 1;
   border-style: none;
   border: 0;
 }
-
 span.input-actions button {
   height: 100%;
   margin: 0;
@@ -347,36 +173,30 @@ span.input-actions button {
   min-width: 15pt;
   font-family: var(--vscode-editor-font-family, 'monospace');
 }
-
 span.input-actions button.dark:hover {
   opacity: 1;
   background-color: #687483;
 }
-
 span.input-actions button.light:hover {
   opacity: 1;
   background-color: #101821;
 }
-
 span.input-actions button.dark {
   background-color: #101821;
   border-color: #687483;
   opacity: 0.5;
 }
-
 span.input-actions button.light {
   background-color: #e1e3e5;
   border-color: #2f3e4f;
   opacity: 0.5;
 }
-
 span.input-actions button.active {
   outline-style: inset;
   outline-offset: -1px;
   outline-width: 2px;
   opacity: 1;
 }
-
 span.input-actions button.active.dark {
   background-color: var(--color-primary-light);
   outline-color: var(--color-primary-lightest);
@@ -391,7 +211,6 @@ span.input-actions span.inline-container {
   align-items: center;
   height: 100%;
 }
-
 span.input-actions.dark {
   display: flex;
   flex-direction: column;
@@ -403,7 +222,6 @@ span.input-actions.dark {
   width: 75%;
   padding: 0px 2px 0px 2px;
 }
-
 span.input-actions.light {
   display: flex;
   flex-direction: column;
@@ -414,4 +232,138 @@ span.input-actions.light {
   border-width: 1pt;
   width: 75%;
   padding: 0px 2px 0px 2px;
+}
+
+/* Global Style Classes */
+.dataEditor {
+  display: grid;
+  grid-template-columns: max-content max-content max-content auto;
+  grid-template-rows: max-content max-content auto;
+  min-height: 640px;
+  height: 100%;
+  font-family: var(--vscode-editor-font-family, 'monospace');
+}
+/* display of binary encoded data takes more space in the physical view */
+.dataEditor.binary {
+  /* I think this should be 16em instead of 10em for 16 characters, but that didn't work */
+  grid-template-columns: max-content max-content 10em auto;
+}
+.dataEditor div {
+  resize: none;
+}
+.dataEditor div.hd {
+  text-align: center;
+  font-weight: bold;
+  color: #fffdfa;
+}
+.dataEditor div.hd.dark {
+  background-color: #2f3e4f;
+}
+.dataEditor div.hd.light {
+  background-color: #687483;
+}
+.dataEditor div.measure {
+  display: flex;
+}
+.dataEditor div.measure.dark {
+  display: flex;
+  background-color: #101821;
+  color: #e1e3e5;
+}
+.dataEditor div.measure.light {
+  display: flex;
+  background-color: #e1e3e5;
+  color: #02060b;
+}
+.dataEditor div.measure.selection {
+  flex-direction: row;
+}
+.dataEditor div.measure.selection sub {
+  opacity: 0.6;
+}
+.dataEditor div.measure span {
+  align-self: flex-end;
+}
+.dataEditor div.measure div {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.dataEditor div.measure div.clear-selection {
+  width: 20pt;
+  font-size: 11pt;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.25s;
+}
+.dataEditor div.measure div.clear-selection:hover {
+  font-size: 14pt;
+}
+.dataEditor div.contentControls .grid-container-two-columns {
+  display: flex;
+}
+.dataEditor
+  div.contentControls
+  .grid-container-two-columns
+  div.grid-container-column {
+  width: 50%;
+  padding: 5px;
+}
+.dataEditor div.content-select-column {
+  width: 50%;
+}
+.dataEditor div.content-select-container {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+}
+.dataEditor div.content-select-container label {
+  width: 100%;
+}
+.dataEditor textarea.address_vw {
+  text-align: right;
+  direction: rtl;
+  user-select: none;
+  max-width: 100px;
+  padding-right: 10pt;
+  font-weight: 700;
+}
+.dataEditor textarea.address_vw:focus {
+  outline: none;
+}
+.dataEditor select.address_type {
+  height: 100%;
+}
+.dataEditor textarea.dark {
+  background-color: #101821;
+  color: #fffdfa;
+}
+.dataEditor textarea.light {
+  background-color: #e1e3e5;
+  color: #02060b;
+}
+.dataEditor div.editView {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr max-content;
+  overflow-x: hidden;
+  word-break: break-all;
+}
+.dataEditor div.editView textarea {
+  width: auto;
+}
+.dataEditor textarea.selectedContent {
+  background: #2c2c2c;
+}
+.dataEditor textarea.selectedContent:disabled {
+  background: #252526;
+}
+.dataEditor button {
+  padding: 10px;
+  margin-right: 5px;
+  transition: all 0.5s;
+}
+.dataEditor select.content-select {
+  float: right;
+  max-width: 110px;
 }

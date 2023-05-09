@@ -32,26 +32,19 @@ export type ViewportReferences = {
   physical: HTMLTextAreaElement
   address: HTMLTextAreaElement
   logical: HTMLTextAreaElement
-  // constructor() {
-  //   this.physical = document.getElementById('physical') as HTMLTextAreaElement
-  //   this.address = document.getElementById('address') as HTMLTextAreaElement
-  //   this.logical = document.getElementById('logical') as HTMLTextAreaElement
-  // }
 }
 export type Viewport = 'physical' | 'address' | 'logical'
 
 export function viewport_references(
   viewport?: Viewport
 ): ViewportReferences | HTMLTextAreaElement {
-  if (!viewport) {
-    return {
+  return viewport 
+    ? document.getElementById(viewport) as HTMLTextAreaElement
+    : {
       physical: document.getElementById('physical') as HTMLTextAreaElement,
       address: document.getElementById('address') as HTMLTextAreaElement,
-      logical: document.getElementById('logical') as HTMLTextAreaElement,
-    }
-  }
-
-  return document.getElementById(viewport) as HTMLTextAreaElement
+      logical: document.getElementById('logical') as HTMLTextAreaElement
+    } 
 }
 
 export function edit_byte_window_ref(): HTMLDivElement {
@@ -106,8 +99,6 @@ export const addressOpt = [
   { name: 'Decimal', value: 10 },
   { name: 'Octal', value: 8 },
 ]
-
-export const dvHighlightTag = { start: '<mark>', end: '</mark>' }
 
 // address, followed by radix
 const offsetDisplays = {
@@ -395,4 +386,8 @@ export function radixToString(radix: number): string {
       return 'hex'
   }
   return 'binary'
+}
+
+export function DOMReady(): boolean {
+  return document.readyState === 'complete'
 }
