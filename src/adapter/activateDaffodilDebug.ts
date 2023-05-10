@@ -343,7 +343,7 @@ export function activateDaffodilDebug(
     vscode.debug.registerDebugAdapterDescriptorFactory('dfdl', factory)
   )
   if ('dispose' in factory) {
-    context.subscriptions.push(factory)
+    context.subscriptions.push(factory as vscode.Disposable)
   }
 
   context.subscriptions.push(
