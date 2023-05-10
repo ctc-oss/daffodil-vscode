@@ -19,6 +19,7 @@
 export enum MessageCommand {
   viewportSubscribe,
   save,
+  saveAs,
   undo,
   redo,
   clear,

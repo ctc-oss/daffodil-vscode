@@ -22,7 +22,13 @@ limitations under the License.
   import { MessageCommand } from '../../../utilities/message'
   import { vscode } from '../../../utilities/vscode'
 
-  function save_to_disk() {
+  function saveAs() {
+    vscode.postMessage({
+      command: MessageCommand.saveAs,
+    })
+  }
+
+  function save() {
     vscode.postMessage({
       command: MessageCommand.save,
     })
@@ -82,9 +88,13 @@ limitations under the License.
     </FlexContainer>
   </FlexContainer>
   <hr />
-  <Button disabledBy={!$saveable} fn={save_to_disk}>
+  <Button disabledBy={!$saveable} fn={save}>
     <span slot="left" class="btn-icon">&#8615;</span>
     <span slot="default">Save</span>
+  </Button>
+  <Button fn={saveAs}>
+    <span slot="left" class="btn-icon">&#8615;</span>
+    <span slot="default">Save As</span>
   </Button>
 </fieldset>
 

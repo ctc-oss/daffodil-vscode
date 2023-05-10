@@ -182,7 +182,7 @@ limitations under the License.
   }
   .rotate {
     display: inline-block;
-    transform: rotate(45deg);
+    transform: rotate(-45deg);
   }
   button.case-btn {
     margin-right: 5px;

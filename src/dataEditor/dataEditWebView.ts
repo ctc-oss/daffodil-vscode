@@ -329,6 +329,24 @@ export class DataEditWebView implements vscode.Disposable {
         break
 
       case MessageCommand.save:
+        saveSession(
+          this.omegaSessionId,
+          this.fileToEdit,
+          IOFlags.IO_FLG_FORCE_OVERWRITE
+        )
+          .then(async (saveResponse) => {
+            vscode.window.showInformationMessage(
+              `Saved to file: ${saveResponse.getFilePath()}`
+            )
+            await this.sendChangesInfo()
+            await this.sendDiskFileSize()
+          })
+          .catch(() => {
+            vscode.window.showErrorMessage(`Failed to save: ${this.fileToEdit}`)
+          })
+        break
+
+      case MessageCommand.saveAs:
         vscode.window
           .showSaveDialog({
             title: 'Save Session',
@@ -336,7 +354,7 @@ export class DataEditWebView implements vscode.Disposable {
           })
           .then(async (uri) => {
             if (uri && uri.fsPath) {
-              await saveSession(
+              saveSession(
                 this.omegaSessionId,
                 uri.path,
                 IOFlags.IO_FLG_OVERWRITE
@@ -353,7 +371,7 @@ export class DataEditWebView implements vscode.Disposable {
                         'No'
                       )
                     if (confirmation === 'Yes') {
-                      await saveSession(
+                      saveSession(
                         this.omegaSessionId,
                         uri.path,
                         IOFlags.IO_FLG_FORCE_OVERWRITE
