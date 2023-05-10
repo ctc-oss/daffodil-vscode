@@ -271,3 +271,25 @@ export function checkServerListening(
     socket.connect(port, host)
   })
 }
+
+/**
+ * Removes a directory and all of its contents
+ * @param dirPath path to directory to remove
+ */
+export function removeDirectory(dirPath: string): void {
+  if (fs.existsSync(dirPath)) {
+    fs.readdirSync(dirPath).forEach((file) => {
+      const curPath = `${dirPath}/${file}`;
+      if (fs.lstatSync(curPath).isDirectory()) {
+        // Recursively remove subdirectories
+        removeDirectory(curPath);
+      } else {
+        // Delete file
+        fs.unlinkSync(curPath);
+      }
+    });
+
+    // Remove empty directory
+    fs.rmdirSync(dirPath);
+  }
+}
