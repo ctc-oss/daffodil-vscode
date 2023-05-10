@@ -19,7 +19,7 @@ import * as assert from 'assert'
 import * as path from 'path'
 import * as vscode from 'vscode'
 import fs from 'fs'
-import { DataEditWebView } from '../../dataEdit/dataEditWebView'
+import { DataEditWebView } from '../../dataEditor/dataEditWebView'
 import { TEST_SCHEMA } from './common'
 import { after, before } from 'mocha'
 import {
@@ -35,7 +35,7 @@ import {
   dataEditorCommand,
   omegaEditHost,
   serverStartTimeout,
-} from '../../dataEdit/client'
+} from '../../dataEditor/client'
 
 const testPort = 9009 // use a different port than the default for testing to avoid conflicts with running servers
 const logLevel = 'debug'

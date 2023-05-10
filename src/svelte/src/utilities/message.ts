@@ -33,7 +33,7 @@ export enum MessageCommand {
   setSessionFile,
   updateLogicalDisplay,
   populateSelectionData,
-  heartBeat,
+  heartbeat,
   replacementsResults,
   setUITheme,
 }

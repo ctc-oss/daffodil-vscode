@@ -39,10 +39,12 @@ limitations under the License.
     textDiv.style.opacity = '.7'
   }
   function get_text_element_ref(): HTMLDivElement {
-    return document.getElementsByClassName('latency-text')[0] as HTMLDivElement
+    return document.getElementsByClassName(
+      'heartbeat-text'
+    )[0] as HTMLDivElement
   }
   window.addEventListener('message', (msg) => {
-    if (msg.data.command === MessageCommand.heartBeat) {
+    if (msg.data.command === MessageCommand.heartbeat) {
       omegaEditPort = msg.data.data.omegaEditPort
       serverVersion = msg.data.data.serverVersion
       serverLatency = msg.data.data.serverLatency
@@ -74,7 +76,7 @@ limitations under the License.
         <circle cx="50%" cy="50%" r="4pt" fill="grey" />
       {/if}
     </svg>
-    <div class="latency-text">
+    <div class="heartbeat-text">
       <b>CPU Load Avg:</b>
       {(serverCpuLoadAvg ? serverCpuLoadAvg : 0).toFixed(2)}
       <b>Memory Usage:</b>
@@ -95,9 +97,9 @@ limitations under the License.
     opacity: 0.7;
     font-style: italic;
   }
-  div.latency-text {
+  div.heartbeat-text {
     opacity: 0;
-    transition: opacity 0.5s ease-in-out;
+    transition: opacity 1s ease-in-out;
   }
   svg.latency-indicator {
     height: 100%;

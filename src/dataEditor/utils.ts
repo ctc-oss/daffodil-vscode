@@ -29,6 +29,7 @@ import {
 } from '@omega-edit/client'
 import { EditorMessage, MessageCommand } from '../svelte/src/utilities/message'
 import { EditByteModes } from '../svelte/src/stores/Configuration'
+import * as net from 'net'
 
 let client: EditorClient
 export async function initOmegaEditClient(
@@ -240,5 +241,33 @@ export async function getOnDiskFileSize(filePath: string): Promise<number> {
         resolve(stats.size)
       }
     })
+  })
+}
+
+/**
+ * Checks if a server is listening on a given port and host
+ * @param port port to check
+ * @param host host to check
+ * @returns true if a server is listening on the given port and host, false otherwise
+ */
+export function checkServerListening(
+  port: number,
+  host: string
+): Promise<boolean> {
+  return new Promise((resolve) => {
+    const socket: net.Socket = new net.Socket()
+    socket.setTimeout(2000) // set a 2-second timeout for the connection attempt
+    socket.on('connect', () => {
+      socket.destroy() // close the connection once connected
+      resolve(true) // server is listening
+    })
+    socket.on('timeout', () => {
+      socket.destroy() // close the connection on timeout
+      resolve(false) // server is not listening
+    })
+    socket.on('error', () => {
+      resolve(false) // server is not listening or an error occurred
+    })
+    socket.connect(port, host)
   })
 }

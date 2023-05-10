@@ -16,36 +16,38 @@
  */
 
 import {
-  CountKind,
-  IServerHeartbeat,
   clear,
+  CountKind,
   createSession,
   createViewport,
   destroySession,
   edit,
   getComputedFileSize,
   getCounts,
-  getServerHeartbeat,
-  // getViewportData,
+  IOFlags,
   notifyChangedViewports,
   pauseViewportEvents,
   redo,
   replaceSession,
   resumeViewportEvents,
   saveSession,
+  SaveStatus,
   searchSession,
   undo,
-  IOFlags,
-  SaveStatus,
 } from '@omega-edit/client'
 import path from 'path'
 import * as vscode from 'vscode'
 import { EditorMessage, MessageCommand } from '../svelte/src/utilities/message'
-import { appDataPath, omegaEditPort } from './client'
+import {
+  activeSessions,
+  appDataPath,
+  HEARTBEAT_INTERVAL_MS,
+  heartbeatInfo,
+} from './client'
 import { SvelteWebviewInitializer } from './svelteWebviewInitializer'
 import {
-  DisplayState,
   dataToEncodedStr,
+  DisplayState,
   encodedStrToData,
   fillRequestData,
   getOnDiskFileSize,
@@ -55,7 +57,6 @@ import {
 } from './utils'
 
 const VIEWPORT_CAPACITY_MAX = 1000000 // Maximum viewport size in Ωedit is 1048576 (1024 * 1024)
-const HEARTBEAT_INTERVAL_MS = 1000 // 1 second (1000 ms)
 
 export class DataEditWebView implements vscode.Disposable {
   public panel: vscode.WebviewPanel
@@ -90,7 +91,10 @@ export class DataEditWebView implements vscode.Disposable {
       clearInterval(this.heartBeatIntervalId)
       this.heartBeatIntervalId = undefined
     }
+
+    // destroy the session and remove it from the list of active sessions
     await destroySession(this.omegaSessionId)
+    activeSessions.splice(activeSessions.indexOf(this.omegaSessionId), 1)
     this.panel.dispose()
   }
 
@@ -100,9 +104,9 @@ export class DataEditWebView implements vscode.Disposable {
 
   public async initialize() {
     // start the server heartbeat
-    this.sendHeartBeat().then(() => {
+    this.sendHeartbeat().then(() => {
       this.heartBeatIntervalId = setInterval(async () => {
-        await this.sendHeartBeat()
+        await this.sendHeartbeat()
       }, HEARTBEAT_INTERVAL_MS)
     })
 
@@ -134,6 +138,7 @@ export class DataEditWebView implements vscode.Disposable {
           ? (resp.getContentType() as string)
           : 'unknown'
         this.fileSize = await getOnDiskFileSize(this.fileToEdit)
+        activeSessions.push(this.omegaSessionId)
         await this.sendDiskFileSize()
         await this.sendChangesInfo()
       })
@@ -170,44 +175,19 @@ export class DataEditWebView implements vscode.Disposable {
     })
   }
 
-  private async sendHeartBeat() {
-    // send the server version, latency, and timestamp to the webview as a
-    // heartbeat
-    getServerHeartbeat([this.omegaSessionId], HEARTBEAT_INTERVAL_MS)
-      .then((heartbeat: IServerHeartbeat) => {
-        this.panel.webview.postMessage({
-          command: MessageCommand.heartBeat,
-          data: {
-            omegaEditPort: omegaEditPort,
-            serverVersion: heartbeat.serverVersion,
-            serverLatency: heartbeat.latency,
-            serverCpuLoadAvg: heartbeat.serverCpuLoadAverage,
-            serverUsedMemory: heartbeat.serverUsedMemory,
-            serverUptime: heartbeat.serverUptime,
-            sessionCount: heartbeat.sessionCount,
-          },
-        })
-      })
-      .catch((error) => {
-        this.panel.webview.postMessage({
-          command: MessageCommand.heartBeat,
-          data: {
-            omegaEditPort: omegaEditPort,
-            serverVersion: 'Unknown',
-            serverLatency: 0,
-            serverCpuLoadAvg: 0,
-            serverUsedMemory: 0,
-            serverUptime: 0,
-            sessionCount: 0,
-          },
-        })
-        vscode.window.showErrorMessage(`Heartbeat error: ${error}`)
-        // stop the heartbeat since the server is not responding
-        if (this.heartBeatIntervalId) {
-          clearInterval(this.heartBeatIntervalId)
-          this.heartBeatIntervalId = undefined
-        }
-      })
+  private async sendHeartbeat() {
+    this.panel.webview.postMessage({
+      command: MessageCommand.heartbeat,
+      data: {
+        omegaEditPort: heartbeatInfo.omegaEditPort,
+        serverVersion: heartbeatInfo.serverVersion,
+        serverLatency: heartbeatInfo.latency,
+        serverCpuLoadAvg: heartbeatInfo.serverCpuLoadAverage,
+        serverUsedMemory: heartbeatInfo.serverUsedMemory,
+        serverUptime: heartbeatInfo.serverUptime,
+        sessionCount: heartbeatInfo.sessionCount,
+      },
+    })
   }
 
   private createPanel(title: string): vscode.WebviewPanel {
