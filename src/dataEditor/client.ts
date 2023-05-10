@@ -41,7 +41,7 @@ export const serverStartTimeout: number = 15 // in seconds
 export let omegaEditPort: number = 0
 export const appDataPath: string = XDGAppPaths({ name: 'omega_edit' }).data()
 
-let heartBeatIntervalId: NodeJS.Timer | undefined
+let heartBeatIntervalId: NodeJS.Timer | undefined = undefined
 
 const DEFAULT_OMEGA_EDIT_PORT: number = 9000
 const OMEGA_EDIT_MIN_PORT: number = 1024
@@ -216,7 +216,39 @@ export class HeartbeatInfo implements IHeartbeatInfo {
 }
 
 export let heartbeatInfo: IHeartbeatInfo = new HeartbeatInfo()
-export let activeSessions: string[] = []
+let activeSessions: string[] = []
+
+export function addActiveSession(sessionId: string) {
+  if (!activeSessions.includes(sessionId)) {
+    activeSessions.push(sessionId)
+    // scale the heartbeat interval based on the number of active sessions
+    getHeartbeat().then(() => {
+      if (heartBeatIntervalId) {
+        clearInterval(heartBeatIntervalId)
+      }
+      heartBeatIntervalId = setInterval(async () => {
+        await getHeartbeat()
+      }, HEARTBEAT_INTERVAL_MS * activeSessions.length)
+    })
+  }
+}
+
+export function removeActiveSession(sessionId: string) {
+  const index = activeSessions.indexOf(sessionId)
+  if (index >= 0) {
+    activeSessions.splice(index, 1)
+    clearInterval(heartBeatIntervalId)
+    heartBeatIntervalId = undefined
+    if (activeSessions.length > 0) {
+      // scale the heartbeat interval based on the number of active sessions
+      getHeartbeat().then(() => {
+        heartBeatIntervalId = setInterval(async () => {
+          await getHeartbeat()
+        }, HEARTBEAT_INTERVAL_MS * activeSessions.length)
+      })
+    }
+  }
+}
 
 async function getHeartbeat() {
   assert(omegaEditPort > 0, `illegal Ωedit port ${omegaEditPort}`)
@@ -326,12 +358,8 @@ export function activate(ctx: vscode.ExtensionContext) {
           setAutoFixViewportDataLength(true)
           await serverStart()
           await initOmegaEditClient(omegaEditPort)
-          // start the server heartbeat
-          getHeartbeat().then(() => {
-            heartBeatIntervalId = setInterval(async () => {
-              await getHeartbeat()
-            }, HEARTBEAT_INTERVAL_MS)
-          })
+          // initialize the first server heartbeat
+          await getHeartbeat()
         }
         return await createOmegaEditWebviewPanel(ctx, fileToEdit)
       }
@@ -358,11 +386,6 @@ async function createOmegaEditWebviewPanel(
       // stop the server if the session count is zero
       if ((await getSessionCount()) === 0) {
         assert(activeSessions.length === 0)
-        // stop collecting heart beat data
-        if (heartBeatIntervalId) {
-          clearInterval(heartBeatIntervalId as NodeJS.Timer)
-          heartBeatIntervalId = undefined
-        }
 
         // stop the server
         await serverStop()
