@@ -40,11 +40,11 @@ import * as vscode from 'vscode'
 import { EditorMessage, MessageCommand } from '../svelte/src/utilities/message'
 import {
   addActiveSession,
-  appDataPath,
+  checkpointPath,
   HEARTBEAT_INTERVAL_MS,
   heartbeatInfo,
-  removeActiveSession,
-} from './client'
+  removeActiveSession
+} from "./client";
 import { SvelteWebviewInitializer } from './svelteWebviewInitializer'
 import {
   dataToEncodedStr,
@@ -56,6 +56,7 @@ import {
   setViewportDataForPanel,
   viewportSubscribe,
 } from './utils'
+import assert from "assert";
 
 const VIEWPORT_CAPACITY_MAX = 1000000 // Maximum viewport size in Ωedit is 1048576 (1024 * 1024)
 
@@ -94,8 +95,7 @@ export class DataEditWebView implements vscode.Disposable {
     }
 
     // destroy the session and remove it from the list of active sessions
-    await destroySession(this.omegaSessionId)
-    removeActiveSession(this.omegaSessionId)
+    removeActiveSession(await destroySession(this.omegaSessionId))
     this.panel.dispose()
   }
 
@@ -132,7 +132,8 @@ export class DataEditWebView implements vscode.Disposable {
   }
 
   private async setupDataEditor() {
-    await createSession(this.fileToEdit, undefined, appDataPath)
+    assert(checkpointPath && checkpointPath.length > 0, "checkpointPath is not set")
+    await createSession(this.fileToEdit, undefined, checkpointPath)
       .then(async (resp) => {
         this.omegaSessionId = resp.getSessionId()
         this.contentType = resp.hasContentType()

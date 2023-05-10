@@ -32,7 +32,11 @@ import path from 'path'
 import * as vscode from 'vscode'
 import XDGAppPaths from 'xdg-app-paths'
 import { DataEditWebView } from './dataEditWebView'
-import { checkServerListening, initOmegaEditClient } from './utils'
+import {
+  checkServerListening,
+  initOmegaEditClient,
+  removeDirectory,
+} from './utils'
 import assert from 'assert'
 
 export const dataEditorCommand: string = 'extension.data.edit'
@@ -40,6 +44,7 @@ export const omegaEditHost: string = '127.0.0.1'
 export const serverStartTimeout: number = 15 // in seconds
 export let omegaEditPort: number = 0
 export const appDataPath: string = XDGAppPaths({ name: 'omega_edit' }).data()
+export let checkpointPath: string = ''
 
 let heartBeatIntervalId: NodeJS.Timer | undefined = undefined
 
@@ -121,6 +126,11 @@ function configureOmegaEditPort() {
       omegaEditPort = 0
       throw new Error(message)
     }
+    // Set the checkpoint path to be used by Ωedit sessions
+    checkpointPath = path.join(appDataPath, `.checkpoint-${omegaEditPort}`)
+    if (!fs.existsSync(checkpointPath)) {
+      fs.mkdirSync(checkpointPath, { recursive: true })
+    }
   }
 }
 
@@ -156,7 +166,7 @@ async function serverStop() {
           }, 2000)
         })
       )
-      assert(!(await isServerRunning()))
+      removeDirectory(checkpointPath)
     } else {
       vscode.window.showErrorMessage(
         `Ωedit server on port ${omegaEditPort} with PID ${pid} failed to stop`
@@ -358,9 +368,9 @@ export function activate(ctx: vscode.ExtensionContext) {
           setAutoFixViewportDataLength(true)
           await serverStart()
           await initOmegaEditClient(omegaEditPort)
-          // initialize the first server heartbeat
-          await getHeartbeat()
         }
+        // initialize the first server heartbeat
+        await getHeartbeat()
         return await createOmegaEditWebviewPanel(ctx, fileToEdit)
       }
     )
@@ -384,7 +394,8 @@ async function createOmegaEditWebviewPanel(
     async () => {
       await dataEditorView.dispose()
       // stop the server if the session count is zero
-      if ((await getSessionCount()) === 0) {
+      const sessionCount = await getSessionCount()
+      if (sessionCount === 0) {
         assert(activeSessions.length === 0)
 
         // stop the server
