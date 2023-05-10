@@ -279,17 +279,17 @@ export function checkServerListening(
 export function removeDirectory(dirPath: string): void {
   if (fs.existsSync(dirPath)) {
     fs.readdirSync(dirPath).forEach((file) => {
-      const curPath = `${dirPath}/${file}`;
+      const curPath = `${dirPath}/${file}`
       if (fs.lstatSync(curPath).isDirectory()) {
         // Recursively remove subdirectories
-        removeDirectory(curPath);
+        removeDirectory(curPath)
       } else {
         // Delete file
-        fs.unlinkSync(curPath);
+        fs.unlinkSync(curPath)
       }
-    });
+    })
 
     // Remove empty directory
-    fs.rmdirSync(dirPath);
+    fs.rmdirSync(dirPath)
   }
 }

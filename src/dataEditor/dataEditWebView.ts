@@ -43,8 +43,8 @@ import {
   checkpointPath,
   HEARTBEAT_INTERVAL_MS,
   heartbeatInfo,
-  removeActiveSession
-} from "./client";
+  removeActiveSession,
+} from './client'
 import { SvelteWebviewInitializer } from './svelteWebviewInitializer'
 import {
   dataToEncodedStr,
@@ -56,7 +56,7 @@ import {
   setViewportDataForPanel,
   viewportSubscribe,
 } from './utils'
-import assert from "assert";
+import assert from 'assert'
 
 const VIEWPORT_CAPACITY_MAX = 1000000 // Maximum viewport size in Ωedit is 1048576 (1024 * 1024)
 
@@ -132,7 +132,10 @@ export class DataEditWebView implements vscode.Disposable {
   }
 
   private async setupDataEditor() {
-    assert(checkpointPath && checkpointPath.length > 0, "checkpointPath is not set")
+    assert(
+      checkpointPath && checkpointPath.length > 0,
+      'checkpointPath is not set'
+    )
     await createSession(this.fileToEdit, undefined, checkpointPath)
       .then(async (resp) => {
         this.omegaSessionId = resp.getSessionId()
