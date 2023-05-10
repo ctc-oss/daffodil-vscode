@@ -19,7 +19,10 @@ import * as fs from 'fs'
 import {
   createSimpleFileLogger,
   getClientVersion,
+  getServerHeartbeat,
   getServerVersion,
+  getSessionCount,
+  IServerHeartbeat,
   setAutoFixViewportDataLength,
   setLogger,
   startServer,
@@ -29,7 +32,8 @@ import path from 'path'
 import * as vscode from 'vscode'
 import XDGAppPaths from 'xdg-app-paths'
 import { DataEditWebView } from './dataEditWebView'
-import { initOmegaEditClient } from './utils'
+import { checkServerListening, initOmegaEditClient } from './utils'
+import assert from 'assert'
 
 export const dataEditorCommand: string = 'extension.data.edit'
 export const omegaEditHost: string = '127.0.0.1'
@@ -37,10 +41,13 @@ export const serverStartTimeout: number = 15 // in seconds
 export let omegaEditPort: number = 0
 export const appDataPath: string = XDGAppPaths({ name: 'omega_edit' }).data()
 
+let heartBeatIntervalId: NodeJS.Timer | undefined
+
 const DEFAULT_OMEGA_EDIT_PORT: number = 9000
 const OMEGA_EDIT_MIN_PORT: number = 1024
 const OMEGA_EDIT_MAX_PORT: number = 65535
 const MAX_LOG_FILES: number = 5 // Maximum number of log files to keep TODO: make this configurable
+export const HEARTBEAT_INTERVAL_MS = 1000 // 1 second (1000 ms)
 
 function rotateLogFiles(logFile: string) {
   interface LogFile {
@@ -81,7 +88,7 @@ function getPidFile(serverPort: number) {
   return path.join(appDataPath, `serv-${serverPort}.pid`)
 }
 
-async function getOmegaEditPort() {
+function configureOmegaEditPort() {
   if (omegaEditPort === 0) {
     /**
      * Loop through all available configurations inside of launch.json
@@ -110,11 +117,11 @@ async function getOmegaEditPort() {
       omegaEditPort <= OMEGA_EDIT_MIN_PORT ||
       omegaEditPort > OMEGA_EDIT_MAX_PORT
     ) {
+      const message = `Invalid port ${omegaEditPort} for Ωedit. Use a port between ${OMEGA_EDIT_MIN_PORT} and ${OMEGA_EDIT_MAX_PORT}`
       omegaEditPort = 0
-      throw new Error('Invalid port')
+      throw new Error(message)
     }
-  } else
-    throw new Error('Data Editor currently only supports a single instance')
+  }
 }
 
 function setupLogging() {
@@ -136,8 +143,8 @@ function setupLogging() {
   )
 }
 
-async function serverStop(serverPort: number) {
-  const serverPidFile = getPidFile(serverPort)
+async function serverStop() {
+  const serverPidFile = getPidFile(omegaEditPort)
   if (fs.existsSync(serverPidFile)) {
     const pid = parseInt(fs.readFileSync(serverPidFile).toString())
     if (await stopServerUsingPID(pid)) {
@@ -149,6 +156,7 @@ async function serverStop(serverPort: number) {
           }, 2000)
         })
       )
+      assert(!(await isServerRunning()))
     } else {
       vscode.window.showErrorMessage(
         `Ωedit server on port ${omegaEditPort} with PID ${pid} failed to stop`
@@ -188,8 +196,58 @@ function generateLogbackConfigFile(
   return logbackConfigFile // Return the path to the logback config file
 }
 
-async function serverStart(serverPort: number) {
-  await serverStop(serverPort)
+interface IHeartbeatInfo extends IServerHeartbeat {
+  omegaEditPort: number
+}
+export class HeartbeatInfo implements IHeartbeatInfo {
+  omegaEditPort: number = 0 // Ωedit server port
+  latency: number = 0 // latency in ms
+  serverCommittedMemory: number = 0 // committed memory in bytes
+  serverCpuCount: number = 0 // cpu count
+  serverCpuLoadAverage: number = 0 // cpu load average
+  serverHostname: string = 'unknown' // hostname
+  serverMaxMemory: number = 0 // max memory in bytes
+  serverProcessId: number = 0 // process id
+  serverTimestamp: number = 0 // timestamp in ms
+  serverUptime: number = 0 // uptime in ms
+  serverUsedMemory: number = 0 // used memory in bytes
+  serverVersion: string = 'unknown' // server version
+  sessionCount: number = 0 // session count
+}
+
+export let heartbeatInfo: IHeartbeatInfo = new HeartbeatInfo()
+export let activeSessions: string[] = []
+
+async function getHeartbeat() {
+  assert(omegaEditPort > 0, `illegal Ωedit port ${omegaEditPort}`)
+  getServerHeartbeat(activeSessions, HEARTBEAT_INTERVAL_MS)
+    .then((heartbeat: IServerHeartbeat) => {
+      heartbeatInfo.omegaEditPort = omegaEditPort
+      heartbeatInfo.latency = heartbeat.latency
+      heartbeatInfo.serverCommittedMemory = heartbeat.serverCommittedMemory
+      heartbeatInfo.serverCpuCount = heartbeat.serverCpuCount
+      heartbeatInfo.serverCpuLoadAverage = heartbeat.serverCpuLoadAverage
+      heartbeatInfo.serverHostname = heartbeat.serverHostname
+      heartbeatInfo.serverMaxMemory = heartbeat.serverMaxMemory
+      heartbeatInfo.serverProcessId = heartbeat.serverProcessId
+      heartbeatInfo.serverTimestamp = heartbeat.serverTimestamp
+      heartbeatInfo.serverUptime = heartbeat.serverUptime
+      heartbeatInfo.serverUsedMemory = heartbeat.serverUsedMemory
+      heartbeatInfo.serverVersion = heartbeat.serverVersion
+      heartbeatInfo.sessionCount = heartbeat.sessionCount
+    })
+    .catch((error) => {
+      vscode.window.showErrorMessage(`Heartbeat error: ${error}`)
+      // stop the heartbeat since the server is not responding
+      if (heartBeatIntervalId) {
+        clearInterval(heartBeatIntervalId)
+        heartBeatIntervalId = undefined
+      }
+    })
+}
+
+async function serverStart() {
+  await serverStop()
   const serverStartingText = `Ωedit server starting on port ${omegaEditPort}`
   const statusBarItem = vscode.window.createStatusBarItem(
     vscode.StatusBarAlignment.Left
@@ -220,17 +278,16 @@ async function serverStart(serverPort: number) {
     startServer(
       omegaEditPort,
       omegaEditHost,
-      getPidFile(serverPort),
+      getPidFile(omegaEditPort),
       logConfigFile
     ),
     new Promise((resolve, reject) => {
       setTimeout(() => {
-        omegaEditPort = 0
-        reject(
-          new Error(
+        reject((): Error => {
+          return new Error(
             `Server startup timed out after ${serverStartTimeout} seconds`
           )
-        )
+        })
       }, serverStartTimeout * 1000)
     }),
   ])) as number | undefined
@@ -251,6 +308,10 @@ async function serverStart(serverPort: number) {
   }, 5000)
 }
 
+async function isServerRunning(): Promise<boolean> {
+  return await checkServerListening(omegaEditPort, omegaEditHost)
+}
+
 export function activate(ctx: vscode.ExtensionContext) {
   fs.mkdirSync(appDataPath, { recursive: true })
 
@@ -258,11 +319,20 @@ export function activate(ctx: vscode.ExtensionContext) {
     vscode.commands.registerCommand(
       dataEditorCommand,
       async (fileToEdit: string = '') => {
-        await getOmegaEditPort()
-        setupLogging()
-        setAutoFixViewportDataLength(true)
-        await serverStart(omegaEditPort)
-        await initOmegaEditClient(omegaEditPort)
+        configureOmegaEditPort()
+        // only start uo the server if one is not already running
+        if (!(await isServerRunning())) {
+          setupLogging()
+          setAutoFixViewportDataLength(true)
+          await serverStart()
+          await initOmegaEditClient(omegaEditPort)
+          // start the server heartbeat
+          getHeartbeat().then(() => {
+            heartBeatIntervalId = setInterval(async () => {
+              await getHeartbeat()
+            }, HEARTBEAT_INTERVAL_MS)
+          })
+        }
         return await createOmegaEditWebviewPanel(ctx, fileToEdit)
       }
     )
@@ -285,9 +355,29 @@ async function createOmegaEditWebviewPanel(
   dataEditorView.panel.onDidDispose(
     async () => {
       await dataEditorView.dispose()
-      if (omegaEditPort !== 0) {
-        await serverStop(omegaEditPort)
-        omegaEditPort = 0
+      // stop the server if the session count is zero
+      if ((await getSessionCount()) === 0) {
+        assert(activeSessions.length === 0)
+        // stop collecting heart beat data
+        if (heartBeatIntervalId) {
+          clearInterval(heartBeatIntervalId as NodeJS.Timer)
+          heartBeatIntervalId = undefined
+        }
+
+        // stop the server
+        await serverStop()
+
+        // inform the UI that the server has been stopped
+        const statusBarItem = vscode.window.createStatusBarItem(
+          vscode.StatusBarAlignment.Left
+        )
+        statusBarItem.text = `Ωedit server on port ${omegaEditPort} has been stopped`
+        statusBarItem.show()
+
+        // dispose of the status bar message after 5 seconds
+        setTimeout(() => {
+          statusBarItem.dispose()
+        }, 5000)
       }
     },
     undefined,
