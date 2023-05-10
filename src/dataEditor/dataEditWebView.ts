@@ -39,10 +39,11 @@ import path from 'path'
 import * as vscode from 'vscode'
 import { EditorMessage, MessageCommand } from '../svelte/src/utilities/message'
 import {
-  activeSessions,
+  addActiveSession,
   appDataPath,
   HEARTBEAT_INTERVAL_MS,
   heartbeatInfo,
+  removeActiveSession,
 } from './client'
 import { SvelteWebviewInitializer } from './svelteWebviewInitializer'
 import {
@@ -67,7 +68,7 @@ export class DataEditWebView implements vscode.Disposable {
   private omegaSessionId = ''
   private contentType = ''
   private fileSize = 0
-  private heartBeatIntervalId: NodeJS.Timer | undefined
+  private heartBeatIntervalId: NodeJS.Timer | undefined = undefined
 
   constructor(
     protected context: vscode.ExtensionContext,
@@ -94,7 +95,7 @@ export class DataEditWebView implements vscode.Disposable {
 
     // destroy the session and remove it from the list of active sessions
     await destroySession(this.omegaSessionId)
-    activeSessions.splice(activeSessions.indexOf(this.omegaSessionId), 1)
+    removeActiveSession(this.omegaSessionId)
     this.panel.dispose()
   }
 
@@ -138,7 +139,7 @@ export class DataEditWebView implements vscode.Disposable {
           ? (resp.getContentType() as string)
           : 'unknown'
         this.fileSize = await getOnDiskFileSize(this.fileToEdit)
-        activeSessions.push(this.omegaSessionId)
+        addActiveSession(this.omegaSessionId)
         await this.sendDiskFileSize()
         await this.sendChangesInfo()
       })
