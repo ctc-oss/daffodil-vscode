@@ -232,18 +232,6 @@ export function radixBytePad(radix: number): number {
   return 0
 }
 
-export async function getOnDiskFileSize(filePath: string): Promise<number> {
-  return new Promise((resolve, reject) => {
-    fs.stat(filePath, (err, stats) => {
-      if (err) {
-        reject(err)
-      } else {
-        resolve(stats.size)
-      }
-    })
-  })
-}
-
 /**
  * Checks if a server is listening on a given port and host
  * @param port port to check

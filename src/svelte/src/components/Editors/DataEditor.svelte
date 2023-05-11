@@ -15,13 +15,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
-  import { editorSelection, editMode } from '../../stores'
+  import { editorSelection } from '../../stores'
   import { EditByteModes } from '../../stores/Configuration'
   import { UIThemeCSSClass } from '../../utilities/colorScheme'
   import { createEventDispatcher } from 'svelte'
   import ContentControls from '../DataDisplays/Fieldsets/ContentControls.svelte'
   import FlexContainer from '../layouts/FlexContainer.svelte'
   import DataView from '../DataDisplays/Fieldsets/DataView.svelte'
+  import { editMode } from './DataEditor'
   const EventDispatcher = createEventDispatcher()
 
   function handleEditorEvent(event: Event) {

@@ -15,12 +15,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
-  import { commitErrMsg, commitable, editMode } from '../../../stores'
+  import { commitErrMsg, commitable } from '../../../stores'
   import { EditByteModes } from '../../../stores/Configuration'
   import { createEventDispatcher } from 'svelte'
   import { fileMetrics } from '../../Header/fieldsets/FileMetrics'
   import FlexContainer from '../../layouts/FlexContainer.svelte'
   import Button from '../../input/Buttons/Button.svelte'
+  import { editMode } from '../../Editors/DataEditor'
   const EventDispatcher = createEventDispatcher()
 
   let canUndo: boolean = false

@@ -43,7 +43,7 @@
   },
   "dependencies": {
     "@vscode/debugadapter": "1.59.0",
-    "@omega-edit/client": "0.9.64",
+    "@omega-edit/client": "0.9.65",
     "await-notify": "1.0.1",
     "hexy": "0.3.4",
     "unzip-stream": "0.3.1",

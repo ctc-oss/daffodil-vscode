@@ -21,7 +21,6 @@ limitations under the License.
     commitable,
     editedByteIsOriginalByte,
     focusedViewportId,
-    selectionStartOffset,
     editorSelection,
     commitErrMsg,
     editByte,
@@ -35,6 +34,8 @@ limitations under the License.
   } from '../../utilities/display'
   import { UIThemeCSSClass } from '../../utilities/colorScheme'
   import FlexContainer from '../layouts/FlexContainer.svelte'
+  import { editMode, selectionData } from '../Editors/DataEditor'
+  import { EditByteModes } from '../../stores/Configuration'
 
   const EventDispatcher = createEventDispatcher()
 
@@ -43,7 +44,9 @@ limitations under the License.
   let inlineClass: string
   let inputClass: string
 
-  $: $editorSelection = $editByte
+  $: if ($editMode === EditByteModes.Single) {
+    $editorSelection = $editByte
+  }
   $: {
     containerClass = CSSThemeClass('input-actions')
     inlineClass = CSSThemeClass('inline-container')
@@ -58,7 +61,7 @@ limitations under the License.
         {
           const byteTextPxWidth =
             viewportRefs.logical.clientWidth / $bytesPerRow
-          const byteRowPos = $selectionStartOffset % $bytesPerRow
+          const byteRowPos = $selectionData.startOffset % $bytesPerRow
           const editByteWindowX =
             viewportRefs.logical.offsetLeft + byteRowPos * byteTextPxWidth
           editByteWindow.style.left = editByteWindowX.toString() + 'px'
@@ -69,7 +72,7 @@ limitations under the License.
         {
           const byteTextPxWidth =
             viewportRefs.physical.clientWidth / $bytesPerRow
-          const byteRowPos = $selectionStartOffset % $bytesPerRow
+          const byteRowPos = $selectionData.startOffset % $bytesPerRow
           const editByteWindowX =
             viewportRefs.physical.offsetLeft + byteRowPos * byteTextPxWidth
           editByteWindow.style.left = editByteWindowX.toString() + 'px'
@@ -77,7 +80,7 @@ limitations under the License.
         }
         break
     }
-    document.getElementById('editByteInput').focus()
+    edit_byte_window_ref().focus()
   }
   function CSSThemeClass(selectors?: string) {
     return selectors + ' ' + $UIThemeCSSClass
@@ -111,7 +114,7 @@ limitations under the License.
             >
           {/if}
           <input
-            title="byte position {$selectionStartOffset.toString(
+            title="byte position {$selectionData.startOffset.toString(
               $addressValue
             )} {radixToString($addressValue)}"
             type="text"

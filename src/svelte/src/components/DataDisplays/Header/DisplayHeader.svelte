@@ -20,11 +20,8 @@ limitations under the License.
     gotoOffsetInput,
     addressValue,
     displayRadix,
-    editMode,
     selectionActive,
     cursorPos,
-    selectionStartOffset,
-    selectionEndOffset,
     selectionSize,
   } from '../../../stores'
   import { EditByteModes, addressOpt } from '../../../stores/Configuration'
@@ -36,6 +33,7 @@ limitations under the License.
     type ViewportReferences,
   } from '../../../utilities/display'
   import { createEventDispatcher } from 'svelte'
+  import { selectionData, editMode } from '../../Editors/DataEditor'
 
   const EventDispatcher = createEventDispatcher()
 
@@ -46,8 +44,8 @@ limitations under the License.
 
   $: selectionOffsetText = setSelectionOffsetInfo(
     'Selection',
-    $selectionStartOffset,
-    $selectionEndOffset,
+    $selectionData.startOffset,
+    $selectionData.endOffset,
     $selectionSize
   )
 

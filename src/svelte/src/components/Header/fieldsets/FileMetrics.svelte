@@ -17,7 +17,6 @@ limitations under the License.
 <script lang="ts">
   import Button from '../../input/Buttons/Button.svelte'
   import FlexContainer from '../../layouts/FlexContainer.svelte'
-  import { saveable } from '../../../stores'
   import { fileMetrics } from './FileMetrics'
   import { MessageCommand } from '../../../utilities/message'
   import { vscode } from '../../../utilities/vscode'
@@ -88,7 +87,7 @@ limitations under the License.
     </FlexContainer>
   </FlexContainer>
   <hr />
-  <Button disabledBy={!$saveable} fn={save}>
+  <Button fn={save}>
     <span slot="left" class="btn-icon">&#8615;</span>
     <span slot="default">Save</span>
   </Button>

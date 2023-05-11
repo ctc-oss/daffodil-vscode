@@ -98,22 +98,22 @@
     "@jridgewell/resolve-uri" "3.1.0"
     "@jridgewell/sourcemap-codec" "1.4.14"
 
-"@omega-edit/client@0.9.64":
-  version "0.9.64"
-  resolved "https://registry.yarnpkg.com/@omega-edit/client/-/client-0.9.64.tgz#1747fcbf9357fb1cb0a7556b4bc0e97e2affcc77"
-  integrity sha512-VxrG7qQ1XPT79ghKbq+F6AsOAgBFdncCBHCj8971CKVbhjv1osKGLOIl4hslWcV5UnCTTIDoeALWciQh7+7tfw==
+"@omega-edit/client@0.9.65":
+  version "0.9.65"
+  resolved "https://registry.yarnpkg.com/@omega-edit/client/-/client-0.9.65.tgz#6d041b371eedaa636ddde1d2dd16725c7856f642"
+  integrity sha512-Sb53pHyn1x9IKBxOPOXHE4j3wgnwB9LyY3VAFM+lwl/RyyV7b5Je8UggWoH+MInHYevdfUj3zehJOIrJjN53Ug==
   dependencies:
     "@grpc/grpc-js" "1.8.14"
-    "@omega-edit/server" "0.9.64"
+    "@omega-edit/server" "0.9.65"
     "@types/google-protobuf" "3.15.6"
     google-protobuf "3.21.2"
-    pino "8.11.0"
+    pino "8.14.1"
     wait-port "1.0.4"
 
-"@omega-edit/server@0.9.64":
-  version "0.9.64"
-  resolved "https://registry.yarnpkg.com/@omega-edit/server/-/server-0.9.64.tgz#a7929c22a5230acd49145068c2c55af90ee6cf78"
-  integrity sha512-6k0ClNEA4IJcRGnfOjD7faFXmtDaJSvsf1r0WZwNm3J6Iwsbh0WbdVQc9B48fzI/0zJD6JT1jhcEdImNtKjc2Q==
+"@omega-edit/server@0.9.65":
+  version "0.9.65"
+  resolved "https://registry.yarnpkg.com/@omega-edit/server/-/server-0.9.65.tgz#c25daa937c914650279c3fde877bb7e50deea325"
+  integrity sha512-XHgOvhodvsrraTUdx1kPWURy+SgoKrZ50yFSmaQiaO29DbbBa1xx/pNhM+KP8gdltrQApNNa8Ds8FN1sgS52tQ==
 
 "@protobufjs/aspromise@^1.1.1", "@protobufjs/aspromise@^1.1.2":
   version "1.1.2"
@@ -2241,10 +2241,10 @@ pino-std-serializers@^6.0.0:
   resolved "https://registry.yarnpkg.com/pino-std-serializers/-/pino-std-serializers-6.2.0.tgz#169048c0df3f61352fce56aeb7fb962f1b66ab43"
   integrity sha512-IWgSzUL8X1w4BIWTwErRgtV8PyOGOOi60uqv0oKuS/fOA8Nco/OeI6lBuc4dyP8MMfdFwyHqTMcBIA7nDiqEqA==
 
-pino@8.11.0:
-  version "8.11.0"
-  resolved "https://registry.yarnpkg.com/pino/-/pino-8.11.0.tgz#2a91f454106b13e708a66c74ebc1c2ab7ab38498"
-  integrity sha512-Z2eKSvlrl2rH8p5eveNUnTdd4AjJk8tAsLkHYZQKGHP4WTh2Gi1cOSOs3eWPqaj+niS3gj4UkoreoaWgF3ZWYg==
+pino@8.14.1:
+  version "8.14.1"
+  resolved "https://registry.yarnpkg.com/pino/-/pino-8.14.1.tgz#bb38dcda8b500dd90c1193b6c9171eb777a47ac8"
+  integrity sha512-8LYNv7BKWXSfS+k6oEc6occy5La+q2sPwU3q2ljTX5AZk7v+5kND2o5W794FyRaqha6DJajmkNRsWtPpFyMUdw==
   dependencies:
     atomic-sleep "^1.0.0"
     fast-redact "^3.1.1"

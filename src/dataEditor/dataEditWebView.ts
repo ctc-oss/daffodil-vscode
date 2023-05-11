@@ -51,7 +51,6 @@ import {
   DisplayState,
   encodedStrToData,
   fillRequestData,
-  getOnDiskFileSize,
   logicalDisplay,
   setViewportDataForPanel,
   viewportSubscribe,
@@ -142,7 +141,7 @@ export class DataEditWebView implements vscode.Disposable {
         this.contentType = resp.hasContentType()
           ? (resp.getContentType() as string)
           : 'unknown'
-        this.fileSize = await getOnDiskFileSize(this.fileToEdit)
+        this.fileSize = resp.hasFileSize() ? (resp.getFileSize() as number) : 0
         addActiveSession(this.omegaSessionId)
         await this.sendDiskFileSize()
         await this.sendChangesInfo()
@@ -257,7 +256,8 @@ export class DataEditWebView implements vscode.Disposable {
         break
 
       case MessageCommand.editorOnChange:
-        this.displayState.editorEncoding = message.data.encoding
+        if (message.data.saveEncoding)
+          this.displayState.editorEncoding = message.data.encoding
 
         if (
           message.data.selectionData &&
@@ -414,6 +414,7 @@ export class DataEditWebView implements vscode.Disposable {
       case MessageCommand.requestEditedData:
         {
           const [selectionData, selectionDisplay] = fillRequestData(message)
+
           this.panel.webview.postMessage({
             command: MessageCommand.requestEditedData,
             data: {

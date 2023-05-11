@@ -16,17 +16,12 @@ limitations under the License.
 -->
 <script lang="ts">
   import {
-    editMode,
     fileByteStart,
     fileByteEnd,
     bytesPerRow,
     addressValue,
     viewportData,
     displayRadix,
-    selectionActive,
-    selectionStartOffset,
-    selectionOriginalEnd,
-    selectionEndOffset,
     focusedViewportId,
     editedDataSegment,
     editorEncoding,
@@ -36,9 +31,7 @@ limitations under the License.
   import {
     edit_byte_window_ref,
     encodeForDisplay,
-    isWhitespace,
     makeAddressRange,
-    radixBytePad,
     syncScroll,
     viewport_references,
     type ViewportReferences,
@@ -48,6 +41,8 @@ limitations under the License.
   import { editByteWindowHidden, editByte, editorSelection } from '../../stores'
   import { vscode } from '../../utilities/vscode'
   import { EditByteModes } from '../../stores/Configuration'
+  import { frame_selected_on_whitespace } from './DataViewports'
+  import { selectionData, editMode } from '../Editors/DataEditor'
 
   const EventDispatcher = createEventDispatcher()
 
@@ -61,6 +56,12 @@ limitations under the License.
 
   let physicalDisplayText: string = ''
   let logicalDisplayText: string = ''
+
+  $: {
+    $editMode === EditByteModes.Single
+      ? setSelectionEncoding('hex', false)
+      : setSelectionEncoding($editorEncoding)
+  }
 
   $: addressText = makeAddressRange(
     $fileByteStart,
@@ -108,104 +109,25 @@ limitations under the License.
     }
   }
 
-  function frameSelectedOnWhitespace(selected: HTMLTextAreaElement) {
-    let selectionStart = selected.selectionStart
-    let selectionEnd = selected.selectionEnd
-    if (selectionStart != undefined && selectionEnd != undefined) {
-      if (
-        isWhitespace(selected.value.at(selectionStart)) &&
-        selectionStart % 2
-      ) {
-        ++selectionStart
-      } else {
-        while (
-          selectionStart &&
-          !isWhitespace(selected.value.at(selectionStart - 1))
-        ) {
-          --selectionStart
-        }
-      }
-      selected.selectionStart = selectionStart
-
-      // Adjust the end to align with the closest ending of content
-      if (isWhitespace(selected.value.at(selectionEnd))) {
-        --selectionEnd
-      } else {
-        while (
-          selectionEnd < selected.value.length &&
-          !isWhitespace(selected.value.at(selectionEnd + 1))
-        ) {
-          ++selectionEnd
-        }
-      }
-      selected.selectionEnd =
-        selectionEnd < selected.value.length ? selectionEnd + 1 : selectionEnd
-    }
-
-    const selectionOffsetsByRadix = {
-      2: {
-        start: Math.floor(selectionStart / 9),
-        end: Math.floor((selectionEnd - 8) / 9 + 1),
-      },
-      8: {
-        start: Math.floor(selectionStart / 4),
-        end: Math.floor((selectionEnd - 3) / 4 + 1),
-      },
-      10: {
-        start: Math.floor(selectionStart / 4),
-        end: Math.floor((selectionEnd - 3) / 4 + 1),
-      },
-      16: {
-        start: Math.floor(selectionStart / 3),
-        end: Math.floor((selectionEnd - 2) / 3 + 1),
-      },
-    }
-
-    $selectionStartOffset =
-      selected.id === 'logical'
-        ? Math.floor(selectionStart / 2)
-        : selectionOffsetsByRadix[$displayRadix].start
-
-    $selectionEndOffset = $selectionOriginalEnd =
-      selected.id === 'logical'
-        ? Math.floor(selectionEnd / 2)
-        : selectionOffsetsByRadix[$displayRadix].end
-
-    $selectionActive = true
-  }
-
-  function focused_textarea_ref(event: Event): HTMLTextAreaElement {
+  function set_selected_stores_from_event(event: Event) {
     const areaRef = event.currentTarget as HTMLTextAreaElement
-    frameSelectedOnWhitespace(areaRef)
     $focusedViewportId = areaRef.id
-    return areaRef
-  }
 
-  function handleViewportClickEvent(event: Event) {
-    EventDispatcher('clearDataDisplays')
-
-    const areaRef = focused_textarea_ref(event)
-
-    let selectionRangeValid: boolean
-    $focusedViewportId === 'physical'
-      ? (selectionRangeValid =
-          areaRef.selectionEnd - areaRef.selectionStart ===
-          radixBytePad($displayRadix))
-      : (selectionRangeValid =
-          areaRef.selectionEnd - areaRef.selectionStart === 1)
-
-    editedDataSegment.update(() => {
-      return Uint8Array.from(
-        $viewportData.subarray($selectionStartOffset, $selectionStartOffset + 8)
-      )
+    let selectionFrame = frame_selected_on_whitespace(
+      areaRef,
+      $displayRadix,
+      $selectionData.originalEndOffset
+    )
+    selectionData.update((data) => {
+      data.startOffset = selectionFrame.start
+      data.endOffset = selectionFrame.end
+      data.originalEndOffset = selectionFrame.end
+      data.active = true
+      return data
     })
-
-    if ($editMode === EditByteModes.Single && selectionRangeValid) {
-      change_edit_byte_window($displayRadix, event)
-    }
   }
 
-  function change_edit_byte_window(radix: number, event?: Event) {
+  function change_edit_byte_window(radix: number, event?: MouseEvent) {
     if (!editByteWindow) editByteWindow = edit_byte_window_ref()
 
     if (event) {
@@ -223,28 +145,53 @@ limitations under the License.
     $editorSelection = $editByte
     document.getElementById('editByteInput').focus()
   }
+
   function handleSelectionEvent(event: Event) {
     EventDispatcher('clearDataDisplays')
+    set_selected_stores_from_event(event)
+    update_editor_data(event as MouseEvent)
+  }
 
-    const areaRef = event.currentTarget as HTMLTextAreaElement
-    frameSelectedOnWhitespace(areaRef)
-    $focusedViewportId = areaRef.id
+  function update_editor_data(event: MouseEvent) {
     editedDataSegment.update(() => {
       return Uint8Array.from(
-        $viewportData.subarray($selectionStartOffset, $selectionEndOffset + 1)
+        $viewportData.subarray(
+          $selectionData.startOffset,
+          $selectionData.endOffset + 1
+        )
       )
     })
+
+    if ($editMode === EditByteModes.Single) {
+      post_editorOnChange_msg('hex')
+      change_edit_byte_window($displayRadix, event)
+    } else {
+      post_editorOnChange_msg($editorEncoding)
+    }
+  }
+
+  function post_editorOnChange_msg(forcedEncoding?: string) {
     vscode.postMessage({
       command: MessageCommand.editorOnChange,
       data: {
-        fileOffset: $selectionStartOffset,
+        fileOffset: $selectionData.startOffset,
         selectionData: $editedDataSegment,
-        encoding: $editorEncoding,
+        encoding: forcedEncoding ? forcedEncoding : $editorEncoding,
         selectionSize: $selectionSize,
+        saveEncoding: false,
       },
     })
   }
-
+  function setSelectionEncoding(editorEncoding: string, save: boolean = true) {
+    vscode.postMessage({
+      command: MessageCommand.editorOnChange,
+      data: {
+        encoding: editorEncoding,
+        selectionData: $editedDataSegment,
+        saveEncoding: save,
+      },
+    })
+  }
   window.addEventListener('message', (msg) => {
     switch (msg.data.command) {
       case MessageCommand.updateLogicalDisplay:
@@ -256,7 +203,7 @@ limitations under the License.
 
 <textarea
   class={$UIThemeCSSClass + ' address_vw'}
-  class:locked={$selectionActive}
+  class:locked={$selectionData.active}
   id="address"
   contenteditable="true"
   readonly
@@ -264,53 +211,28 @@ limitations under the License.
   bind:innerHTML={addressText}
   on:scroll={scrollHandle}
 />
-{#if $editMode === EditByteModes.Single}
-  <textarea
-    class={$UIThemeCSSClass + ' physical'}
-    class:locked={$selectionActive}
-    id="physical"
-    contenteditable="true"
-    readonly
-    bind:this={viewportRefs.physical}
-    bind:innerHTML={physicalDisplayText}
-    on:scroll={scrollHandle}
-    on:click={handleViewportClickEvent}
-  />
-  <textarea
-    class={$UIThemeCSSClass + ' logical'}
-    class:locked={$selectionActive}
-    id="logical"
-    contenteditable="true"
-    readonly
-    bind:this={viewportRefs.logical}
-    bind:innerHTML={logicalDisplayText}
-    on:scroll={scrollHandle}
-    on:click={handleViewportClickEvent}
-  />
-{:else}
-  <textarea
-    class={$UIThemeCSSClass + ' physical'}
-    class:locked={$selectionActive}
-    id="physical"
-    contenteditable="true"
-    readonly
-    bind:this={viewportRefs.physical}
-    bind:innerHTML={physicalDisplayText}
-    on:select={handleSelectionEvent}
-    on:scroll={scrollHandle}
-  />
-  <textarea
-    class={$UIThemeCSSClass + ' logical'}
-    class:locked={$selectionActive}
-    id="logical"
-    contenteditable="true"
-    readonly
-    bind:this={viewportRefs.logical}
-    bind:innerHTML={logicalDisplayText}
-    on:select={handleSelectionEvent}
-    on:scroll={scrollHandle}
-  />
-{/if}
+<textarea
+  class={$UIThemeCSSClass + ' physical'}
+  class:locked={$selectionData.active}
+  id="physical"
+  contenteditable="true"
+  readonly
+  bind:this={viewportRefs.physical}
+  bind:innerHTML={physicalDisplayText}
+  on:mouseup={handleSelectionEvent}
+  on:scroll={scrollHandle}
+/>
+<textarea
+  class={$UIThemeCSSClass + ' logical'}
+  class:locked={$selectionData.active}
+  id="logical"
+  contenteditable="true"
+  readonly
+  bind:this={viewportRefs.logical}
+  bind:innerHTML={logicalDisplayText}
+  on:mouseup={handleSelectionEvent}
+  on:scroll={scrollHandle}
+/>
 
 <style lang="scss">
   textarea.locked {
