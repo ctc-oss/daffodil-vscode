@@ -15,22 +15,30 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
-  import Button from '../../input/Buttons/Button.svelte'
+  import Button from '../../Inputs/Buttons/Button.svelte'
   import FlexContainer from '../../layouts/FlexContainer.svelte'
   import { fileMetrics } from './FileMetrics'
   import { MessageCommand } from '../../../utilities/message'
   import { vscode } from '../../../utilities/vscode'
 
+  let displayOpts = false
+
   function saveAs() {
     vscode.postMessage({
       command: MessageCommand.saveAs,
     })
+    displayOpts = false
   }
 
   function save() {
     vscode.postMessage({
       command: MessageCommand.save,
     })
+    displayOpts = false
+  }
+
+  function saveDisplay() {
+    displayOpts = displayOpts ? false : true
   }
 
   window.addEventListener('message', (msg) => {
@@ -87,14 +95,23 @@ limitations under the License.
     </FlexContainer>
   </FlexContainer>
   <hr />
-  <Button fn={save}>
-    <span slot="left" class="btn-icon">&#8615;</span>
-    <span slot="default">Save</span>
-  </Button>
-  <Button fn={saveAs}>
-    <span slot="left" class="btn-icon">&#8615;</span>
-    <span slot="default">Save As</span>
-  </Button>
+
+  <FlexContainer>
+    {#if displayOpts}
+      <Button fn={save}>
+        <span slot="left" class="btn-icon">&#8615;</span>
+        <span slot="default">Save</span>
+      </Button>
+      <Button fn={saveAs}>
+        <span slot="left" class="btn-icon">&#8615;</span>
+        <span slot="default">Save As</span>
+      </Button>
+    {:else}
+      <Button fn={saveDisplay}>
+        <span slot="default">Save ...</span>
+      </Button>
+    {/if}
+  </FlexContainer>
 </fieldset>
 
 <style lang="scss">

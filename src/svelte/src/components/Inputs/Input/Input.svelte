@@ -18,13 +18,14 @@ limitations under the License.
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
 
   export let value
+  export let id: string = ''
 
   type InputTypes = 'text' | 'checkbox'
   export let type: InputTypes = 'text'
 </script>
 
 {#if type === 'text'}
-  <input type="text" class={$UIThemeCSSClass + ' text'} bind:value />
+  <input type="text" class={$UIThemeCSSClass + ' text'} {id} bind:value />
   <slot />
 {:else if type === 'checkbox'}
   <input

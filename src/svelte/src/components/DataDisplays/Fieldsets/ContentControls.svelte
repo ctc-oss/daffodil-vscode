@@ -20,7 +20,7 @@ limitations under the License.
   import { createEventDispatcher } from 'svelte'
   import { fileMetrics } from '../../Header/fieldsets/FileMetrics'
   import FlexContainer from '../../layouts/FlexContainer.svelte'
-  import Button from '../../input/Buttons/Button.svelte'
+  import Button from '../../Inputs/Buttons/Button.svelte'
   import { editMode } from '../../Editors/DataEditor'
   const EventDispatcher = createEventDispatcher()
 

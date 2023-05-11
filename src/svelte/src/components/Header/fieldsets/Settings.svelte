@@ -16,11 +16,15 @@ limitations under the License.
 -->
 <script lang="ts">
   import FlexContainer from '../../layouts/FlexContainer.svelte'
-  import Input from '../../input/Inputs/Input.svelte'
+  import Input from '../../Inputs/Input/Input.svelte'
   import Error from '../../Error/Error.svelte'
-  import Button from '../../input/Buttons/Button.svelte'
+  import Button from '../../Inputs/Buttons/Button.svelte'
   import { createEventDispatcher } from 'svelte'
-  import { RadixOptions, encoding_groups } from '../../../stores/Configuration'
+  import {
+    RadixOptions,
+    encoding_groups,
+    enterKeypressEventList,
+  } from '../../../stores/Configuration'
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
   import { goToErr } from '..'
   import {
@@ -33,6 +37,8 @@ limitations under the License.
   } from '../../../stores'
 
   const EventDispatcher = createEventDispatcher()
+  const goToInputId = 'goto-input'
+  enterKeypressEventList.register({ id: goToInputId, run: goToEventHandler })
 
   $: $gotoOffset = parseInt($gotoOffsetInput, $addressValue)
   $: $goToErr = $gotoable.gotoErrMsg
@@ -72,7 +78,7 @@ limitations under the License.
 
     <FlexContainer --dir="row" --align-items="center">
       <label for="encoding">Go to Offset:</label>
-      <Input bind:value={$gotoOffsetInput} --width="40%" />
+      <Input id={goToInputId} bind:value={$gotoOffsetInput} --width="40%" />
       <Error
         err={goToErr}
         display={$gotoOffsetInput.length > 0 && !$gotoable.valid}

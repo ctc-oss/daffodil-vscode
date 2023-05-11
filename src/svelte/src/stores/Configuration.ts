@@ -78,3 +78,24 @@ export const addressOpt = [
   { name: 'Decimal', value: 10 },
   { name: 'Octal', value: 8 },
 ]
+
+export type EnterKeypressEvent = {
+  id: string
+  run: () => void
+}
+class EnterKeypressEvents {
+  private events: Array<EnterKeypressEvent> = []
+  public register(event: EnterKeypressEvent) {
+    this.events = this.events.filter((eventItem) => {
+      return eventItem.id === event.id
+    })
+    this.events.push(event)
+  }
+  public run(elementId: string) {
+    console.log('entereventlist run: ', this.events)
+    this.events.forEach((eventItem) => {
+      if (eventItem.id === elementId) eventItem.run()
+    })
+  }
+}
+export let enterKeypressEventList = new EnterKeypressEvents()

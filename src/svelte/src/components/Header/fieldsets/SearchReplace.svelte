@@ -25,8 +25,8 @@ limitations under the License.
   import { MessageCommand } from '../../../utilities/message'
 
   import Error from '../../Error/Error.svelte'
-  import Button from '../../input/Buttons/Button.svelte'
-  import Input from '../../input/Inputs/Input.svelte'
+  import Button from '../../Inputs/Buttons/Button.svelte'
+  import Input from '../../Inputs/Input/Input.svelte'
   import FlexContainer from '../../layouts/FlexContainer.svelte'
   import { createEventDispatcher } from 'svelte'
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
