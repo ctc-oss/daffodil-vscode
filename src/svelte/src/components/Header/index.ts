@@ -18,8 +18,9 @@
 import { searchQuery, replaceQuery } from './fieldsets/SearchReplace'
 import { validEncodingStr } from '../../utilities/display'
 import { ErrorStore, ErrorComponentType } from '../Error/Error'
-import { editorEncoding, selectionActive } from '../../stores'
+import { editorEncoding } from '../../stores'
 import { derived } from 'svelte/store'
+import { selectionData } from '../Editors/DataEditor'
 
 export const searchErr = new ErrorStore(ErrorComponentType.SYMBOL)
 export const replaceErr = new ErrorStore(ErrorComponentType.SYMBOL)
@@ -43,8 +44,8 @@ export const searchable = derived(
 )
 
 export const replaceable = derived(
-  [replaceQuery, editorEncoding, searchable, selectionActive],
-  ([$replaceData, $editorEncoding, $searchable, $selectionActive]) => {
+  [replaceQuery, editorEncoding, searchable, selectionData],
+  ([$replaceData, $editorEncoding, $searchable, $selectionData]) => {
     if (
       $replaceData.input.length < 0 ||
       !$searchable ||
@@ -55,7 +56,7 @@ export const replaceable = derived(
       })
       return false
     }
-    if ($selectionActive) {
+    if ($selectionData.active) {
       replaceErr.update(() => {
         return 'Cannot replace while viewport data is selected'
       })

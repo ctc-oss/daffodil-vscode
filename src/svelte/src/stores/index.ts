@@ -24,6 +24,7 @@ import {
 } from '../utilities/display'
 import { fileMetrics } from '../components/Header/fieldsets/FileMetrics'
 import { EditByteModes } from './Configuration'
+import { editMode, selectionData } from '../components/Editors/DataEditor'
 
 export const cursorPos = writable(0)
 export const fileByteStart = writable(0)
@@ -38,44 +39,40 @@ export const disableDataView = writable(false)
 export const dataViewEndianness = writable('le') // 'le' for little endian and 'be' for big endian
 export const viewportData = writable(new Uint8Array(0))
 export const editorSelection = writable('')
-export const selectionEndOffset = writable(0)
-export const selectionOriginalEnd = writable(0)
 export const selectionActive = writable(false)
 export const editorEncoding = writable('latin1')
 export const selectionStartOffset = writable(0)
 export const rawEditorSelectionTxt = writable('')
 export const editedDataSegment = writable(new Uint8Array(0))
-export const editMode = writable(EditByteModes.Single)
 export const editByteWindowHidden = writable(true)
 export const focusedViewportId = writable('')
 export const headerHidden = writable(false)
 export const UITheme = writable(ThemeType.Dark)
 export const editedDataStore = writable(new Uint8Array(0))
-
 export const searchable_fn = writable(Function)
 
+export const selectionSize = derived(
+  [selectionData, editorSelection],
+  ([$selectionData, $editorSelection]) => {
+    return $editorSelection !== ''
+      ? $selectionData.endOffset - $selectionData.startOffset + 1
+      : 0
+  }
+)
+
 export const editByte = derived(
-  [
-    displayRadix,
-    focusedViewportId,
-    editMode,
-    viewportData,
-    selectionStartOffset,
-  ],
+  [displayRadix, focusedViewportId, editMode, viewportData, selectionData],
   ([
     $displayRadix,
     $focusedViewportId,
     $editMode,
     $viewportData,
-    $selectionStartOffset,
+    $selectionData,
   ]) => {
-    if (
-      $viewportData[$selectionStartOffset] !== undefined &&
-      $editMode === EditByteModes.Single
-    ) {
+    if ($viewportData[$selectionData.startOffset] !== undefined) {
       return $focusedViewportId === 'logical'
-        ? String.fromCharCode($viewportData[$selectionStartOffset])
-        : $viewportData[$selectionStartOffset]
+        ? String.fromCharCode($viewportData[$selectionData.startOffset])
+        : $viewportData[$selectionData.startOffset]
             .toString($displayRadix)
             .padStart(radixBytePad($displayRadix), '0')
             .toUpperCase()
@@ -90,16 +87,6 @@ export const editedByteIsOriginalByte = derived(
     return $focusedViewportId === 'logical'
       ? $editorSelection === $editByte
       : $editorSelection.toLowerCase() === $editByte.toLowerCase()
-  }
-)
-export const selectionSize = derived(
-  [editMode, selectionStartOffset, selectionEndOffset, editorSelection],
-  ([$editMode, $selectionStartStore, $selectionEndStore, $editorSelection]) => {
-    if ($editMode === EditByteModes.Single) return 1
-
-    return $editorSelection !== ''
-      ? $selectionEndStore - $selectionStartStore + 1
-      : 0
   }
 )
 
@@ -155,11 +142,14 @@ export const requestable = derived(
 )
 
 export const originalDataSegment = derived(
-  [viewportData, selectionStartOffset, selectionOriginalEnd],
-  ([$viewportData, $selectionStartOffset, $selectionOriginalEnd]) => {
+  [viewportData, selectionData],
+  ([$viewportData, $selectionData]) => {
     return !$viewportData
       ? []
-      : $viewportData.slice($selectionStartOffset, $selectionOriginalEnd + 1)
+      : $viewportData.slice(
+          $selectionData.startOffset,
+          $selectionData.originalEndOffset + 1
+        )
   }
 )
 
@@ -168,9 +158,7 @@ export const commitable = derived(
     requestable,
     viewportData,
     editedDataSegment,
-    selectionStartOffset,
-    selectionOriginalEnd,
-    selectionEndOffset,
+    selectionData,
     selectionSize,
     editMode,
     editedByteIsOriginalByte,
@@ -179,9 +167,7 @@ export const commitable = derived(
     $requestable,
     $viewportData,
     $selectedFileData,
-    $selectionStartOffset,
-    $selectionOriginalEnd,
-    $selectionEndOffset,
+    $selectionData,
     $selectionSize,
     $editMode,
     $editedByteIsOriginalByte,
@@ -191,12 +177,15 @@ export const commitable = derived(
       ($editedByteIsOriginalByte && $editMode === EditByteModes.Single)
     )
       return false
-    const originalLength = $selectionOriginalEnd - $selectionStartOffset
-    const editedLength = $selectionEndOffset - $selectionStartOffset
+    const originalLength =
+      $selectionData.originalEndOffset - $selectionData.startOffset
+    const editedLength = $selectionData.endOffset - $selectionData.startOffset
 
     if (originalLength !== editedLength) return true
     for (let i = 0; i < $selectionSize; i++) {
-      if ($viewportData[i + $selectionStartOffset] !== $selectedFileData[i])
+      if (
+        $viewportData[i + $selectionData.startOffset] !== $selectedFileData[i]
+      )
         return true
     }
 
@@ -230,14 +219,24 @@ export const byteOffsetPos = derived(
   }
 )
 
-export const dataView = derived(editedDataSegment, ($selectedFileData) => {
-  return new DataView($selectedFileData.buffer)
-})
+export const dataView = derived(
+  [selectionData, editMode, viewportData, editedDataSegment],
+  ([selectionData, editMode, viewportData, editedDataSegment]) => {
+    return editMode === EditByteModes.Single
+      ? new DataView(
+          viewportData.buffer.slice(
+            selectionData.startOffset,
+            selectionData.startOffset + 8
+          )
+        )
+      : new DataView(editedDataSegment.buffer)
+  }
+)
 
 export const dataViewOffsetText = derived(
-  [selectionStartOffset, byteOffsetPos, addressValue],
-  ([$selectionStartOffset, $byteOffsetPos, $addressValue]) => {
-    return ($selectionStartOffset + $byteOffsetPos).toString($addressValue)
+  [selectionData, byteOffsetPos, addressValue],
+  ([$selectionData, $byteOffsetPos, $addressValue]) => {
+    return ($selectionData.startOffset + $byteOffsetPos).toString($addressValue)
   }
 )
 

@@ -22,7 +22,6 @@ limitations under the License.
     cursorPos,
     displayRadix,
     editByteWindowHidden,
-    editMode,
     editedDataSegment,
     editorEncoding,
     editorSelection,
@@ -33,11 +32,7 @@ limitations under the License.
     headerHidden,
     originalDataSegment,
     rawEditorSelectionTxt,
-    selectionActive,
-    selectionEndOffset,
-    selectionOriginalEnd,
     selectionSize,
-    selectionStartOffset,
     viewportData,
     requestable,
     editedDataStore,
@@ -50,7 +45,6 @@ limitations under the License.
   import {
     type ViewportReferences,
     viewport_references,
-    DOMReady,
   } from '../utilities/display'
   import { MessageCommand } from '../utilities/message'
   import { vscode } from '../utilities/vscode'
@@ -64,24 +58,19 @@ limitations under the License.
   import EditByteWindow from './DataDisplays/EditByteWindow.svelte'
   import FlexContainer from './layouts/FlexContainer.svelte'
   import ServerMetrics from './ServerMetrics/ServerMetrics.svelte'
+  import { selectionData, editMode } from './Editors/DataEditor'
 
-  $: setSelectionEncoding($editorEncoding)
   $: updateLogicalDisplay($bytesPerRow)
   $: $gotoOffset = parseInt($gotoOffsetInput, $addressValue)
   $: $rawEditorSelectionTxt = $editorSelection
   $: $UIThemeCSSClass = $darkUITheme ? CSSThemeClass.Dark : CSSThemeClass.Light
-
-  function clearOnEditModeChange(_: string) {
-    closeEditByteWindow()
-    clearDataDisplays()
-  }
 
   function requestEditedData() {
     if ($requestable) {
       vscode.postMessage({
         command: MessageCommand.requestEditedData,
         data: {
-          selectionToFileOffset: $selectionStartOffset,
+          selectionToFileOffset: $selectionData.startOffset,
           editedContent: $rawEditorSelectionTxt,
           viewport: $focusedViewportId,
           selectionSize: $selectionSize,
@@ -129,25 +118,6 @@ limitations under the License.
     })
   }
 
-  function setSelectionEncoding(editorEncoding: string) {
-    if ($editMode === EditByteModes.Single) {
-      vscode.postMessage({
-        command: MessageCommand.editorOnChange,
-        data: {
-          encoding: editorEncoding,
-        },
-      })
-    } else {
-      vscode.postMessage({
-        command: MessageCommand.editorOnChange,
-        data: {
-          encoding: editorEncoding,
-          selectionData: $editedDataSegment,
-        },
-      })
-    }
-  }
-
   function loadContent(data: Uint8Array) {
     $viewportData = data
     $gotoOffsetMax = data.length
@@ -157,7 +127,7 @@ limitations under the License.
   }
 
   async function handleEditorEvent(_: Event) {
-    if ($selectionOriginalEnd - $selectionStartOffset < 0) {
+    if ($selectionSize < 0) {
       clearDataDisplays()
       return
     }
@@ -171,7 +141,7 @@ limitations under the License.
     const buttonPressed = commitEvent.target as HTMLButtonElement
 
     let editedData: Uint8Array
-    let editedOffset = $selectionStartOffset
+    let editedOffset = $selectionData.startOffset
     let originalData = $originalDataSegment
 
     if ($editMode === EditByteModes.Multiple) {
@@ -248,12 +218,12 @@ limitations under the License.
   }
 
   function clearDataDisplays() {
-    $selectionStartOffset = 0
-    $selectionEndOffset = 0
-    $selectionOriginalEnd = 0
+    $selectionData.startOffset = 0
+    $selectionData.endOffset = 0
+    $selectionData.originalEndOffset = 0
+    $selectionData.active = false
     $cursorPos = 0
     $editorSelection = ''
-    $selectionActive = false
     $editedDataSegment = new Uint8Array(0)
   }
 
@@ -286,8 +256,8 @@ limitations under the License.
           $editedDataSegment[0] = msg.data.data.data
         }
         $cursorPos = document.getSelection().anchorOffset
-        $selectionEndOffset =
-          $selectionStartOffset + $editedDataSegment.byteLength - 1
+        $selectionData.endOffset =
+          $selectionData.startOffset + $editedDataSegment.byteLength - 1
         break
 
       case MessageCommand.setUITheme:

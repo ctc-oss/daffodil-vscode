@@ -20,7 +20,6 @@ import {
   type Subscriber,
   type Writable,
   type Updater,
-  get,
 } from 'svelte/store'
 
 export abstract class SimpleWritable<T> {

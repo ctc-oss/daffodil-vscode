@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// import { SimpleWritable } from './localStore'
 
 export type Radixes = 'Hexidecimal' | 'Decimal' | 'Octal' | 'Binary'
 export type RadixValues = 16 | 10 | 8 | 2
@@ -29,6 +28,14 @@ export enum EditByteModes {
   Single = 'single',
   Multiple = 'multiple',
 }
+
+export type EditorEncodings =
+  | 'hex'
+  | 'binary'
+  | 'ascii'
+  | 'latin1'
+  | 'utf-8'
+  | 'utf-16le'
 
 export const encoding_groups = [
   {
@@ -53,7 +60,7 @@ export const encoding_groups = [
     ],
   },
 ]
-
+export function buffer_encoding_to_local() {}
 export const endiannessOpt = [
   { name: 'Big', value: 'be' },
   { name: 'Little', value: 'le' },

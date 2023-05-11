@@ -20,17 +20,12 @@ limitations under the License.
   import Error from '../../Error/Error.svelte'
   import Button from '../../input/Buttons/Button.svelte'
   import { createEventDispatcher } from 'svelte'
-  import {
-    EditByteModes,
-    RadixOptions,
-    encoding_groups,
-  } from '../../../stores/Configuration'
+  import { RadixOptions, encoding_groups } from '../../../stores/Configuration'
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
   import { goToErr } from '..'
   import {
     addressValue,
     displayRadix,
-    editMode,
     editorEncoding,
     gotoOffset,
     gotoOffsetInput,
@@ -50,14 +45,6 @@ limitations under the License.
 <fieldset>
   <legend>Settings</legend>
   <FlexContainer --dir="column">
-    <FlexContainer --dir="row" --align-items="center">
-      <label for="edit-mode">Byte Edit Mode:</label>
-      <select class={$UIThemeCSSClass} bind:value={$editMode}>
-        <option value={EditByteModes.Single}>Single</option>
-        <option value={EditByteModes.Multiple}>Multiple</option>
-      </select>
-    </FlexContainer>
-
     <FlexContainer --dir="row" --align-items="center">
       <label for="radix">Byte Display Radix:</label>
       <select class={$UIThemeCSSClass} bind:value={$displayRadix}>
