@@ -20,7 +20,6 @@ limitations under the License.
     gotoOffsetInput,
     addressValue,
     displayRadix,
-    selectionActive,
     cursorPos,
     selectionSize,
   } from '../../../stores'
@@ -106,7 +105,7 @@ limitations under the License.
 </div>
 <div class={$UIThemeCSSClass + ' measure selection'}>
   {#if $editMode === EditByteModes.Multiple}
-    {#if $selectionActive}
+    {#if $selectionData.active}
       <div
         class="clear-selection"
         title="Clear selection data"

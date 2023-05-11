@@ -53,7 +53,10 @@ limitations under the License.
   import SearchReplace from './Header/fieldsets/SearchReplace.svelte'
   import Settings from './Header/fieldsets/Settings.svelte'
   import Main from './Main.svelte'
-  import { EditByteModes } from '../stores/Configuration'
+  import {
+    EditByteModes,
+    enterKeypressEventList,
+  } from '../stores/Configuration'
   import Ephemeral from './layouts/Ephemeral.svelte'
   import EditByteWindow from './DataDisplays/EditByteWindow.svelte'
   import FlexContainer from './layouts/FlexContainer.svelte'
@@ -211,10 +214,6 @@ limitations under the License.
 
   function closeEditByteWindow() {
     $editByteWindowHidden = true
-    let physicalViewportRef = viewport_references(
-      'physical'
-    ) as HTMLTextAreaElement
-    physicalViewportRef.focus()
   }
 
   function clearDataDisplays() {
@@ -228,8 +227,12 @@ limitations under the License.
   }
 
   function handleKeybind(event: Event) {
-    if ($editMode === EditByteModes.Multiple) return
     const kevent = event as KeyboardEvent
+    if (kevent.key === 'Enter') {
+      enterKeypressEventList.run(document.activeElement.id)
+      return
+    }
+    if ($editMode === EditByteModes.Multiple) return
     switch (kevent.key) {
       case 'Escape':
         closeEditByteWindow()
