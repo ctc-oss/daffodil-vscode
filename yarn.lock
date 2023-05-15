@@ -98,22 +98,22 @@
     "@jridgewell/resolve-uri" "3.1.0"
     "@jridgewell/sourcemap-codec" "1.4.14"
 
-"@omega-edit/client@0.9.65":
-  version "0.9.65"
-  resolved "https://registry.yarnpkg.com/@omega-edit/client/-/client-0.9.65.tgz#6d041b371eedaa636ddde1d2dd16725c7856f642"
-  integrity sha512-Sb53pHyn1x9IKBxOPOXHE4j3wgnwB9LyY3VAFM+lwl/RyyV7b5Je8UggWoH+MInHYevdfUj3zehJOIrJjN53Ug==
+"@omega-edit/client@0.9.66":
+  version "0.9.66"
+  resolved "https://registry.yarnpkg.com/@omega-edit/client/-/client-0.9.66.tgz#84004fab2bc21c7dd28a16ff96044fb0fa4d3a11"
+  integrity sha512-ZJUlafZ6l/NLRLMHT95+z0lwz09QX+8/L39095MsEGzd+ckBexYY91mkyIYPhVU2jch38xbYcOFO92Mj5lckWg==
   dependencies:
     "@grpc/grpc-js" "1.8.14"
-    "@omega-edit/server" "0.9.65"
+    "@omega-edit/server" "0.9.66"
     "@types/google-protobuf" "3.15.6"
     google-protobuf "3.21.2"
     pino "8.14.1"
     wait-port "1.0.4"
 
-"@omega-edit/server@0.9.65":
-  version "0.9.65"
-  resolved "https://registry.yarnpkg.com/@omega-edit/server/-/server-0.9.65.tgz#c25daa937c914650279c3fde877bb7e50deea325"
-  integrity sha512-XHgOvhodvsrraTUdx1kPWURy+SgoKrZ50yFSmaQiaO29DbbBa1xx/pNhM+KP8gdltrQApNNa8Ds8FN1sgS52tQ==
+"@omega-edit/server@0.9.66":
+  version "0.9.66"
+  resolved "https://registry.yarnpkg.com/@omega-edit/server/-/server-0.9.66.tgz#42dd044da8493271d1e69b2f8e37936afb29b24a"
+  integrity sha512-qgQWyIeaXcwjHw8nPJui2B+/xeQYxEjp4gXBaiaziMiqTeIFY2JQS/rEPLCPvOgHpOIc7JH/0yyU9ZhG4WsYGg==
 
 "@protobufjs/aspromise@^1.1.1", "@protobufjs/aspromise@^1.1.2":
   version "1.1.2"
