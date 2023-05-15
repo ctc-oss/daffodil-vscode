@@ -59,7 +59,7 @@ import assert from 'assert'
 
 const VIEWPORT_CAPACITY_MAX = 1000000 // Maximum viewport size in Ωedit is 1048576 (1024 * 1024)
 
-export class DataEditWebView implements vscode.Disposable {
+export class DataEditorWebView implements vscode.Disposable {
   public panel: vscode.WebviewPanel
   private svelteWebviewInitializer: SvelteWebviewInitializer
   private displayState: DisplayState

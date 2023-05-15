@@ -19,7 +19,7 @@ import * as assert from 'assert'
 import * as path from 'path'
 import * as vscode from 'vscode'
 import fs from 'fs'
-import { DataEditWebView } from '../../dataEditor/dataEditWebView'
+import { DataEditorWebView } from '../../dataEditor/dataEditorWebView'
 import { TEST_SCHEMA } from './common'
 import { after, before } from 'mocha'
 import {
@@ -142,7 +142,7 @@ suite('Data Editor Test Suite', () => {
 
   suite('Data Editor', () => {
     test('data editor opens', async () => {
-      const dataEditWebView: DataEditWebView =
+      const dataEditWebView: DataEditorWebView =
         await vscode.commands.executeCommand(dataEditorCommand, TEST_SCHEMA)
       assert.ok(dataEditWebView)
       assert.strictEqual(dataEditWebView.panel.active, true)
