@@ -89,7 +89,7 @@ jobs:
     name: 'Build, Test, and Package (OS: ${{ matrix.os }}, Node: ${{ matrix.node }})'
     strategy:
       matrix:
-        os: [macos-12, ubuntu-20.04, windows-2019]
+        os: [macos-11, ubuntu-20.04, windows-2019]
         node: [ '14', '16' ]
       fail-fast: false  # don't immediately fail all other jobs if a single job fails
     runs-on: ${{ matrix.os }}

@@ -332,9 +332,37 @@ export class DataEditWebView implements vscode.Disposable {
         saveSession(
           this.omegaSessionId,
           this.fileToEdit,
-          IOFlags.IO_FLG_FORCE_OVERWRITE
+          IOFlags.IO_FLG_OVERWRITE
         )
           .then(async (saveResponse) => {
+            if (saveResponse.getSaveStatus() === SaveStatus.MODIFIED) {
+              // Query user to overwrite the modified file
+              const confirmation = await vscode.window.showInformationMessage(
+                'File has been modified since being opened overwrite the file anyway?',
+                { modal: true },
+                'Yes',
+                'No'
+              )
+              if (confirmation === 'Yes') {
+                saveSession(
+                  this.omegaSessionId,
+                  this.fileToEdit,
+                  IOFlags.IO_FLG_FORCE_OVERWRITE
+                )
+                  .then(async (saveResponse) => {
+                    vscode.window.showInformationMessage(
+                      `Saved to file: ${saveResponse.getFilePath()}`
+                    )
+                    await this.sendChangesInfo()
+                    await this.sendDiskFileSize()
+                  })
+                  .catch(() => {
+                    vscode.window.showErrorMessage(
+                      `Failed to save over: ${this.fileToEdit}`
+                    )
+                  })
+              }
+            }
             vscode.window.showInformationMessage(
               `Saved to file: ${saveResponse.getFilePath()}`
             )
@@ -342,7 +370,7 @@ export class DataEditWebView implements vscode.Disposable {
             await this.sendDiskFileSize()
           })
           .catch(() => {
-            vscode.window.showErrorMessage(`Failed to save: ${this.fileToEdit}`)
+            vscode.window.showErrorMessage(`Failed to save over: ${this.fileToEdit}`)
           })
         break
 
@@ -360,8 +388,7 @@ export class DataEditWebView implements vscode.Disposable {
                 IOFlags.IO_FLG_OVERWRITE
               )
                 .then(async (saveResponse) => {
-                  const status = saveResponse.getSaveStatus()
-                  if (status === SaveStatus.MODIFIED) {
+                  if (saveResponse.getSaveStatus() === SaveStatus.MODIFIED) {
                     // Query user to overwrite the modified file
                     const confirmation =
                       await vscode.window.showInformationMessage(
@@ -376,18 +403,18 @@ export class DataEditWebView implements vscode.Disposable {
                         uri.path,
                         IOFlags.IO_FLG_FORCE_OVERWRITE
                       )
-                        .then(() => {
+                        .then(async () => {
                           vscode.window.showInformationMessage(
                             `Saved to file: ${uri.path}`
                           )
                           if (uri.path === this.fileToEdit) {
-                            this.sendChangesInfo()
-                            this.sendDiskFileSize()
+                            await this.sendChangesInfo()
+                            await this.sendDiskFileSize()
                           }
                         })
                         .catch(() => {
                           vscode.window.showErrorMessage(
-                            `Failed to save: ${uri.path}`
+                            `Failed to save over: ${uri.path}`
                           )
                         })
                     } else {
