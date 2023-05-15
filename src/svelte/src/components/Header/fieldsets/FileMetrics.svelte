@@ -37,8 +37,14 @@ limitations under the License.
     displayOpts = false
   }
 
-  function saveDisplay() {
-    displayOpts = displayOpts ? false : true
+  function toggleSaveDisplay() {
+    displayOpts = !displayOpts
+    if (displayOpts) {
+      // set displayOpts to false after 10 seconds
+      setTimeout(() => {
+        displayOpts = false
+      }, 10000)
+    }
   }
 
   window.addEventListener('message', (msg) => {
@@ -107,7 +113,7 @@ limitations under the License.
         <span slot="default">Save As</span>
       </Button>
     {:else}
-      <Button fn={saveDisplay}>
+      <Button fn={toggleSaveDisplay}>
         <span slot="default">Save ...</span>
       </Button>
     {/if}
