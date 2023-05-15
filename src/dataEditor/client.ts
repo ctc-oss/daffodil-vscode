@@ -31,7 +31,7 @@ import {
 import path from 'path'
 import * as vscode from 'vscode'
 import XDGAppPaths from 'xdg-app-paths'
-import { DataEditWebView } from './dataEditWebView'
+import { DataEditorWebView } from './dataEditorWebView'
 import {
   checkServerListening,
   initOmegaEditClient,
@@ -381,7 +381,7 @@ async function createOmegaEditWebviewPanel(
   ctx: vscode.ExtensionContext,
   fileToEdit: string
 ) {
-  const dataEditorView = new DataEditWebView(
+  const dataEditorView = new DataEditorWebView(
     ctx,
     'dataEditor',
     'Data Editor',
