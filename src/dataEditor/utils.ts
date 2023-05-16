@@ -30,6 +30,7 @@ import {
 import { EditorMessage, MessageCommand } from '../svelte/src/utilities/message'
 import { EditByteModes } from '../svelte/src/stores/Configuration'
 import * as net from 'net'
+import { VIEWPORT_CAPACITY_MAX } from './dataEditorWebView'
 
 let client: EditorClient
 export async function initOmegaEditClient(
@@ -39,30 +40,43 @@ export async function initOmegaEditClient(
   client = getClient(port, host)
 }
 
-export async function setViewportDataForPanel(
+/**
+ * Get the viewport data for a given viewport and send it to the editor
+ * @param panel webview panel to send updates to
+ * @param viewportId id of the viewport to get data for
+ */
+export async function sendViewportData(
   panel: vscode.WebviewPanel,
   viewportId: string
 ) {
-  getViewportData(viewportId).then(async (r: ViewportDataResponse) => {
-    const bufferData: Uint8Array = r.getData_asU8()
-    panel.webview.postMessage({
-      command: MessageCommand.viewportSubscribe,
-      // viewportData: bufferData,
-      // displayData: Buffer.from(bufferData).toString('hex'),
-      data: {
-        viewportData: bufferData,
-        displayData: Buffer.from(bufferData).toString('hex'),
-      },
-    })
-  })
+  getViewportData(viewportId).then(
+    async (viewportDataResponse: ViewportDataResponse) => {
+      panel.webview.postMessage({
+        command: MessageCommand.viewportRefresh,
+        data: {
+          viewportOffset: viewportDataResponse.getOffset(),
+          viewportLength: viewportDataResponse.getLength(),
+          viewportFollowingByteCount:
+            viewportDataResponse.getFollowingByteCount(),
+          viewportData: viewportDataResponse.getData_asU8(),
+          viewportCapacity: VIEWPORT_CAPACITY_MAX,
+        },
+      })
+    }
+  )
 }
 
+/**
+ * Subscribe to all events for a given viewport so the editor gets refreshed when changes to the viewport occur
+ * @param panel webview panel to send updates to
+ * @param viewportId id of the viewport to subscribe to
+ */
 export async function viewportSubscribe(
   panel: vscode.WebviewPanel,
   viewportId: string
 ) {
   // initial viewport population
-  await setViewportDataForPanel(panel, viewportId)
+  await sendViewportData(panel, viewportId)
 
   // subscribe to all viewport events
   client
@@ -73,7 +87,7 @@ export async function viewportSubscribe(
       getLogger().debug(
         `viewport '${event.getViewportId()}' received event: ${event.getViewportEventKind()}`
       )
-      await setViewportDataForPanel(panel, viewportId)
+      await sendViewportData(panel, viewportId)
     })
     .on('error', (err) => {
       // Call cancelled thrown sometimes when server is shutdown

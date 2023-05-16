@@ -43,6 +43,7 @@ limitations under the License.
   import { EditByteModes } from '../../stores/Configuration'
   import { frame_selected_on_whitespace } from './DataViewports'
   import { selectionData, editMode } from '../Editors/DataEditor'
+  import { viewportOffset } from '../../stores/index.js'
 
   const EventDispatcher = createEventDispatcher()
 

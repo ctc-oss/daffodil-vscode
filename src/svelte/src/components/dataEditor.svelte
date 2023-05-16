@@ -23,19 +23,21 @@ limitations under the License.
     displayRadix,
     editByteWindowHidden,
     editedDataSegment,
+    editedDataStore,
     editorEncoding,
     editorSelection,
     focusedViewportId,
     gotoOffset,
     gotoOffsetInput,
-    gotoOffsetMax,
     headerHidden,
     originalDataSegment,
     rawEditorSelectionTxt,
+    requestable,
     selectionSize,
     viewportData,
-    requestable,
-    editedDataStore,
+    viewportFollowingByteCount,
+    viewportLength,
+    viewportOffset,
   } from '../stores'
   import {
     CSSThemeClass,
@@ -119,14 +121,6 @@ limitations under the License.
         bytesPerRow: bytesPerRow,
       },
     })
-  }
-
-  function loadContent(data: Uint8Array) {
-    $viewportData = data
-    $gotoOffsetMax = data.length
-    $gotoOffset = 0
-
-    updateLogicalDisplay($bytesPerRow)
   }
 
   async function handleEditorEvent(_: Event) {
@@ -243,8 +237,14 @@ limitations under the License.
 
   window.addEventListener('message', (msg) => {
     switch (msg.data.command) {
-      case MessageCommand.viewportSubscribe:
-        loadContent(msg.data.data.viewportData)
+      case MessageCommand.viewportRefresh:
+        // the viewport has been refreshed, so the editor views need to be updated
+        $viewportData = msg.data.data.viewportData
+        $viewportOffset = msg.data.data.viewportOffset
+        $viewportLength = msg.data.data.viewportLength
+        $viewportFollowingByteCount = msg.data.data.viewportFollowingByteCount
+        $gotoOffset = 0
+        updateLogicalDisplay($bytesPerRow)
         break
 
       case MessageCommand.editorOnChange:
@@ -268,7 +268,7 @@ limitations under the License.
         break
     }
   })
-  let editByteWindowHide: boolean = true
+  let editByteWindowHide: boolean
   $: editByteWindowHide =
     $editMode === EditByteModes.Single ? $editByteWindowHidden : true
 </script>
