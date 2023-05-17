@@ -38,7 +38,7 @@ limitations under the License.
   } from '../../utilities/display'
   import { MessageCommand } from '../../utilities/message'
   import { createEventDispatcher } from 'svelte'
-  import { editByteWindowHidden, editByte, editorSelection } from '../../stores'
+  import { editByteWindowHidden } from '../../stores'
   import { vscode } from '../../utilities/vscode'
   import { EditByteModes, RadixOptions } from '../../stores/Configuration'
   import { frame_selected_on_whitespace } from './DataViewports'
@@ -181,6 +181,9 @@ limitations under the License.
     switch (msg.data.command) {
       case MessageCommand.updateLogicalDisplay:
         logicalDisplayText = msg.data.data.logicalDisplay
+        break
+      default:
+        console.error('Unknown message command: ' + msg.data.command)
         break
     }
   })

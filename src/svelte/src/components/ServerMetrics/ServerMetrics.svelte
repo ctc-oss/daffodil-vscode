@@ -44,14 +44,19 @@ limitations under the License.
     )[0] as HTMLDivElement
   }
   window.addEventListener('message', (msg) => {
-    if (msg.data.command === MessageCommand.heartbeat) {
-      omegaEditPort = msg.data.data.omegaEditPort
-      serverVersion = msg.data.data.serverVersion
-      serverLatency = msg.data.data.serverLatency
-      serverCpuLoadAvg = msg.data.data.serverCpuLoadAvg
-      serverUsedMemory = msg.data.data.serverUsedMemory
-      serverUptime = msg.data.data.serverUptime
-      sessionCount = msg.data.data.sessionCount
+    switch (msg.data.command) {
+      case MessageCommand.heartbeat:
+        omegaEditPort = msg.data.data.omegaEditPort
+        serverVersion = msg.data.data.serverVersion
+        serverLatency = msg.data.data.serverLatency
+        serverCpuLoadAvg = msg.data.data.serverCpuLoadAvg
+        serverUsedMemory = msg.data.data.serverUsedMemory
+        serverUptime = msg.data.data.serverUptime
+        sessionCount = msg.data.data.sessionCount
+        break
+      default:
+        console.error('Unknown message command: ' + msg.data.command)
+        break
     }
   })
 </script>
