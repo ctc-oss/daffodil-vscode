@@ -15,18 +15,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
-  import FlexContainer from '../../layouts/FlexContainer.svelte'
-  import Input from '../../Inputs/Input/Input.svelte'
-  import Error from '../../Error/Error.svelte'
-  import Button from '../../Inputs/Buttons/Button.svelte'
-  import { createEventDispatcher } from 'svelte'
   import {
     RadixOptions,
     encoding_groups,
     enterKeypressEventList,
   } from '../../../stores/Configuration'
-  import { UIThemeCSSClass } from '../../../utilities/colorScheme'
-  import { goToErr } from '..'
   import {
     addressValue,
     displayRadix,
@@ -35,9 +28,21 @@ limitations under the License.
     gotoOffsetInput,
     gotoable,
   } from '../../../stores'
+  import { goToErr } from '..'
+  import Error from '../../Error/Error.svelte'
+  import { createEventDispatcher } from 'svelte'
+  import Input from '../../Inputs/Input/Input.svelte'
+  import Button from '../../Inputs/Buttons/Button.svelte'
+  import FlexContainer from '../../layouts/FlexContainer.svelte'
+  import { UIThemeCSSClass } from '../../../utilities/colorScheme'
+  import {
+    viewport_references,
+    type ViewportReferences,
+  } from '../../../utilities/display'
 
   const EventDispatcher = createEventDispatcher()
   const goToInputId = 'goto-input'
+
   enterKeypressEventList.register({ id: goToInputId, run: goToEventHandler })
 
   $: $gotoOffset = parseInt($gotoOffsetInput, $addressValue)
@@ -45,6 +50,26 @@ limitations under the License.
 
   function goToEventHandler() {
     EventDispatcher('goTo')
+  }
+
+  function adjustViewportSizes(event: Event) {
+    let viewportRefs = viewport_references() as ViewportReferences
+
+    switch ($displayRadix) {
+      case RadixOptions.Hexidecimal:
+        viewportRefs.physical.style.width = '300pt'
+        viewportRefs.logical.style.width = '200pt'
+        break
+      case RadixOptions.Octal:
+      case RadixOptions.Decimal:
+        viewportRefs.physical.style.width = '385pt'
+        viewportRefs.logical.style.width = '200pt'
+        break
+      case RadixOptions.Binary:
+        viewportRefs.physical.style.width = '435pt'
+        viewportRefs.logical.style.width = '100pt'
+        break
+    }
   }
 </script>
 

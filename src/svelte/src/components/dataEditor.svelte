@@ -248,7 +248,9 @@ limitations under the License.
         break
 
       case MessageCommand.editorOnChange:
-        $editorSelection = msg.data.display
+        if ($editMode === EditByteModes.Multiple)
+          $editorSelection = msg.data.display
+
         break
 
       case MessageCommand.requestEditedData:

@@ -40,7 +40,7 @@ limitations under the License.
   import { createEventDispatcher } from 'svelte'
   import { editByteWindowHidden, editByte, editorSelection } from '../../stores'
   import { vscode } from '../../utilities/vscode'
-  import { EditByteModes } from '../../stores/Configuration'
+  import { EditByteModes, RadixOptions } from '../../stores/Configuration'
   import { frame_selected_on_whitespace } from './DataViewports'
   import { selectionData, editMode } from '../Editors/DataEditor'
 
@@ -49,18 +49,15 @@ limitations under the License.
   let viewportRefs = viewport_references() as ViewportReferences
   let isScrolledToTop = true
   let isScrolledToEnd = false
-
   let currentScrollEvt: string | null, scrollSyncTimer: NodeJS.Timeout
-
   let editByteWindow = edit_byte_window_ref()
-
   let physicalDisplayText: string = ''
   let logicalDisplayText: string = ''
 
   $: {
     $editMode === EditByteModes.Single
-      ? setSelectionEncoding('hex', false)
-      : setSelectionEncoding($editorEncoding)
+      ? post_editorOnChange_msg('hex')
+      : post_editorOnChange_msg($editorEncoding)
   }
 
   $: addressText = makeAddressRange(
@@ -142,7 +139,7 @@ limitations under the License.
       editByteWindow.style.width = '100pt'
     }
     $editByteWindowHidden = false
-    $editorSelection = $editByte
+    // $editorSelection = $editByte
     document.getElementById('editByteInput').focus()
   }
 
@@ -165,9 +162,7 @@ limitations under the License.
     if ($editMode === EditByteModes.Single) {
       post_editorOnChange_msg('hex')
       change_edit_byte_window($displayRadix, event)
-    } else {
-      post_editorOnChange_msg($editorEncoding)
-    }
+    } else post_editorOnChange_msg($editorEncoding)
   }
 
   function post_editorOnChange_msg(forcedEncoding?: string) {
@@ -178,17 +173,7 @@ limitations under the License.
         selectionData: $editedDataSegment,
         encoding: forcedEncoding ? forcedEncoding : $editorEncoding,
         selectionSize: $selectionSize,
-        saveEncoding: false,
-      },
-    })
-  }
-  function setSelectionEncoding(editorEncoding: string, save: boolean = true) {
-    vscode.postMessage({
-      command: MessageCommand.editorOnChange,
-      data: {
-        encoding: editorEncoding,
-        selectionData: $editedDataSegment,
-        saveEncoding: save,
+        editMode: $editMode,
       },
     })
   }
@@ -214,6 +199,10 @@ limitations under the License.
 <textarea
   class={$UIThemeCSSClass + ' physical'}
   class:locked={$selectionData.active}
+  class:hexWidth={$displayRadix === RadixOptions.Hexidecimal}
+  class:decoctWidth={$displayRadix === RadixOptions.Decimal ||
+    $displayRadix === RadixOptions.Octal}
+  class:binWidth={$displayRadix === RadixOptions.Binary}
   id="physical"
   contenteditable="true"
   readonly
@@ -225,6 +214,10 @@ limitations under the License.
 <textarea
   class={$UIThemeCSSClass + ' logical'}
   class:locked={$selectionData.active}
+  class:hexWidth={$displayRadix === RadixOptions.Hexidecimal}
+  class:decoctWidth={$displayRadix === RadixOptions.Decimal ||
+    $displayRadix === RadixOptions.Octal}
+  class:binWidth={$displayRadix === RadixOptions.Binary}
   id="logical"
   contenteditable="true"
   readonly
@@ -238,10 +231,22 @@ limitations under the License.
   textarea.locked {
     overflow-y: hidden;
   }
-  textarea.physical {
+  textarea.physical.hexWidth {
     min-width: 300pt;
   }
-  textarea.logical {
+  textarea.logical.hexWidth {
     min-width: 200pt;
+  }
+  textarea.physical.decoctWidth {
+    min-width: 385pt;
+  }
+  textarea.logical.decoctWidth {
+    min-width: 200pt;
+  }
+  textarea.physical.binWidth {
+    min-width: 435pt;
+  }
+  textarea.logical.binWidth {
+    min-width: 100pt;
   }
 </style>
