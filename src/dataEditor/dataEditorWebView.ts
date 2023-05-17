@@ -58,6 +58,7 @@ import {
   viewportSubscribe,
 } from './utils'
 import assert from 'assert'
+import { EditByteModes } from '../svelte/src/stores/Configuration'
 
 export const VIEWPORT_CAPACITY_MAX = 16 * 640 // 10240, Ωedit maximum viewport size is 1048576 (1024 * 1024)
 
@@ -274,20 +275,25 @@ export class DataEditorWebView implements vscode.Disposable {
         break
 
       case MessageCommand.editorOnChange:
-        if (message.data.saveEncoding)
-          this.displayState.editorEncoding = message.data.encoding
+        this.displayState.editorEncoding = message.data.encoding
+        const encodeDataAs =
+          message.data.editMode === EditByteModes.Single
+            ? 'hex'
+            : this.displayState.editorEncoding
 
         if (
           message.data.selectionData &&
           message.data.selectionData.length > 0
         ) {
           const bufSlice = Buffer.from(message.data.selectionData)
+          const displayData = dataToEncodedStr(bufSlice, encodeDataAs)
+
           this.panel.webview.postMessage({
             command: MessageCommand.editorOnChange,
-            display: dataToEncodedStr(
-              bufSlice,
-              this.displayState.editorEncoding
-            ),
+            display:
+              message.data.encoding === 'hex'
+                ? displayData.toUpperCase()
+                : displayData,
           })
         }
         break

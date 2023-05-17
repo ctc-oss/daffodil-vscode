@@ -83,7 +83,6 @@ class EnterKeypressEvents {
     this.events.push(event)
   }
   public run(elementId: string) {
-    console.log('entereventlist run: ', this.events)
     this.events.forEach((eventItem) => {
       if (eventItem.id === elementId) eventItem.run()
     })
