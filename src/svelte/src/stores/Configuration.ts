@@ -52,7 +52,6 @@ export const encoding_groups = [
     ],
   },
 ]
-export function buffer_encoding_to_local() {}
 export const endiannessOpt = [
   { name: 'Big', value: 'be' },
   { name: 'Little', value: 'le' },
