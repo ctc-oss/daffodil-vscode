@@ -50,55 +50,6 @@ export function edit_byte_window_ref(): HTMLDivElement {
   return document.getElementById('editByteWindow') as HTMLDivElement
 }
 
-export const radixOpt = [
-  { name: 'Hexadecimal', value: 16 },
-  { name: 'Decimal', value: 10 },
-  { name: 'Octal', value: 8 },
-  { name: 'Binary', value: 2 },
-]
-
-export const encoding_groups = [
-  {
-    group: 'Binary',
-    encodings: [
-      { name: 'Hexidecimal', value: 'hex' },
-      { name: 'Binary', value: 'binary' },
-    ],
-  },
-  {
-    group: 'Single-byte',
-    encodings: [
-      { name: 'ASCII (7-bit)', value: 'ascii' },
-      { name: 'Latin-1 (8-bit)', value: 'latin1' },
-    ],
-  },
-  {
-    group: 'Multi-byte',
-    encodings: [
-      { name: 'UTF-8', value: 'utf-8' },
-      { name: 'UTF-16LE', value: 'utf-16le' },
-    ],
-  },
-]
-
-export const endiannessOpt = [
-  { name: 'Big', value: 'be' },
-  { name: 'Little', value: 'le' },
-]
-
-export const lsbOpt = [
-  { name: 'Higher Offset', value: 'h' },
-  { name: 'Lower Offset', value: 'l' },
-]
-
-export const byteSizeOpt = [{ value: 8 }, { value: 7 }, { value: 6 }]
-
-export const addressOpt = [
-  { name: 'Hexidecimal', value: 16 },
-  { name: 'Decimal', value: 10 },
-  { name: 'Octal', value: 8 },
-]
-
 // address, followed by radix
 const offsetDisplays = {
   16: {
@@ -185,7 +136,7 @@ export function radixBytePad(radix: number): number {
   }
   return 0
 }
-export function isEncodedTextEditable(text: string, encoding: string): boolean {
+function isEncodedTextEditable(text: string, encoding: string): boolean {
   switch (encoding) {
     case 'latin1':
       for (let i = 0; i < text.length; i++) {
@@ -233,7 +184,7 @@ export function regexEditDataTest(
   }
 }
 
-export function validStrByteLen(
+function validStrByteLen(
   text: string,
   dataType: string | number,
   editMode?: string
@@ -289,6 +240,8 @@ export function validRequestableData(
         : validEncodingStr(data, 'latin1', editMode)
     case EditByteModes.Multiple:
       return validEncodingStr(data, encoding)
+    default:
+      return { valid: false, errMsg: 'illegal edit mode' }
   }
 }
 
@@ -385,8 +338,4 @@ export function radixToString(radix: number): string {
       return 'hex'
   }
   return 'binary'
-}
-
-export function DOMReady(): boolean {
-  return document.readyState === 'complete'
 }
