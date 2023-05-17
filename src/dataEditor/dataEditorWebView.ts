@@ -24,7 +24,9 @@ import {
   edit,
   getComputedFileSize,
   getCounts,
+  getLogger,
   IOFlags,
+  modifyViewport,
   notifyChangedViewports,
   pauseViewportEvents,
   redo,
@@ -52,12 +54,12 @@ import {
   encodedStrToData,
   fillRequestData,
   logicalDisplay,
-  setViewportDataForPanel,
+  sendViewportData,
   viewportSubscribe,
 } from './utils'
 import assert from 'assert'
 
-const VIEWPORT_CAPACITY_MAX = 1000000 // Maximum viewport size in Ωedit is 1048576 (1024 * 1024)
+export const VIEWPORT_CAPACITY_MAX = 16 * 640 // 10240, Ωedit maximum viewport size is 1048576 (1024 * 1024)
 
 export class DataEditorWebView implements vscode.Disposable {
   public panel: vscode.WebviewPanel
@@ -159,7 +161,16 @@ export class DataEditorWebView implements vscode.Disposable {
       false
     )
       .then(async (resp) => {
-        await this.setCurrentViewport(resp.getViewportId())
+        this.currentViewportId = resp.getViewportId()
+        viewportSubscribe(this.panel, this.currentViewportId).then(async () => {
+          this.panel.webview.postMessage({
+            command: MessageCommand.fileInfo,
+            data: {
+              fileName: this.fileToEdit,
+              computedFileSize: await getComputedFileSize(this.omegaSessionId),
+            },
+          })
+        })
       })
       .catch(() => {
         vscode.window.showErrorMessage(
@@ -255,6 +266,13 @@ export class DataEditorWebView implements vscode.Disposable {
         })
         break
 
+      case MessageCommand.scrollViewport:
+        await this.scrollViewport(
+          this.currentViewportId,
+          message.data.scrollOffset
+        )
+        break
+
       case MessageCommand.editorOnChange:
         if (message.data.saveEncoding)
           this.displayState.editorEncoding = message.data.encoding
@@ -284,9 +302,8 @@ export class DataEditorWebView implements vscode.Disposable {
           .then(async () => {
             await this.sendChangesInfo()
           })
-          .catch(async () => {
-            // notifyChangedViewports failed, so manually update the viewport
-            await setViewportDataForPanel(this.panel, this.currentViewportId)
+          .catch(() => {
+            vscode.window.showErrorMessage('Failed to commit changes')
           })
         break
 
@@ -329,6 +346,7 @@ export class DataEditorWebView implements vscode.Disposable {
         break
 
       case MessageCommand.save:
+        let saved = false
         saveSession(
           this.omegaSessionId,
           this.fileToEdit,
@@ -349,12 +367,8 @@ export class DataEditorWebView implements vscode.Disposable {
                   this.fileToEdit,
                   IOFlags.IO_FLG_FORCE_OVERWRITE
                 )
-                  .then(async (saveResponse) => {
-                    vscode.window.showInformationMessage(
-                      `Saved to file: ${saveResponse.getFilePath()}`
-                    )
-                    await this.sendChangesInfo()
-                    await this.sendDiskFileSize()
+                  .then(async (saveResponse2) => {
+                    saved = saveResponse2.getSaveStatus() === SaveStatus.SUCCESS
                   })
                   .catch(() => {
                     vscode.window.showErrorMessage(
@@ -362,16 +376,20 @@ export class DataEditorWebView implements vscode.Disposable {
                     )
                   })
               }
+            } else {
+              saved = saveResponse.getSaveStatus() === SaveStatus.SUCCESS
             }
-            vscode.window.showInformationMessage(
-              `Saved to file: ${saveResponse.getFilePath()}`
-            )
-            await this.sendChangesInfo()
-            await this.sendDiskFileSize()
           })
           .catch(() => {
-            vscode.window.showErrorMessage(`Failed to save over: ${this.fileToEdit}`)
+            vscode.window.showErrorMessage(
+              `Failed to save over: ${this.fileToEdit}`
+            )
           })
+        if (saved) {
+          vscode.window.showInformationMessage(`Saved: ${this.fileToEdit}`)
+          await this.sendChangesInfo()
+          await this.sendDiskFileSize()
+        }
         break
 
       case MessageCommand.saveAs:
@@ -405,7 +423,7 @@ export class DataEditorWebView implements vscode.Disposable {
                       )
                         .then(async () => {
                           vscode.window.showInformationMessage(
-                            `Saved to file: ${uri.path}`
+                            `Saved: ${uri.path}`
                           )
                           if (uri.path === this.fileToEdit) {
                             await this.sendChangesInfo()
@@ -424,7 +442,7 @@ export class DataEditorWebView implements vscode.Disposable {
                     }
                   } else {
                     const fp = saveResponse.getFilePath()
-                    vscode.window.showInformationMessage(`Saved to file: ${fp}`)
+                    vscode.window.showInformationMessage(`Saved: ${fp}`)
                     if (fp === this.fileToEdit) {
                       await this.sendChangesInfo()
                       await this.sendDiskFileSize()
@@ -456,15 +474,18 @@ export class DataEditorWebView implements vscode.Disposable {
         {
           const searchDataBytes = encodedStrToData(
             message.data.searchData,
-            this.displayState.editorEncoding
+            message.data.encoding
           )
           const replaceDataBytes = encodedStrToData(
             message.data.replaceData,
-            this.displayState.editorEncoding
+            message.data.encoding
+          )
+          getLogger().debug(
+            `replacing '${message.data.searchData}' with '${message.data.replaceData}' using encoding ${message.data.encoding}`
           )
           // pause viewport events before search, then resume after search
           await pauseViewportEvents(this.omegaSessionId)
-          await replaceSession(
+          replaceSession(
             this.omegaSessionId,
             searchDataBytes,
             replaceDataBytes,
@@ -482,13 +503,10 @@ export class DataEditorWebView implements vscode.Disposable {
                 await notifyChangedViewports(this.omegaSessionId)
               } catch (err) {
                 // notifyChangedViewports failed, so manually update the viewport
-                await setViewportDataForPanel(
-                  this.panel,
-                  this.currentViewportId
-                )
+                await sendViewportData(this.panel, this.currentViewportId)
               }
               this.panel.webview.postMessage({
-                command: MessageCommand.replacementsResults,
+                command: MessageCommand.replaceResults,
                 data: {
                   replacementsCount: replacementsCount,
                 },
@@ -502,35 +520,35 @@ export class DataEditorWebView implements vscode.Disposable {
         {
           const searchDataBytes = encodedStrToData(
             message.data.searchData,
-            this.displayState.editorEncoding
+            message.data.encoding
           )
-          const caseInsensitive = message.data.caseInsensitive
+          getLogger().debug(
+            `searching for '${message.data.searchData}' using encoding ${message.data.encoding}`
+          )
           const searchResults = await searchSession(
             this.omegaSessionId,
             searchDataBytes,
-            caseInsensitive,
+            message.data.caseInsensitive,
             0,
             0,
             0
           )
           this.panel.webview.postMessage({
-            command: MessageCommand.search,
-            searchResults: searchResults,
+            command: MessageCommand.searchResults,
+            data: {
+              results: searchResults,
+            },
           })
         }
         break
     }
   }
 
-  private async setCurrentViewport(viewportId: string) {
-    this.currentViewportId = viewportId
-    await viewportSubscribe(this.panel, this.currentViewportId)
-    this.panel.webview.postMessage({
-      command: MessageCommand.fileInfo,
-      data: {
-        fileName: this.fileToEdit,
-        computedFileSize: await getComputedFileSize(this.omegaSessionId),
-      },
+  private async scrollViewport(viewportId: string, startOffset: number) {
+    modifyViewport(viewportId, startOffset, VIEWPORT_CAPACITY_MAX).catch(() => {
+      vscode.window.showErrorMessage(
+        `Failed to scroll viewport ${viewportId} to offset ${startOffset}`
+      )
     })
   }
 }

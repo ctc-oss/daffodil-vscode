@@ -26,30 +26,41 @@ import { fileMetrics } from '../components/Header/fieldsets/FileMetrics'
 import { EditByteModes } from './Configuration'
 import { editMode, selectionData } from '../components/Editors/DataEditor'
 
-export const cursorPos = writable(0)
-export const fileByteStart = writable(0)
-export const displayRadix = writable(16)
+export const UITheme = writable(ThemeType.Dark)
 export const addressValue = writable(16)
-export const gotoOffsetMax = writable(0)
 export const commitErrMsg = writable('')
-export const searchCaseInsensitive = writable(false)
+export const cursorPos = writable(0)
+export const dataViewEndianness = writable('le') // 'le' for little endian and 'be' for big endian
+export const disableDataView = writable(false)
+export const displayRadix = writable(16)
+export const editByteWindowHidden = writable(true)
+export const editedDataSegment = writable(new Uint8Array(0))
+export const editedDataStore = writable(new Uint8Array(0))
+export const editorEncoding = writable('latin1')
+export const editorSelection = writable('')
+export const fileByteStart = writable(0)
+export const focusedViewportId = writable('')
 export const gotoOffset = writable(0)
 export const gotoOffsetInput = writable('')
-export const disableDataView = writable(false)
-export const dataViewEndianness = writable('le') // 'le' for little endian and 'be' for big endian
-export const viewportData = writable(new Uint8Array(0))
-export const editorSelection = writable('')
-export const selectionActive = writable(false)
-export const editorEncoding = writable('latin1')
-export const selectionStartOffset = writable(0)
-export const rawEditorSelectionTxt = writable('')
-export const editedDataSegment = writable(new Uint8Array(0))
-export const editByteWindowHidden = writable(true)
-export const focusedViewportId = writable('')
+
 export const headerHidden = writable(false)
-export const UITheme = writable(ThemeType.Dark)
-export const editedDataStore = writable(new Uint8Array(0))
+export const rawEditorSelectionTxt = writable('')
+export const searchCaseInsensitive = writable(false)
 export const searchable_fn = writable(Function)
+export const selectionActive = writable(false)
+export const selectionStartOffset = writable(0)
+export const viewportData = writable(new Uint8Array(0))
+export const viewportOffset = writable(0)
+export const viewportLength = writable(0)
+export const viewportFollowingByteCount = writable(0)
+
+export const gotoOffsetMax = derived(
+  [viewportOffset, viewportLength, viewportFollowingByteCount],
+  ([$viewportOffset, $viewportLength, $viewportFollowingByteCount]) => {
+    // this should be the same as the computed file size
+    return $viewportOffset + $viewportLength + $viewportFollowingByteCount
+  }
+)
 
 export const selectionSize = derived(
   [selectionData, editorSelection],

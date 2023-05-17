@@ -29,14 +29,6 @@ export enum EditByteModes {
   Multiple = 'multiple',
 }
 
-export type EditorEncodings =
-  | 'hex'
-  | 'binary'
-  | 'ascii'
-  | 'latin1'
-  | 'utf-8'
-  | 'utf-16le'
-
 export const encoding_groups = [
   {
     group: 'Binary',

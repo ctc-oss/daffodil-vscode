@@ -17,6 +17,7 @@ limitations under the License.
 <script lang="ts">
   import {
     allowCaseInsensitiveSearch,
+    editorEncoding,
     searchCaseInsensitive,
   } from '../../../stores'
   import { replaceErr, searchErr, searchable, replaceable } from '..'
@@ -49,8 +50,8 @@ limitations under the License.
   $: replaceErrDisplay = $replaceErr.length > 0 && !$replaceable
 
   function case_sensitive_action(_: MouseEvent) {
-    $searchCaseInsensitive = $searchCaseInsensitive ? false : true
-    caseInsensitiveToggled = caseInsensitiveToggled ? false : true
+    $searchCaseInsensitive = !$searchCaseInsensitive
+    caseInsensitiveToggled = !caseInsensitiveToggled
   }
   function search() {
     searchQuery.clear_results()
@@ -59,6 +60,7 @@ limitations under the License.
       data: {
         searchData: $searchQuery.input,
         caseInsensitive: $searchCaseInsensitive,
+        encoding: $editorEncoding,
       },
     })
     $searchQuery.processing = true
@@ -72,6 +74,7 @@ limitations under the License.
         searchData: $searchQuery.input,
         caseInsensitive: $searchCaseInsensitive,
         replaceData: $replaceQuery.input,
+        encoding: $editorEncoding,
       },
     })
     $replaceQuery.processing = true
@@ -91,15 +94,16 @@ limitations under the License.
 
   window.addEventListener('message', (msg) => {
     switch (msg.data.command) {
-      case MessageCommand.search:
-        $searchQuery.searchResults = msg.data.searchResults
+      case MessageCommand.searchResults:
+        $searchQuery.searchResults = msg.data.data.results
         $searchQuery.processing = false
         if ($searchQuery.searchResults.length > 0) {
           searchQuery.update_search_results($searchQuery.searchIndex)
           EventDispatcher('goTo')
         }
         break
-      case MessageCommand.replacementsResults:
+
+      case MessageCommand.replaceResults:
         $replaceQuery.processing = false
         $replaceQuery.count = msg.data.data.replacementsCount
         break
@@ -116,7 +120,11 @@ limitations under the License.
       {#if $allowCaseInsensitiveSearch}
         <span class={containerClass}>
           <span class={inlineClass}>
-            <input class={inputClass} bind:value={$searchQuery.input} />
+            <input
+              id="search"
+              class={inputClass}
+              bind:value={$searchQuery.input}
+            />
             <button
               class={$UIThemeCSSClass + ' case-btn'}
               on:click={case_sensitive_action}
@@ -126,7 +134,7 @@ limitations under the License.
           </span>
         </span>
       {:else}
-        <Input bind:value={$searchQuery.input} --width="75%" />
+        <Input id="search" bind:value={$searchQuery.input} --width="75%" />
       {/if}
 
       <Error err={searchErr} display={searchErrDisplay} />
@@ -134,7 +142,7 @@ limitations under the License.
 
     <FlexContainer --dir="row" --align-items="center" --height="25pt">
       <label for="replace">Replace:</label>
-      <Input bind:value={$replaceQuery.input} --width="75%" />
+      <Input id="replace" bind:value={$replaceQuery.input} --width="75%" />
       <Error err={replaceErr} display={replaceErrDisplay} />
     </FlexContainer>
 
