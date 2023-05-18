@@ -250,7 +250,6 @@ limitations under the License.
       case MessageCommand.editorOnChange:
         if ($editMode === EditByteModes.Multiple)
           $editorSelection = msg.data.display
-
         break
 
       case MessageCommand.requestEditedData:
@@ -267,6 +266,10 @@ limitations under the License.
 
       case MessageCommand.setUITheme:
         $darkUITheme = msg.data.theme === 2
+        break
+
+      default:
+        console.error('Unknown message command: ' + msg.data.command)
         break
     }
   })
