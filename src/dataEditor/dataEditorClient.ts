@@ -522,16 +522,17 @@ export class DataEditorClient implements vscode.Disposable {
     }
 
     if (saved) {
-      vscode.window.showInformationMessage(`Saved: ${this.fileToEdit}`)
+      this.fileToEdit = fileToSave
       this.fileSize = await getComputedFileSize(this.omegaSessionId)
       this.panel.webview.postMessage({
         command: MessageCommand.fileInfo,
         data: {
           computedFileSize: this.fileSize,
           diskFileSize: this.fileSize,
+          fileName: this.fileToEdit,
         },
       })
-      this.fileToEdit = fileToSave
+      vscode.window.showInformationMessage(`Saved: ${this.fileToEdit}`)
     } else if (cancelled) {
       vscode.window.showInformationMessage(`Cancelled save: ${fileToSave}`)
     } else {
