@@ -72,14 +72,8 @@ export const selectionSize = derived(
 )
 
 export const editByte = derived(
-  [displayRadix, focusedViewportId, editMode, viewportData, selectionData],
-  ([
-    $displayRadix,
-    $focusedViewportId,
-    $editMode,
-    $viewportData,
-    $selectionData,
-  ]) => {
+  [displayRadix, focusedViewportId, viewportData, selectionData],
+  ([$displayRadix, $focusedViewportId, $viewportData, $selectionData]) => {
     if ($viewportData[$selectionData.startOffset] !== undefined) {
       return $focusedViewportId === 'logical'
         ? String.fromCharCode($viewportData[$selectionData.startOffset])

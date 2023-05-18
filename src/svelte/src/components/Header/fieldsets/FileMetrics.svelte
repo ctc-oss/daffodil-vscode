@@ -20,12 +20,6 @@ limitations under the License.
   import { fileMetrics } from './FileMetrics'
   import { MessageCommand } from '../../../utilities/message'
   import { vscode } from '../../../utilities/vscode'
-  import {
-    gotoOffsetMax,
-    viewportFollowingByteCount,
-    viewportLength,
-    viewportOffset,
-  } from '../../../stores'
 
   let displayOpts = false
 

@@ -18,13 +18,17 @@ limitations under the License.
   import { MessageCommand } from '../../utilities/message'
   import FlexContainer from '../layouts/FlexContainer.svelte'
 
-  let omegaEditPort: number
-  let serverVersion: string = 'Unknown'
-  let serverLatency: number
-  let serverCpuLoadAvg: number
-  let serverUsedMemory: number
-  let serverUptime: number
-  let sessionCount: number
+  let heartbeat = {
+    latency: 0,
+    omegaEditPort: 0,
+    serverCpuLoadAverage: 0,
+    serverTimestamp: 0,
+    serverUptime: 0,
+    serverUsedMemory: 0,
+    serverVersion: 'Unknown',
+    sessionCount: 0,
+  }
+
   let displayInfo: boolean = false
 
   function toggleDisplay(_: Event) {
@@ -38,57 +42,94 @@ limitations under the License.
     displayInfo = true
     textDiv.style.opacity = '.7'
   }
+
   function get_text_element_ref(): HTMLDivElement {
     return document.getElementsByClassName(
       'heartbeat-text'
     )[0] as HTMLDivElement
   }
+
+  function prettyPrintUptime(uptimeInMilliseconds: number): string {
+    const uptimeSeconds = Math.floor(uptimeInMilliseconds / 1000)
+    const days = Math.floor(uptimeSeconds / (60 * 60 * 24))
+    const hours = Math.floor((uptimeSeconds % (60 * 60 * 24)) / (60 * 60))
+    const minutes = Math.floor((uptimeSeconds % (60 * 60)) / 60)
+    const seconds = Math.floor(uptimeSeconds % 60)
+
+    let uptimeString = ''
+    if (days > 0) {
+      uptimeString += `${days} days, `
+    }
+    if (hours > 0) {
+      uptimeString += `${hours} hours, `
+    }
+    if (minutes > 0) {
+      uptimeString += `${minutes} minutes, `
+    }
+    uptimeString += `${seconds} seconds`
+
+    return uptimeString
+  }
+
   window.addEventListener('message', (msg) => {
-    if (msg.data.command === MessageCommand.heartbeat) {
-      omegaEditPort = msg.data.data.omegaEditPort
-      serverVersion = msg.data.data.serverVersion
-      serverLatency = msg.data.data.serverLatency
-      serverCpuLoadAvg = msg.data.data.serverCpuLoadAvg
-      serverUsedMemory = msg.data.data.serverUsedMemory
-      serverUptime = msg.data.data.serverUptime
-      sessionCount = msg.data.data.sessionCount
+    switch (msg.data.command) {
+      case MessageCommand.heartbeat:
+        heartbeat.latency = msg.data.data.latency
+        heartbeat.omegaEditPort = msg.data.data.omegaEditPort
+        heartbeat.serverCpuLoadAverage = msg.data.data.serverCpuLoadAverage
+        heartbeat.serverUptime = msg.data.data.serverUptime
+        heartbeat.serverUsedMemory = msg.data.data.serverUsedMemory
+        heartbeat.serverVersion = msg.data.data.serverVersion
+        heartbeat.sessionCount = msg.data.data.sessionCount
+        console.log('Heartbeat received: ' + JSON.stringify(msg.data.data))
+        break
+      default:
+        console.error('Unknown message command: ' + msg.data.command)
+        break
     }
   })
 </script>
 
 <FlexContainer --height="25pt" --align-items="center">
-  <div class="info">
-    Powered by Ωedit v{serverVersion} on port {omegaEditPort}
-  </div>
-  <FlexContainer>
-    <svg
-      class="latency-indicator"
-      on:mouseenter={toggleDisplay}
-      on:mouseleave={toggleDisplay}
-    >
-      {#if serverLatency < 20}
-        <circle cx="50%" cy="50%" r="4pt" fill="green" />
-      {:else if serverLatency < 35}
-        <circle cx="50%" cy="50%" r="4pt" fill="yellow" />
-      {:else if serverLatency > 50}
-        <circle cx="50%" cy="50%" r="4pt" fill="red" />
-      {:else}
-        <circle cx="50%" cy="50%" r="4pt" fill="grey" />
-      {/if}
-    </svg>
-    <div class="heartbeat-text">
-      <b>CPU Load Avg:</b>
-      {(serverCpuLoadAvg ? serverCpuLoadAvg : 0).toFixed(2)}
-      <b>Memory Usage:</b>
-      {serverUsedMemory}
-      <b>Session Count:</b>
-      {sessionCount}
-      <b>Uptime:</b>
-      {(serverUptime / 1000).toFixed(0)}s
-      <b>Latency:</b>
-      {serverLatency}ms
+  {#if heartbeat.sessionCount > 0}
+    <div class="info">
+      Powered by Ωedit v{heartbeat.serverVersion} on port {heartbeat.omegaEditPort}
     </div>
-  </FlexContainer>
+    <FlexContainer>
+      <svg
+        class="latency-indicator"
+        on:mouseenter={toggleDisplay}
+        on:mouseleave={toggleDisplay}
+      >
+        {#if heartbeat.latency < 20}
+          <circle cx="50%" cy="50%" r="4pt" fill="green" />
+        {:else if heartbeat.latency < 35}
+          <circle cx="50%" cy="50%" r="4pt" fill="yellow" />
+        {:else if heartbeat.latency > 50}
+          <circle cx="50%" cy="50%" r="4pt" fill="red" />
+        {:else}
+          <circle cx="50%" cy="50%" r="4pt" fill="grey" />
+        {/if}
+      </svg>
+      <div class="heartbeat-text">
+        <b>CPU Load Avg:</b>
+        {(heartbeat.serverCpuLoadAverage
+          ? heartbeat.serverCpuLoadAverage
+          : 0
+        ).toFixed(2)}
+        <b>Memory Usage:</b>
+        {heartbeat.serverUsedMemory}
+        <b>Session Count:</b>
+        {heartbeat.sessionCount}
+        <b>Uptime:</b>
+        {prettyPrintUptime(heartbeat.serverUptime)}
+        <b>Latency:</b>
+        {heartbeat.latency}ms
+      </div>
+    </FlexContainer>
+  {:else}
+    <div class="info">Powered by Ωedit (heartbeat not received)</div>
+  {/if}
 </FlexContainer>
 
 <style lang="scss">
