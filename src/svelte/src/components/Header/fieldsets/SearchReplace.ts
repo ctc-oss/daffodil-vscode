@@ -72,7 +72,7 @@ class ReplaceData implements QueryableData {
   input: string = ''
   processing: boolean = false
   isValid: boolean = false
-  count: number = 0
+  count: number = -1
 }
 export class ReplaceQuery extends SimpleWritable<ReplaceData> {
   protected store_init(): ReplaceData {

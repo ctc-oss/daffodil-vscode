@@ -55,6 +55,7 @@ limitations under the License.
   }
   function search() {
     searchQuery.clear_results()
+    $replaceQuery.count = -1
     vscode.postMessage({
       command: MessageCommand.search,
       data: {
@@ -67,7 +68,7 @@ limitations under the License.
   }
   function searchAndReplace() {
     searchQuery.clear_results()
-    $replaceQuery.count = 0
+    $replaceQuery.count = -1
     vscode.postMessage({
       command: MessageCommand.searchAndReplace,
       data: {
@@ -106,6 +107,10 @@ limitations under the License.
       case MessageCommand.replaceResults:
         $replaceQuery.processing = false
         $replaceQuery.count = msg.data.data.replacementsCount
+        // reset replace query count after 5 seconds
+        setTimeout(() => {
+          $replaceQuery.count = -1
+        }, 5000)
         break
     }
   })
@@ -170,6 +175,11 @@ limitations under the License.
         <sub
           >{$searchQuery.searchIndex + 1} / {$searchQuery.searchResults.length} Results</sub
         >
+      </FlexContainer>
+    {/if}
+    {#if $replaceQuery.count > -1}
+      <FlexContainer --dir="row">
+        <sub>{$replaceQuery.count} Replacements</sub>
       </FlexContainer>
     {/if}
   </FlexContainer>

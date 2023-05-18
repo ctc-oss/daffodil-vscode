@@ -204,7 +204,8 @@ export class DataEditorClient implements vscode.Disposable {
         await this.setupDataEditor()
       }
     }
-    // send the heartbeat to the webview at regular intervals
+    // send and initial heartbeat, then send the heartbeat to the webview at regular intervals
+    this.sendHeartbeat()
     this.sendHeartbeatIntervalId = setInterval(() => {
       this.sendHeartbeat()
     }, HEARTBEAT_INTERVAL_MS)
@@ -438,35 +439,19 @@ export class DataEditorClient implements vscode.Disposable {
 
       case MessageCommand.searchAndReplace:
         {
-          const searchDataBytes = encodedStrToData(
-            message.data.searchData,
-            message.data.encoding
-          )
-          const replaceDataBytes = encodedStrToData(
-            message.data.replaceData,
-            message.data.encoding
-          )
-          getLogger().debug(
-            `replacing '${message.data.searchData}' with '${message.data.replaceData}' using encoding ${message.data.encoding}`
-          )
           // pause viewport events before search, then resume after search
           await pauseViewportEvents(this.omegaSessionId)
           const replacementsCount = await replaceSession(
             this.omegaSessionId,
-            searchDataBytes,
-            replaceDataBytes,
+            encodedStrToData(message.data.searchData, message.data.encoding),
+            encodedStrToData(message.data.replaceData, message.data.encoding),
             message.data.caseInsensitive,
             0,
             0,
             0
           )
           await resumeViewportEvents(this.omegaSessionId)
-          try {
-            await notifyChangedViewports(this.omegaSessionId)
-          } catch (err) {
-            // notifyChangedViewports failed, so manually update the viewport
-            await sendViewportData(this.panel, this.currentViewportId)
-          }
+          await notifyChangedViewports(this.omegaSessionId)
           this.panel.webview.postMessage({
             command: MessageCommand.replaceResults,
             data: {
