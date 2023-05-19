@@ -26,6 +26,8 @@ limitations under the License.
     editedDataSegment,
     editorEncoding,
     selectionSize,
+    viewportScrolledToTop,
+    viewportScrolledToEnd,
   } from '../../stores'
   import { UIThemeCSSClass } from '../../utilities/colorScheme'
   import {
@@ -47,8 +49,6 @@ limitations under the License.
   const EventDispatcher = createEventDispatcher()
 
   let viewportRefs = viewport_references() as ViewportReferences
-  let isScrolledToTop = true
-  let isScrolledToEnd = false
   let currentScrollEvt: string | null, scrollSyncTimer: NodeJS.Timeout
   let editByteWindow = edit_byte_window_ref()
   let physicalDisplayText: string = ''
@@ -79,8 +79,8 @@ limitations under the License.
 
   function scrollHandle(e: Event) {
     const element = e.target as HTMLElement
-    isScrolledToTop = element.scrollTop === 0
-    isScrolledToEnd =
+    $viewportScrolledToTop = element.scrollTop === 0
+    $viewportScrolledToEnd =
       element.scrollTop >= element.scrollHeight - element.clientHeight
     if (!currentScrollEvt || currentScrollEvt === element.id) {
       clearTimeout(scrollSyncTimer)
