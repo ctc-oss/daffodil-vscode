@@ -123,7 +123,7 @@ limitations under the License.
     })
   }
 
-  async function handleEditorEvent(_: Event) {
+  function handleEditorEvent(_: Event) {
     if ($selectionSize < 0) {
       clearDataDisplays()
       return
