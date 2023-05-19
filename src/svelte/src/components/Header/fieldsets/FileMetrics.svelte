@@ -20,6 +20,7 @@ limitations under the License.
   import { fileMetrics } from './FileMetrics'
   import { MessageCommand } from '../../../utilities/message'
   import { vscode } from '../../../utilities/vscode'
+  import { saveable } from '../../../stores'
 
   let displayOpts = false
 
@@ -104,7 +105,7 @@ limitations under the License.
 
   <FlexContainer>
     {#if displayOpts}
-      <Button fn={save}>
+      <Button fn={save} disabledBy={!$saveable}>
         <span slot="left" class="btn-icon">&#8615;</span>
         <span slot="default">Save</span>
       </Button>
