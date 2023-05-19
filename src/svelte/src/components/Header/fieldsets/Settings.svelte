@@ -32,6 +32,9 @@ limitations under the License.
     viewportOffset,
     viewportScrolledToTop,
     viewportScrolledToEnd,
+    viewportScrollTop,
+    viewportScrollHeight,
+    viewportClientHeight,
   } from '../../../stores'
   import { goToErr } from '..'
   import Error from '../../Error/Error.svelte'
@@ -129,6 +132,8 @@ limitations under the License.
       <sub>
         Viewport start offset: {$viewportOffset}, length: {$viewportLength},
         following byte count: {$viewportFollowingByteCount} <br />
+        Scroll top: {$viewportScrollTop}, scroll height: {$viewportScrollHeight},
+        client height: {$viewportClientHeight} <br />
         Scrolled to the top: {$viewportScrolledToTop}, to the end: {$viewportScrolledToEnd}
       </sub>
     </FlexContainer>

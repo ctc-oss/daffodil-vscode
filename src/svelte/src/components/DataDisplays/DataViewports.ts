@@ -17,7 +17,7 @@
 
 import { isWhitespace } from '../../utilities/display'
 
-export type SelectedFrameOffsets = {
+type SelectedFrameOffsets = {
   start: number
   end: number
 }

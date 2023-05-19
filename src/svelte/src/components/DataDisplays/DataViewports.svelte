@@ -28,6 +28,9 @@ limitations under the License.
     selectionSize,
     viewportScrolledToTop,
     viewportScrolledToEnd,
+    viewportScrollTop,
+    viewportScrollHeight,
+    viewportClientHeight,
   } from '../../stores'
   import { UIThemeCSSClass } from '../../utilities/colorScheme'
   import {
@@ -79,9 +82,6 @@ limitations under the License.
 
   function scrollHandle(e: Event) {
     const element = e.target as HTMLElement
-    $viewportScrolledToTop = element.scrollTop === 0
-    $viewportScrolledToEnd =
-      element.scrollTop >= element.scrollHeight - element.clientHeight
     if (!currentScrollEvt || currentScrollEvt === element.id) {
       clearTimeout(scrollSyncTimer)
       currentScrollEvt = element.id
@@ -104,6 +104,9 @@ limitations under the License.
         currentScrollEvt = null
       }, 100)
     }
+    $viewportScrollTop = Math.ceil(element.scrollTop)
+    $viewportScrollHeight = element.scrollHeight
+    $viewportClientHeight = element.clientHeight
   }
 
   function set_selected_stores_from_event(event: Event) {
