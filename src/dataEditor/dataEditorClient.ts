@@ -343,7 +343,8 @@ export class DataEditorClient implements vscode.Disposable {
       case MessageCommand.scrollViewport:
         await this.scrollViewport(
           this.currentViewportId,
-          message.data.scrollOffset
+          message.data.scrollOffset,
+          message.data.bytesPerRow
         )
         break
 
@@ -540,12 +541,21 @@ export class DataEditorClient implements vscode.Disposable {
     }
   }
 
-  private async scrollViewport(viewportId: string, startOffset: number) {
+  private async scrollViewport(
+    viewportId: string,
+    offset: number,
+    bytesPerRow: number
+  ) {
     try {
+      // TODO: try to get the offset somewhere near the middle of the viewport
+      //const linesPerViewport = Math.floor(VIEWPORT_CAPACITY_MAX / bytesPerRow)
+      //const centerOffset = offset - (offset % bytesPerRow) + (linesPerViewport * bytesPerRow) / 2
+      // scroll the viewport to the start of the row containing the offset
+      const startOffset = offset - (offset % bytesPerRow)
       await modifyViewport(viewportId, startOffset, VIEWPORT_CAPACITY_MAX)
     } catch {
       vscode.window.showErrorMessage(
-        `Failed to scroll viewport ${viewportId} to offset ${startOffset}`
+        `Failed to scroll viewport ${viewportId} to offset ${offset}`
       )
     }
   }

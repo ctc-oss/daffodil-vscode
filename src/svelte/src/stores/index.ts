@@ -49,6 +49,8 @@ export const viewportData = writable(new Uint8Array(0))
 export const viewportOffset = writable(0)
 export const viewportLength = writable(0)
 export const viewportFollowingByteCount = writable(0)
+export const viewportScrolledToTop = writable(true)
+export const viewportScrolledToEnd = writable(false)
 
 export const gotoOffsetMax = derived(
   [viewportOffset, viewportLength, viewportFollowingByteCount],

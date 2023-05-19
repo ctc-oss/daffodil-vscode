@@ -14,7 +14,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 -->
-<script lang="ts">
+<script lang="ts" xmlns="http://www.w3.org/1999/html">
   import {
     RadixOptions,
     encoding_groups,
@@ -27,6 +27,11 @@ limitations under the License.
     gotoOffset,
     gotoOffsetInput,
     gotoable,
+    viewportFollowingByteCount,
+    viewportLength,
+    viewportOffset,
+    viewportScrolledToTop,
+    viewportScrolledToEnd,
   } from '../../../stores'
   import { goToErr } from '..'
   import Error from '../../Error/Error.svelte'
@@ -102,8 +107,10 @@ limitations under the License.
     <hr />
 
     <FlexContainer --dir="row" --align-items="center">
-      <label for="encoding">Go to Offset:</label>
-      <Input id={goToInputId} bind:value={$gotoOffsetInput} --width="40%" />
+      <label
+        >Go to Offset:
+        <Input id={goToInputId} bind:value={$gotoOffsetInput} --width="40%" />
+      </label>
       <Error
         err={goToErr}
         display={$gotoOffsetInput.length > 0 && !$gotoable.valid}
@@ -115,6 +122,15 @@ limitations under the License.
         <span slot="left" class="btn-icon">&#10148</span>
         <span slot="default">Go</span>
       </Button>
+    </FlexContainer>
+
+    <!-- Viewport diagnostic information.  TODO: remove once infinite scrolling is working -->
+    <FlexContainer --dir="row" --align-items="center">
+      <sub>
+        Viewport start offset: {$viewportOffset}, length: {$viewportLength},
+        following byte count: {$viewportFollowingByteCount} <br />
+        Scrolled to the top: {$viewportScrolledToTop}, to the end: {$viewportScrolledToEnd}
+      </sub>
     </FlexContainer>
   </FlexContainer>
 </fieldset>
