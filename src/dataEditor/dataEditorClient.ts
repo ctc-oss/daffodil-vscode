@@ -341,6 +341,9 @@ export class DataEditorClient implements vscode.Disposable {
         break
 
       case MessageCommand.scrollViewport:
+        vscode.window.showInformationMessage(
+          `scrollViewport offset: ${message.data.scrollOffset}, bytesPerRow: ${message.data.bytesPerRow}`
+        )
         await this.scrollViewport(
           this.currentViewportId,
           message.data.scrollOffset,

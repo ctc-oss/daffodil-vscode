@@ -1,24 +1,24 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import type { ByteValue } from './BinaryData';
+  import { onMount } from 'svelte'
+  import type { ByteValue } from './BinaryData'
 
   // export let byteValue: string;
-  export let byte: ByteValue = {text: '', offset: 0, value: 0}
+  export let byte: ByteValue = { text: '', offset: 0, value: 0 }
 
-  let color = 'transparent';
+  let color = 'transparent'
   const setColor = () => {
-    color = generateRandomColor();
+    color = generateRandomColor()
   }
   function generateRandomColor() {
-    return `#${Math.floor(Math.random()*16777215).toString(16)}`;
+    return `#${Math.floor(Math.random() * 16777215).toString(16)}`
   }
 
   onMount(() => {
-    color = generateRandomColor();
-  });
+    color = generateRandomColor()
+  })
 </script>
 
-<div on:focus={setColor} on:mouseover="{setColor}" style="border-color: {color};">
+<div on:focus={setColor} on:mouseover={setColor} style="border-color: {color};">
   {byte.text}
 </div>
 

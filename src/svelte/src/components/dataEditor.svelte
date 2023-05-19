@@ -34,6 +34,7 @@ limitations under the License.
     rawEditorSelectionTxt,
     requestable,
     selectionSize,
+    viewportCapacity,
     viewportData,
     viewportFollowingByteCount,
     viewportLength,
@@ -207,6 +208,31 @@ limitations under the License.
     }
   }
 
+  function scrolledToEnd(_: Event) {
+    const offset = Math.min(
+      $viewportOffset + $viewportCapacity / 2,
+      $viewportOffset + $viewportLength + $viewportFollowingByteCount
+    )
+    vscode.postMessage({
+      command: MessageCommand.scrollViewport,
+      data: {
+        scrollOffset: offset,
+        bytesPerRow: $bytesPerRow,
+      },
+    })
+  }
+
+  function scrolledToTop(_: Event) {
+    const offset = Math.max($viewportOffset - $viewportCapacity / 2, 0)
+    vscode.postMessage({
+      command: MessageCommand.scrollViewport,
+      data: {
+        scrollOffset: offset,
+        bytesPerRow: $bytesPerRow,
+      },
+    })
+  }
+
   function closeEditByteWindow() {
     $editByteWindowHidden = true
   }
@@ -244,6 +270,7 @@ limitations under the License.
         $viewportOffset = msg.data.data.viewportOffset
         $viewportLength = msg.data.data.viewportLength
         $viewportFollowingByteCount = msg.data.data.viewportFollowingByteCount
+        $viewportCapacity = msg.data.data.viewportCapacity
         $gotoOffset = 0
         updateLogicalDisplay($bytesPerRow)
         break
@@ -325,14 +352,19 @@ limitations under the License.
     on:redo={redo}
     on:undo={undo}
     on:handleEditorEvent={handleEditorEvent}
+    on:scrolledToTop={scrolledToTop}
+    on:scrolledToEnd={scrolledToEnd}
   />
 
   <hr />
 
   <ServerMetrics />
   <hr />
-  <details><summary>Flexible Custom Div Box</summary>
-  <BinaryDataContainer binaryDataStr={"000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20"} />
+  <details>
+    <summary>Flexible Custom Div Box</summary>
+    <BinaryDataContainer
+      binaryDataStr={'000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20'}
+    />
   </details>
 </body>
 

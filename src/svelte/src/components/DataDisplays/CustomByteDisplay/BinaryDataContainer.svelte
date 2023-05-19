@@ -1,24 +1,25 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import BinaryValue from './BinaryValueDiv.svelte';
-  import type { ByteValue } from './BinaryData';
-  import { bytesPerRow } from './BinaryData';
+  import { onMount } from 'svelte'
+  import BinaryValue from './BinaryValueDiv.svelte'
+  import type { ByteValue } from './BinaryData'
+  import { bytesPerRow } from './BinaryData'
 
-  export let binaryDataStr: string;
+  export let binaryDataStr: string
 
-  let byteValues: string[] = [];
-  let binaryData: ByteValue[] = [];
-  
+  let byteValues: string[] = []
+  let binaryData: ByteValue[] = []
+
   onMount(() => {
-    byteValues = binaryDataStr.match(/[0-9a-fA-F]{1,2}/g) || []; // split the binary data into byte values
+    byteValues = binaryDataStr.match(/[0-9a-fA-F]{1,2}/g) || [] // split the binary data into byte values
     binaryData = byteValues.map((byteStr, index) => {
-      return { text: byteStr, offset: index / 2, value: parseInt(byteStr, 16)}
+      return { text: byteStr, offset: index / 2, value: parseInt(byteStr, 16) }
     })
-  });
+  })
 </script>
+
 <div style="width: calc({$bytesPerRow} * 34px);">
-  {#each binaryData as byte }
-    <BinaryValue {byte}/>
+  {#each binaryData as byte}
+    <BinaryValue {byte} />
   {/each}
 </div>
 
@@ -30,7 +31,7 @@
     border-width: 2px;
     border-style: solid;
     border-color: lightgrey;
-    width: calc(); 
+    width: calc();
     overflow: auto;
   }
 </style>
