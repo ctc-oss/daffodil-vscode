@@ -64,6 +64,7 @@ limitations under the License.
   import FlexContainer from './layouts/FlexContainer.svelte'
   import ServerMetrics from './ServerMetrics/ServerMetrics.svelte'
   import { selectionData, editMode } from './Editors/DataEditor'
+  import BinaryDataContainer from './DataDisplays/CustomByteDisplay/BinaryDataContainer.svelte'
 
   $: updateLogicalDisplay($bytesPerRow)
   $: $gotoOffset = parseInt($gotoOffsetInput, $addressValue)
@@ -329,6 +330,10 @@ limitations under the License.
   <hr />
 
   <ServerMetrics />
+  <hr />
+  <details><summary>Flexible Custom Div Box</summary>
+  <BinaryDataContainer binaryDataStr={"000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20"} />
+  </details>
 </body>
 
 <!-- svelte-ignore css-unused-selector -->
