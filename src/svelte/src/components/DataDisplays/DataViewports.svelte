@@ -107,6 +107,12 @@ limitations under the License.
     $viewportScrollTop = Math.ceil(element.scrollTop)
     $viewportScrollHeight = element.scrollHeight
     $viewportClientHeight = element.clientHeight
+
+    if ($viewportScrolledToEnd) {
+      EventDispatcher('scrolledToEnd')
+    } else if ($viewportScrolledToTop) {
+      EventDispatcher('scrolledToTop')
+    }
   }
 
   function set_selected_stores_from_event(event: Event) {

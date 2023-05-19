@@ -206,6 +206,27 @@ limitations under the License.
     }
   }
 
+  function scrolledToEnd(_: Event) {
+    bytesPerRow
+    vscode.postMessage({
+      command: MessageCommand.scrollViewport,
+      data: {
+        scrollOffset: 10240 / 2,
+        bytesPerRow: $bytesPerRow,
+      },
+    })
+  }
+
+  function scrolledToTop(_: Event) {
+    vscode.postMessage({
+      command: MessageCommand.scrollViewport,
+      data: {
+        scrollOffset: 0,
+        bytesPerRow: $bytesPerRow,
+      },
+    })
+  }
+
   function closeEditByteWindow() {
     $editByteWindowHidden = true
   }
@@ -324,6 +345,8 @@ limitations under the License.
     on:redo={redo}
     on:undo={undo}
     on:handleEditorEvent={handleEditorEvent}
+    on:scrolledToTop={scrolledToTop}
+    on:scrolledToEnd={scrolledToEnd}
   />
 
   <hr />

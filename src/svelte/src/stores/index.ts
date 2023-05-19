@@ -54,18 +54,17 @@ export const viewportScrollHeight = writable(0)
 export const viewportClientHeight = writable(0)
 
 export const viewportScrolledToTop = derived(
-    [viewportScrollTop],
-    ([$viewportScrollTop]) => {
-        return $viewportScrollTop === 0
-    }
+  [viewportScrollTop],
+  ([$viewportScrollTop]) => {
+    return $viewportScrollTop === 0
+  }
 )
 
 export const viewportScrolledToEnd = derived(
-    [viewportScrollTop, viewportScrollHeight, viewportClientHeight],
-    ([$viewportScrollTop, $viewportScrollHeight, $viewportClientHeight]) => {
-        return $viewportScrollTop + $viewportClientHeight >= $viewportScrollHeight
-
-    }
+  [viewportScrollTop, viewportScrollHeight, viewportClientHeight],
+  ([$viewportScrollTop, $viewportScrollHeight, $viewportClientHeight]) => {
+    return $viewportScrollTop + $viewportClientHeight >= $viewportScrollHeight
+  }
 )
 
 export const gotoOffsetMax = derived(
