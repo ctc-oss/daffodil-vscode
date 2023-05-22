@@ -26,7 +26,7 @@ limitations under the License.
     width: var(--width, var(--container-width, '100%'));
     height: var(--height, var(--container-height, 'auto'));
     display: flex;
-    margin: var(--margin, '0pt 0pt 0pt 0pt');
+    margin: var(--margin, '0 0 0 0');
     flex-direction: var(--dir, 'row');
     justify-content: var(--justify-content, 'normal');
     justify-items: var(--justify-items, 'normal');
