@@ -32,7 +32,7 @@ limitations under the License.
     font-size: 16pt;
     padding-left: 5pt;
     color: red;
-    line-height: 0pt;
+    line-height: 0;
     width: 20pt;
   }
 </style>
