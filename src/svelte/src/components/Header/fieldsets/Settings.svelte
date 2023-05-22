@@ -148,6 +148,6 @@ limitations under the License.
   }
   fieldset hr {
     width: 100%;
-    margin: 5pt 0pt 5pt 0pt;
+    margin: 5pt 0 5pt 0;
   }
 </style>
