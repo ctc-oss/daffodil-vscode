@@ -31,6 +31,7 @@ limitations under the License.
     viewportScrollTop,
     viewportScrollHeight,
     viewportClientHeight,
+    viewportNumLines,
   } from '../../stores'
   import { UIThemeCSSClass } from '../../utilities/colorScheme'
   import {
@@ -42,7 +43,7 @@ limitations under the License.
     type ViewportReferences,
   } from '../../utilities/display'
   import { MessageCommand } from '../../utilities/message'
-  import { createEventDispatcher } from 'svelte'
+  import { createEventDispatcher, onMount } from 'svelte'
   import { editByteWindowHidden } from '../../stores'
   import { vscode } from '../../utilities/vscode'
   import { EditByteModes, RadixOptions } from '../../stores/Configuration'
@@ -78,6 +79,19 @@ limitations under the License.
   }
   $: {
     if (editByteWindow) change_edit_byte_window($displayRadix)
+  }
+
+  /**
+   * Determine the number of lines displayed in the physical viewport
+   */
+  function calculateNumberOfLines() {
+    const lineHeight = parseFloat(
+      getComputedStyle(viewportRefs.physical).lineHeight
+    )
+    $viewportNumLines =
+      Math.floor(viewportRefs.physical.scrollHeight / lineHeight) -
+      Math.floor(viewportRefs.physical.clientHeight / lineHeight) +
+      1
   }
 
   function scrollHandle(e: Event) {
@@ -186,15 +200,26 @@ limitations under the License.
       },
     })
   }
-  window.addEventListener('message', (msg) => {
-    switch (msg.data.command) {
-      case MessageCommand.updateLogicalDisplay:
-        logicalDisplayText = msg.data.data.logicalDisplay
-        break
-      default:
-        console.error('Unknown message command: ' + msg.data.command)
-        break
-    }
+
+  onMount(() => {
+    calculateNumberOfLines()
+
+    // recalculate number of lines when the textarea content changes
+    viewportRefs.physical.addEventListener('input', calculateNumberOfLines)
+
+      // recalculate number of lines when the window is resized
+    window.addEventListener('resize', calculateNumberOfLines)
+
+    window.addEventListener('message', (msg) => {
+      switch (msg.data.command) {
+        case MessageCommand.updateLogicalDisplay:
+          logicalDisplayText = msg.data.data.logicalDisplay
+          break
+        default:
+          console.error('Unknown message command: ' + msg.data.command)
+          break
+      }
+    })
   })
 </script>
 

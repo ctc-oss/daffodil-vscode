@@ -34,7 +34,7 @@ limitations under the License.
     viewportScrolledToEnd,
     viewportScrollTop,
     viewportScrollHeight,
-    viewportClientHeight,
+    viewportClientHeight, viewportNumLines,
   } from '../../../stores'
   import { goToErr } from '..'
   import Error from '../../Error/Error.svelte'
@@ -110,8 +110,7 @@ limitations under the License.
     <hr />
 
     <FlexContainer --dir="row" --align-items="center">
-      <label
-        >Go to Offset:
+      <label for={goToInputId}>Go to Offset:
         <Input id={goToInputId} bind:value={$gotoOffsetInput} --width="40%" />
       </label>
       <Error
@@ -131,7 +130,7 @@ limitations under the License.
     <FlexContainer --dir="row" --align-items="center">
       <sub>
         Viewport start offset: {$viewportOffset}, length: {$viewportLength},
-        following byte count: {$viewportFollowingByteCount} <br />
+        following byte count: {$viewportFollowingByteCount}, lines: {$viewportNumLines} <br />
         Scroll top: {$viewportScrollTop}, scroll height: {$viewportScrollHeight},
         client height: {$viewportClientHeight} <br />
         Scrolled to the top: {$viewportScrolledToTop}, to the end: {$viewportScrolledToEnd}

@@ -53,6 +53,7 @@ export const viewportScrollTop = writable(0)
 export const viewportScrollHeight = writable(0)
 export const viewportClientHeight = writable(0)
 export const viewportCapacity = writable(0)
+export const viewportNumLines = writable(0)
 
 export const viewportScrolledToTop = derived(
   [viewportScrollTop],

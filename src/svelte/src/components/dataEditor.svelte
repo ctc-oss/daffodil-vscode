@@ -209,10 +209,12 @@ limitations under the License.
   }
 
   function scrolledToEnd(_: Event) {
-    const offset = Math.min(
-      $viewportOffset + $viewportCapacity / 2,
-      $viewportOffset + $viewportLength + $viewportFollowingByteCount
+    // As the user scrolls toward the end of the viewport, we want to have equal amounts of data before and after the
+    // target offset.
+    const backfill = Math.ceil(
+      Math.min($viewportFollowingByteCount, $viewportCapacity) / 2
     )
+    const offset = $viewportOffset + backfill
     vscode.postMessage({
       command: MessageCommand.scrollViewport,
       data: {
@@ -220,6 +222,7 @@ limitations under the License.
         bytesPerRow: $bytesPerRow,
       },
     })
+    // TODO: determine where to scroll the viewport to, requiring the number of lines displayed on the screen.
   }
 
   function scrolledToTop(_: Event) {
