@@ -31,7 +31,6 @@
     border-width: 2px;
     border-style: solid;
     border-color: lightgrey;
-    width: calc();
     overflow: auto;
   }
 </style>
