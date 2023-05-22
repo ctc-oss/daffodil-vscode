@@ -16,10 +16,8 @@ limitations under the License.
 -->
 <script lang="ts">
   import {
-    fileByteStart,
-    fileByteEnd,
     bytesPerRow,
-    addressValue,
+    addressRadix,
     viewportData,
     displayRadix,
     focusedViewportId,
@@ -31,14 +29,13 @@ limitations under the License.
     viewportScrollTop,
     viewportScrollHeight,
     viewportClientHeight,
-    viewportNumLines,
+    viewportStartOffset,
+    viewportEndOffset,
   } from '../../stores'
   import { UIThemeCSSClass } from '../../utilities/colorScheme'
   import {
     edit_byte_window_ref,
-    encodeForDisplay,
-    makeAddressRange,
-    syncScroll,
+    radixBytePad,
     viewport_references,
     type ViewportReferences,
   } from '../../utilities/display'
@@ -46,56 +43,111 @@ limitations under the License.
   import { createEventDispatcher, onMount } from 'svelte'
   import { editByteWindowHidden } from '../../stores'
   import { vscode } from '../../utilities/vscode'
-  import { EditByteModes, RadixOptions } from '../../stores/Configuration'
+  import { EditByteModes, RADIX_OPTIONS } from '../../stores/configuration'
   import { frame_selected_on_whitespace } from './DataViewports'
   import { selectionData, editMode } from '../Editors/DataEditor'
+  import { viewportLineHeight } from '../../stores/index.js'
 
-  const EventDispatcher = createEventDispatcher()
+  const eventDispatcher = createEventDispatcher()
+  const viewportRefs = viewport_references() as ViewportReferences
 
-  let viewportRefs = viewport_references() as ViewportReferences
   let currentScrollEvt: string | null, scrollSyncTimer: NodeJS.Timeout
   let editByteWindow = edit_byte_window_ref()
-  let physicalDisplayText: string = ''
   let logicalDisplayText: string = ''
+
+  //
+  // reactive variables
+  //
+
+  $: addressDisplayText = makeAddressRange(
+    $viewportStartOffset,
+    $viewportEndOffset,
+    $bytesPerRow,
+    $addressRadix
+  )
+
+  $: physicalDisplayText = encodeForDisplay(
+    $viewportData,
+    $displayRadix,
+    $bytesPerRow
+  ).toUpperCase()
+
+  //
+  // reactive statements
+  //
 
   $: {
     $editMode === EditByteModes.Single
       ? post_editorOnChange_msg('hex')
       : post_editorOnChange_msg($editorEncoding)
+    if (editByteWindow) change_edit_byte_window($displayRadix)
+    if ($viewportScrolledToEnd) eventDispatcher('scrolledToEnd')
+    if ($viewportScrolledToTop) eventDispatcher('scrolledToTop')
   }
 
-  $: addressText = makeAddressRange(
-    $fileByteStart,
-    $fileByteEnd,
-    $bytesPerRow,
-    $addressValue
-  )
-  $: {
-    physicalDisplayText = encodeForDisplay(
-      $viewportData,
-      $displayRadix,
-      $bytesPerRow
-    ).toUpperCase()
+  function encodeForDisplay(
+    arr: Uint8Array,
+    radix: number,
+    bytes_per_row: number
+  ): string {
+    let result = ''
+    if (arr.byteLength > 0) {
+      const pad = radixBytePad(radix)
+      let i = 0
+      while (true) {
+        for (let col = 0; i < arr.byteLength && col < bytes_per_row; ++col) {
+          result += arr[i++].toString(radix).padStart(pad, '0') + ' '
+        }
+        result = result.slice(0, result.length - 1)
+        if (i === arr.byteLength) {
+          break
+        }
+        result += '\n'
+      }
+    }
+    return result
   }
-  $: {
-    if (editByteWindow) change_edit_byte_window($displayRadix)
+
+  function makeAddressRange(
+    start: number,
+    end: number,
+    stride: number,
+    radix: number
+  ): string {
+    let i = start
+    let result = (i * stride).toString(radix)
+    for (++i; i < end; ++i) {
+      result += '\n' + (i * stride).toString(radix)
+    }
+
+    return result
   }
 
   /**
    * Determine the number of lines displayed in the physical viewport
    */
   function calculateNumberOfLines() {
-    const lineHeight = parseFloat(
+    $viewportLineHeight = parseFloat(
       getComputedStyle(viewportRefs.physical).lineHeight
     )
-    $viewportNumLines =
-      Math.floor(viewportRefs.physical.scrollHeight / lineHeight) -
-      Math.floor(viewportRefs.physical.clientHeight / lineHeight) +
-      1
+  }
+
+  function syncScroll(from: HTMLElement, to: HTMLElement) {
+    // Scroll the "to" by the same percentage as the "from"
+    if (from && to) {
+      const sf = from.scrollHeight - from.clientHeight
+      if (sf >= 1) {
+        const st = to.scrollHeight - to.clientHeight
+        to.scrollTop = (st / 100) * ((from.scrollTop / sf) * 100)
+      }
+    }
   }
 
   function scrollHandle(e: Event) {
     const element = e.target as HTMLElement
+    $viewportScrollTop = Math.ceil(element.scrollTop)
+    $viewportScrollHeight = element.scrollHeight
+    $viewportClientHeight = element.clientHeight
     if (!currentScrollEvt || currentScrollEvt === element.id) {
       clearTimeout(scrollSyncTimer)
       currentScrollEvt = element.id
@@ -116,16 +168,7 @@ limitations under the License.
       // noinspection TypeScriptValidateTypes
       scrollSyncTimer = setTimeout(function () {
         currentScrollEvt = null
-      }, 100)
-    }
-    $viewportScrollTop = Math.ceil(element.scrollTop)
-    $viewportScrollHeight = element.scrollHeight
-    $viewportClientHeight = element.clientHeight
-
-    if ($viewportScrolledToEnd) {
-      EventDispatcher('scrolledToEnd')
-    } else if ($viewportScrolledToTop) {
-      EventDispatcher('scrolledToTop')
+      }, 200)
     }
   }
 
@@ -155,19 +198,13 @@ limitations under the License.
       editByteWindow.style.left = (clickEvent.x - 5).toString() + 'px'
       editByteWindow.style.top = (clickEvent.y - 5).toString() + 'px'
     }
-
-    if (radix === 2) {
-      editByteWindow.style.width = '175pt'
-    } else {
-      editByteWindow.style.width = '100pt'
-    }
+    editByteWindow.style.width = radix === 2 ? '175pt' : '100pt'
     $editByteWindowHidden = false
-    // $editorSelection = $editByte
     document.getElementById('editByteInput').focus()
   }
 
   function handleSelectionEvent(event: Event) {
-    EventDispatcher('clearDataDisplays')
+    eventDispatcher('clearDataDisplays')
     set_selected_stores_from_event(event)
     update_editor_data(event as MouseEvent)
   }
@@ -204,10 +241,7 @@ limitations under the License.
   onMount(() => {
     calculateNumberOfLines()
 
-    // recalculate number of lines when the textarea content changes
-    viewportRefs.physical.addEventListener('input', calculateNumberOfLines)
-
-      // recalculate number of lines when the window is resized
+    // recalculate number of lines when the window is resized
     window.addEventListener('resize', calculateNumberOfLines)
 
     window.addEventListener('message', (msg) => {
@@ -227,16 +261,16 @@ limitations under the License.
   contenteditable="true"
   readonly
   bind:this={viewportRefs.address}
-  bind:innerHTML={addressText}
+  bind:innerHTML={addressDisplayText}
   on:scroll={scrollHandle}
 />
 <textarea
   class={$UIThemeCSSClass + ' physical'}
   class:locked={$selectionData.active}
-  class:hexWidth={$displayRadix === RadixOptions.Hexidecimal}
-  class:decoctWidth={$displayRadix === RadixOptions.Decimal ||
-    $displayRadix === RadixOptions.Octal}
-  class:binWidth={$displayRadix === RadixOptions.Binary}
+  class:hexWidth={$displayRadix === RADIX_OPTIONS.Hexidecimal}
+  class:decoctWidth={$displayRadix === RADIX_OPTIONS.Decimal ||
+    $displayRadix === RADIX_OPTIONS.Octal}
+  class:binWidth={$displayRadix === RADIX_OPTIONS.Binary}
   id="physical"
   contenteditable="true"
   readonly
@@ -248,10 +282,10 @@ limitations under the License.
 <textarea
   class={$UIThemeCSSClass + ' logical'}
   class:locked={$selectionData.active}
-  class:hexWidth={$displayRadix === RadixOptions.Hexidecimal}
-  class:decoctWidth={$displayRadix === RadixOptions.Decimal ||
-    $displayRadix === RadixOptions.Octal}
-  class:binWidth={$displayRadix === RadixOptions.Binary}
+  class:hexWidth={$displayRadix === RADIX_OPTIONS.Hexidecimal}
+  class:decoctWidth={$displayRadix === RADIX_OPTIONS.Decimal ||
+    $displayRadix === RADIX_OPTIONS.Octal}
+  class:binWidth={$displayRadix === RADIX_OPTIONS.Binary}
   id="logical"
   contenteditable="true"
   readonly
@@ -262,6 +296,9 @@ limitations under the License.
 />
 
 <style lang="scss">
+  textarea {
+    line-height: 1.2;
+  }
   textarea.locked {
     overflow-y: hidden;
   }

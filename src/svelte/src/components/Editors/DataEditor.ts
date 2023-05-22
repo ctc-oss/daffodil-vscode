@@ -17,7 +17,7 @@
 
 import { derived, get } from 'svelte/store'
 import { SimpleWritable } from '../../stores/localStore'
-import { EditByteModes, type RadixValues } from '../../stores/Configuration'
+import { EditByteModes, type RadixValues } from '../../stores/configuration'
 import { radixBytePad } from '../../utilities/display'
 
 class SelectionData {

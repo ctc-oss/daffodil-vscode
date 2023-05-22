@@ -17,7 +17,7 @@ limitations under the License.
 <script lang="ts">
   import './globalStyles.css'
   import {
-    addressValue,
+    addressRadix,
     bytesPerRow,
     cursorPos,
     displayRadix,
@@ -30,15 +30,19 @@ limitations under the License.
     gotoOffset,
     gotoOffsetInput,
     headerHidden,
+    offsetMax,
     originalDataSegment,
     rawEditorSelectionTxt,
     requestable,
     selectionSize,
     viewportCapacity,
     viewportData,
+    viewportEndOffset,
     viewportFollowingByteCount,
     viewportLength,
-    viewportOffset,
+    viewportLineHeight,
+    viewportNumLinesDisplayed,
+    viewportStartOffset,
   } from '../stores'
   import {
     CSSThemeClass,
@@ -58,8 +62,8 @@ limitations under the License.
   import Main from './Main.svelte'
   import {
     EditByteModes,
-    enterKeypressEventList,
-  } from '../stores/Configuration'
+
+  } from '../stores/configuration'
   import Ephemeral from './layouts/Ephemeral.svelte'
   import EditByteWindow from './DataDisplays/EditByteWindow.svelte'
   import FlexContainer from './layouts/FlexContainer.svelte'
@@ -67,9 +71,10 @@ limitations under the License.
   import { selectionData, editMode } from './Editors/DataEditor'
   import BinaryDataContainer from './DataDisplays/CustomByteDisplay/BinaryDataContainer.svelte'
   import { writable } from 'svelte/store'
+  import {enterKeypressEvents} from "../utilities/enterKeypressEvents";
 
   $: updateLogicalDisplay($bytesPerRow)
-  $: $gotoOffset = parseInt($gotoOffsetInput, $addressValue)
+  $: $gotoOffset = parseInt($gotoOffsetInput, $addressRadix)
   $: $rawEditorSelectionTxt = $editorSelection
   $: $UIThemeCSSClass = $darkUITheme ? CSSThemeClass.Dark : CSSThemeClass.Light
 
@@ -94,22 +99,82 @@ limitations under the License.
     if (!offsetArg) offsetArg = $gotoOffset
 
     const offset =
-      offsetArg > 0 &&
-      offsetArg < $fileMetrics.computedSize &&
-      offsetArg % $bytesPerRow === 0
+      offsetArg > 0 && offsetArg < $offsetMax && offsetArg % $bytesPerRow === 0
         ? offsetArg + 1
         : offsetArg
 
-    let viewportRefs = viewport_references() as ViewportReferences
-    if (viewportRefs.physical) {
-      const rowCount = Math.ceil($fileMetrics.computedSize / $bytesPerRow)
-      const lineHeight = viewportRefs.physical.scrollHeight / rowCount
-      const targetLine = Math.ceil(offset / $bytesPerRow)
-      viewportRefs.physical.scrollTop =
-        (targetLine == 0 ? 0 : targetLine - 1) * lineHeight
+    // make sure that the offset is within the loaded viewport
+    if (offset < $viewportStartOffset || offset > $viewportEndOffset) {
+      // NOTE: Scrolling the viewport will make the display bounce until it goes to the correct offset
+      vscode.postMessage({
+        command: MessageCommand.scrollViewport,
+        data: {
+          // scroll the viewport with the offset in the middle
+          scrollOffset: Math.max(offset - Math.floor($viewportCapacity / 2), 0),
+          bytesPerRow: $bytesPerRow,
+          numLinesDisplayed: $viewportNumLinesDisplayed,
+        },
+      })
     }
+
+    // relative offset from viewport start
+    const relativeOffset = offset - $viewportStartOffset
+    // relative line number from viewport start
+    const relativeTargetLine = Math.floor(relativeOffset / $bytesPerRow)
+    const scrollTop = relativeTargetLine * $viewportLineHeight
+    const viewportRefs = viewport_references() as ViewportReferences
+    if (viewportRefs.physical) {
+      viewportRefs.physical.scrollTop = scrollTop
+    }
+    if (viewportRefs.logical) {
+      viewportRefs.logical.scrollTop = scrollTop
+    }
+    if (viewportRefs.address) {
+      viewportRefs.address.scrollTop = scrollTop
+    }
+
     closeEditByteWindow()
     clearDataDisplays()
+  }
+
+  function scrolledToEnd(_: Event) {
+    if ($viewportFollowingByteCount > 0) {
+      // top the display must be the last page of the current viewport, plus one line
+      const goToOffset =
+        $viewportEndOffset +
+        $bytesPerRow -
+        $viewportNumLinesDisplayed * $bytesPerRow
+      vscode.postMessage({
+        command: MessageCommand.scrollViewport,
+        data: {
+          // scroll the viewport with the desired offset in the middle
+          scrollOffset: $viewportEndOffset - Math.floor($viewportCapacity / 2),
+          bytesPerRow: $bytesPerRow,
+          numLinesDisplayed: $viewportNumLinesDisplayed,
+        },
+      })
+      goTo(goToOffset)
+    }
+  }
+
+  function scrolledToTop(_: Event) {
+    if ($viewportStartOffset > 0) {
+      // offset to scroll to after the viewport is scrolled, which should be the previous line in the file
+      const goToOffset = $viewportStartOffset - $bytesPerRow
+      vscode.postMessage({
+        command: MessageCommand.scrollViewport,
+        data: {
+          // scroll the viewport with the desired offset in the middle
+          scrollOffset: Math.max(
+            goToOffset - Math.floor($viewportCapacity / 2),
+            0
+          ),
+          bytesPerRow: $bytesPerRow,
+          numLinesDisplayed: $viewportNumLinesDisplayed,
+        },
+      })
+      goTo(goToOffset)
+    }
   }
 
   function goToEventHandler(_: Event) {
@@ -209,34 +274,6 @@ limitations under the License.
     }
   }
 
-  function scrolledToEnd(_: Event) {
-    // As the user scrolls toward the end of the viewport, we want to have equal amounts of data before and after the
-    // target offset.
-    const backfill = Math.ceil(
-      Math.min($viewportFollowingByteCount, $viewportCapacity) / 2
-    )
-    const offset = $viewportOffset + backfill
-    vscode.postMessage({
-      command: MessageCommand.scrollViewport,
-      data: {
-        scrollOffset: offset,
-        bytesPerRow: $bytesPerRow,
-      },
-    })
-    // TODO: determine where to scroll the viewport to, requiring the number of lines displayed on the screen.
-  }
-
-  function scrolledToTop(_: Event) {
-    const offset = Math.max($viewportOffset - $viewportCapacity / 2, 0)
-    vscode.postMessage({
-      command: MessageCommand.scrollViewport,
-      data: {
-        scrollOffset: offset,
-        bytesPerRow: $bytesPerRow,
-      },
-    })
-  }
-
   function closeEditByteWindow() {
     $editByteWindowHidden = true
   }
@@ -252,13 +289,13 @@ limitations under the License.
   }
 
   function handleKeybind(event: Event) {
-    const kevent = event as KeyboardEvent
-    if (kevent.key === 'Enter') {
-      enterKeypressEventList.run(document.activeElement.id)
+    const kbdEvent = event as KeyboardEvent
+    if (kbdEvent.key === 'Enter') {
+      enterKeypressEvents.run(document.activeElement.id)
       return
     }
     if ($editMode === EditByteModes.Multiple) return
-    switch (kevent.key) {
+    switch (kbdEvent.key) {
       case 'Escape':
         closeEditByteWindow()
         clearDataDisplays()
@@ -271,7 +308,7 @@ limitations under the License.
       case MessageCommand.viewportRefresh:
         // the viewport has been refreshed, so the editor views need to be updated
         $viewportData = msg.data.data.viewportData
-        $viewportOffset = msg.data.data.viewportOffset
+        $viewportStartOffset = msg.data.data.viewportOffset
         $viewportLength = msg.data.data.viewportLength
         $viewportFollowingByteCount = msg.data.data.viewportFollowingByteCount
         $viewportCapacity = msg.data.data.viewportCapacity
@@ -365,11 +402,15 @@ limitations under the License.
   <details>
     <summary>Flexible Custom Div Box</summary>
     <FlexContainer --dir="column">
-      <input type="text" bind:value={$binaryDataStr} style="width: 100pt;"/>
-      <button style="width: 100pt;" on:click={() => {$binaryDataStr = '23212f62696e2f626173680a0a62696e733d606c73202f7573722f62696e600a6a61766162696e733d606c73202f4c6962726172792f4a6176612f4a6176615669727475616c4d616368696e65732f74656d7572696e2d382e6a646b2f436f6e74656e74732f486f6d652f62696e600a0a6563686f202d6520223d3d202f757372'}}>Quick Populate</button>
-      <BinaryDataContainer
-        bind:binaryDataStr={$binaryDataStr}
-      />      
+      <input type="text" bind:value={$binaryDataStr} style="width: 100pt;" />
+      <button
+        style="width: 100pt;"
+        on:click={() => {
+          $binaryDataStr =
+            '23212f62696e2f626173680a0a62696e733d606c73202f7573722f62696e600a6a61766162696e733d606c73202f4c6962726172792f4a6176612f4a6176615669727475616c4d616368696e65732f74656d7572696e2d382e6a646b2f436f6e74656e74732f486f6d652f62696e600a0a6563686f202d6520223d3d202f757372'
+        }}>Quick Populate</button
+      >
+      <BinaryDataContainer bind:binaryDataStr={$binaryDataStr} />
     </FlexContainer>
   </details>
 </body>

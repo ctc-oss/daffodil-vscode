@@ -16,7 +16,7 @@
  */
 
 import { SimpleWritable } from '../../../stores/localStore'
-import { addressValue, gotoOffset, gotoOffsetInput } from '../../../stores'
+import { addressRadix, gotoOffset, gotoOffsetInput } from '../../../stores'
 import { get } from 'svelte/store'
 
 interface QueryableData {
@@ -56,7 +56,7 @@ class SearchQuery extends SimpleWritable<SearchData> {
 
       gotoOffsetInput.update((_) => {
         return query.searchResults[query.searchIndex].toString(
-          get(addressValue)
+          get(addressRadix)
         )
       })
       gotoOffset.update(() => {

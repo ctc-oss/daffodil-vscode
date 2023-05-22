@@ -18,16 +18,14 @@ limitations under the License.
   import {
     gotoOffset,
     gotoOffsetInput,
-    addressValue,
+    addressRadix,
     displayRadix,
     cursorPos,
     selectionSize,
   } from '../../../stores'
-  import { EditByteModes, addressOpt } from '../../../stores/Configuration'
+  import { EditByteModes, ADDRESS_RADIX_OPTIONS } from '../../../stores/configuration'
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
   import {
-    getOffsetDisplay,
-    setSelectionOffsetInfo,
     viewport_references,
     type ViewportReferences,
   } from '../../../utilities/display'
@@ -50,12 +48,12 @@ limitations under the License.
 
   $: {
     physicalOffsetText = getOffsetDisplay(
-      $addressValue,
+      $addressRadix,
       $displayRadix,
       'physical'
     )
     logicalOffsetText = getOffsetDisplay(
-      $addressValue,
+      $addressRadix,
       $displayRadix,
       'logical'
     )
@@ -63,12 +61,114 @@ limitations under the License.
       viewportRefs.logical.style.maxWidth = $displayRadix === 2 ? '105pt' : ''
     }
   }
+
+  function getOffsetDisplay(address: number, radix: number, view: string) {
+    // address, followed by radix
+    const offsetDisplays = {
+      16: {
+        // address are in hex
+        16: {
+          // radix is hex
+          text: '0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 <br/>0 1 2 3 4 5 6 7 8 9 A B C D E F ',
+          spread: 2,
+        },
+        10: {
+          // radix is decimal
+          text: '0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 <br/>0 1 2 3 4 5 6 7 8 9 A B C D E F ',
+          spread: 3,
+        },
+        8: {
+          // radix is octal
+          text: '0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 <br/>0 1 2 3 4 5 6 7 8 9 A B C D E F ',
+          spread: 3,
+        },
+        2: {
+          // radix is binary
+          text: '0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 4&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 5&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 6&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 7&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <br/><em><b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567</em> ',
+          spread: 1,
+        },
+      },
+      10: {
+        // address are in decimal
+        16: {
+          // radix is hex
+          text: '0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 <br/>0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 ',
+          spread: 2,
+        },
+        10: {
+          // radix is decimal
+          text: '0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 <br/>0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 ',
+          spread: 3,
+        },
+        8: {
+          // radix is octal
+          text: '0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 <br/>0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 ',
+          spread: 3,
+        },
+        2: {
+          // radix is binary
+          text: '0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 4&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 5&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 6&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 7&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <br/><em><b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567</em> ',
+          spread: 1,
+        },
+      },
+      8: {
+        // address are in octal
+        16: {
+          // radix is hex
+          text: '0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 <br/>0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 ',
+          spread: 2,
+        },
+        10: {
+          // radix is decimal
+          text: '0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 <br/>0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 ',
+          spread: 3,
+        },
+        8: {
+          // radix is octal
+          text: '0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 <br/>0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 ',
+          spread: 3,
+        },
+        2: {
+          // radix is binary
+          text: '0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 4&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 5&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 6&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 7&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <br/><em><b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567</em> ',
+          spread: 1,
+        },
+      },
+    }
+
+    let spread = offsetDisplays[address][radix].spread
+    if (view === 'logical') {
+      if (radix === 2)
+        return (
+          '0 0 0 0 0 0 0 0 <br>0 1 2 3 4 5 6 7 '.replaceAll(' ', '&nbsp;') +
+          '&nbsp'
+        )
+      spread = 1
+    }
+    return (
+      offsetDisplays[address][radix].text.replaceAll(
+        ' ',
+        '&nbsp;'.repeat(spread)
+      ) + '&nbsp'
+    )
+  }
+
+  export function setSelectionOffsetInfo(
+    from: string,
+    start: number,
+    end: number,
+    size: number,
+    cursorPos?: number
+  ): string {
+    return `${from} [${start} - ${end}] Size: ${size} `
+  }
+
   function updateAddressValue(event: Event) {
     const addrSelect = event.target as HTMLSelectElement
     const newGotoInput = $gotoOffset.toString(parseInt(addrSelect.value))
     $gotoOffsetInput = newGotoInput === 'NaN' ? '0' : newGotoInput
-    $gotoOffset = parseInt($gotoOffsetInput, $addressValue)
-    $addressValue = parseInt(addrSelect.value)
+    $gotoOffset = parseInt($gotoOffsetInput, $addressRadix)
+    $addressRadix = parseInt(addrSelect.value)
   }
 
   function clearDataDisplays() {
@@ -86,7 +186,7 @@ limitations under the License.
     id="address_numbering"
     on:change={updateAddressValue}
   >
-    {#each addressOpt as { name, value }}
+    {#each ADDRESS_RADIX_OPTIONS as { name, value }}
       <option {value}>{name}</option>
     {/each}
   </select>

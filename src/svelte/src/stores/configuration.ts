@@ -16,20 +16,22 @@
  */
 
 export type Radixes = 'Hexidecimal' | 'Decimal' | 'Octal' | 'Binary'
+
 export type RadixValues = 16 | 10 | 8 | 2
-export const RadixOptions: Record<Radixes, RadixValues> = {
-  Hexidecimal: 16,
-  Decimal: 10,
-  Octal: 8,
-  Binary: 2,
-}
 
 export enum EditByteModes {
   Single = 'single',
   Multiple = 'multiple',
 }
 
-export const encoding_groups = [
+export const RADIX_OPTIONS: Record<Radixes, RadixValues> = {
+  Hexidecimal: 16,
+  Decimal: 10,
+  Octal: 8,
+  Binary: 2,
+}
+
+export const ENCODING_GROUPS = [
   {
     group: 'Binary',
     encodings: [
@@ -52,40 +54,20 @@ export const encoding_groups = [
     ],
   },
 ]
-export const endiannessOpt = [
+export const ENDIANNESS_OPTIONS = [
   { name: 'Big', value: 'be' },
   { name: 'Little', value: 'le' },
 ]
 
-export const lsbOpt = [
+export const BYTE_ORDER_OPTIONS = [
   { name: 'Higher Offset', value: 'h' },
   { name: 'Lower Offset', value: 'l' },
 ]
 
-export const byteSizeOpt = [{ value: 8 }, { value: 7 }, { value: 6 }]
+export const BYTE_SIZE_OPTIONS = [{ value: 8 }, { value: 7 }, { value: 6 }]
 
-export const addressOpt = [
+export const ADDRESS_RADIX_OPTIONS = [
   { name: 'Hexidecimal', value: 16 },
   { name: 'Decimal', value: 10 },
   { name: 'Octal', value: 8 },
 ]
-
-export type EnterKeypressEvent = {
-  id: string
-  run: () => void
-}
-class EnterKeypressEvents {
-  private events: Array<EnterKeypressEvent> = []
-  public register(event: EnterKeypressEvent) {
-    this.events = this.events.filter((eventItem) => {
-      return eventItem.id === event.id
-    })
-    this.events.push(event)
-  }
-  public run(elementId: string) {
-    this.events.forEach((eventItem) => {
-      if (eventItem.id === elementId) eventItem.run()
-    })
-  }
-}
-export let enterKeypressEventList = new EnterKeypressEvents()

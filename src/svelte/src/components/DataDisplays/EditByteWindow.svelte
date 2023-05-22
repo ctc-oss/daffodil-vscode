@@ -17,8 +17,8 @@ limitations under the License.
 <script lang="ts">
   import { createEventDispatcher } from 'svelte'
   import {
-    addressValue,
-    commitable,
+    addressRadix,
+    committable,
     editedByteIsOriginalByte,
     focusedViewportId,
     editorSelection,
@@ -28,14 +28,13 @@ limitations under the License.
   } from '../../stores'
   import {
     edit_byte_window_ref,
-    radixToString,
     viewport_references,
     type ViewportReferences,
   } from '../../utilities/display'
   import { UIThemeCSSClass } from '../../utilities/colorScheme'
   import FlexContainer from '../layouts/FlexContainer.svelte'
   import { editMode, selectionData } from '../Editors/DataEditor'
-  import { EditByteModes } from '../../stores/Configuration'
+  import { EditByteModes } from '../../stores/configuration'
 
   const EventDispatcher = createEventDispatcher()
 
@@ -51,6 +50,20 @@ limitations under the License.
     containerClass = CSSThemeClass('input-actions')
     inlineClass = CSSThemeClass('inline-container')
     inputClass = CSSThemeClass('actionable')
+  }
+
+  function radixToString(radix: number): string {
+    switch (radix) {
+      case 2:
+        return 'binary'
+      case 8:
+        return 'octal'
+      case 10:
+        return 'decimal'
+      case 16:
+        return 'hex'
+    }
+    return 'binary'
   }
 
   function moveEditByteWindow() {
@@ -115,8 +128,8 @@ limitations under the License.
           {/if}
           <input
             title="byte position {$selectionData.startOffset.toString(
-              $addressValue
-            )} {radixToString($addressValue)}"
+              $addressRadix
+            )} {radixToString($addressRadix)}"
             type="text"
             id="editByteInput"
             class={inputClass}
@@ -126,7 +139,7 @@ limitations under the License.
           />
         </span>
       </span>
-      {#if $commitable}
+      {#if $committable}
         <button
           title="insert byte before this location"
           id="insert-before"
@@ -183,7 +196,7 @@ limitations under the License.
         <button class="insert" disabled>&#8677;</button>
       {/if}
     </FlexContainer>
-    {#if !$commitable && $commitErrMsg.length > 0}
+    {#if !$committable && $commitErrMsg.length > 0}
       <div class="err">
         <span class="errMsg">{$commitErrMsg}</span>
       </div>

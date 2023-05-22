@@ -29,7 +29,7 @@ limitations under the License.
     uint8,
     dataViewOffsetText,
   } from '../../../stores'
-  import { endiannessOpt } from '../../../stores/Configuration'
+  import { ENDIANNESS_OPTIONS } from '../../../stores/configuration'
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
   import FlexContainer from '../../layouts/FlexContainer.svelte'
 </script>
@@ -44,7 +44,7 @@ limitations under the License.
         class={$UIThemeCSSClass}
         bind:value={$dataViewEndianness}
       >
-        {#each endiannessOpt as { name, value }}
+        {#each ENDIANNESS_OPTIONS as { name, value }}
           <option {value}>{name}</option>
         {/each}
       </select>

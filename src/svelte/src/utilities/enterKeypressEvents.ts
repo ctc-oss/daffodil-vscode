@@ -15,35 +15,26 @@
  * limitations under the License.
  */
 
-export enum MessageCommand {
-  clear,
-  commit,
-  editorOnChange,
-  fileInfo,
-  heartbeat,
-  redo,
-  replaceResults,
-  requestEditedData,
-  save,
-  saveAs,
-  scrollViewport,
-  search,
-  searchResults,
-  searchAndReplace,
-  setUITheme,
-  showMessage,
-  undo,
-  updateLogicalDisplay,
-  viewportRefresh,
+type EnterKeypressEvent = {
+  id: string
+  run: () => void
 }
 
-export enum MessageLevel {
-  Error,
-  Info,
-  Warn,
+class EnterKeypressEvents {
+    private events: Array<EnterKeypressEvent> = []
+
+    public register(event: EnterKeypressEvent) {
+        this.events = this.events.filter((eventItem) => {
+            return eventItem.id === event.id
+        })
+        this.events.push(event)
+    }
+
+    public run(elementId: string) {
+        this.events.forEach((eventItem) => {
+            if (eventItem.id === elementId) eventItem.run()
+        })
+    }
 }
 
-export type EditorMessage = {
-  command: MessageCommand
-  data: Record<string, any>
-}
+export let enterKeypressEvents = new EnterKeypressEvents()

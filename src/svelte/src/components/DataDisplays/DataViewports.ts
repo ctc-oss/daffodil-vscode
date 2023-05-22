@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { isWhitespace } from '../../utilities/display'
-
 type SelectedFrameOffsets = {
   start: number
   end: number
@@ -87,4 +85,8 @@ export function frame_selected_on_whitespace(
       : selectionOffsetsByRadix[radix].end)
 
   return { start, end }
+}
+
+function isWhitespace(c: string | undefined): boolean {
+  return c ? ' \t\n\r\v'.indexOf(c) > -1 : false
 }

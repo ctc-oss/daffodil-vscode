@@ -16,7 +16,7 @@
  */
 
 import { searchQuery, replaceQuery } from './fieldsets/SearchReplace'
-import { validEncodingStr } from '../../utilities/display'
+import { validateEncodingStr } from '../../utilities/display'
 import { ErrorStore, ErrorComponentType } from '../Error/Error'
 import { editorEncoding } from '../../stores'
 import { derived } from 'svelte/store'
@@ -35,7 +35,7 @@ export const searchable = derived(
       })
       return false
     }
-    const ret = validEncodingStr($searchQuery.input, $editorEncoding, 'full')
+    const ret = validateEncodingStr($searchQuery.input, $editorEncoding, 'full')
     searchErr.update(() => {
       return ret.errMsg
     })
@@ -63,7 +63,7 @@ export const replaceable = derived(
       return false
     }
 
-    const ret = validEncodingStr($replaceData.input, $editorEncoding)
+    const ret = validateEncodingStr($replaceData.input, $editorEncoding)
     replaceErr.update(() => {
       return ret.errMsg
     })

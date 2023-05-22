@@ -16,12 +16,12 @@ limitations under the License.
 -->
 <script lang="ts" xmlns="http://www.w3.org/1999/html">
   import {
-    RadixOptions,
-    encoding_groups,
-    enterKeypressEventList,
-  } from '../../../stores/Configuration'
+    RADIX_OPTIONS,
+    ENCODING_GROUPS,
+
+  } from '../../../stores/configuration'
   import {
-    addressValue,
+    addressRadix,
     displayRadix,
     editorEncoding,
     gotoOffset,
@@ -29,12 +29,13 @@ limitations under the License.
     gotoable,
     viewportFollowingByteCount,
     viewportLength,
-    viewportOffset,
+    viewportStartOffset,
     viewportScrolledToTop,
     viewportScrolledToEnd,
     viewportScrollTop,
     viewportScrollHeight,
-    viewportClientHeight, viewportNumLines,
+    viewportClientHeight,
+    viewportNumLinesDisplayed,
   } from '../../../stores'
   import { goToErr } from '..'
   import Error from '../../Error/Error.svelte'
@@ -47,13 +48,14 @@ limitations under the License.
     viewport_references,
     type ViewportReferences,
   } from '../../../utilities/display'
+  import {enterKeypressEvents} from "../../../utilities/enterKeypressEvents";
 
   const EventDispatcher = createEventDispatcher()
   const goToInputId = 'goto-input'
 
-  enterKeypressEventList.register({ id: goToInputId, run: goToEventHandler })
+  enterKeypressEvents.register({ id: goToInputId, run: goToEventHandler })
 
-  $: $gotoOffset = parseInt($gotoOffsetInput, $addressValue)
+  $: $gotoOffset = parseInt($gotoOffsetInput, $addressRadix)
   $: $goToErr = $gotoable.gotoErrMsg
 
   function goToEventHandler() {
@@ -64,16 +66,16 @@ limitations under the License.
     let viewportRefs = viewport_references() as ViewportReferences
 
     switch ($displayRadix) {
-      case RadixOptions.Hexidecimal:
+      case RADIX_OPTIONS.Hexidecimal:
         viewportRefs.physical.style.width = '300pt'
         viewportRefs.logical.style.width = '200pt'
         break
-      case RadixOptions.Octal:
-      case RadixOptions.Decimal:
+      case RADIX_OPTIONS.Octal:
+      case RADIX_OPTIONS.Decimal:
         viewportRefs.physical.style.width = '385pt'
         viewportRefs.logical.style.width = '200pt'
         break
-      case RadixOptions.Binary:
+      case RADIX_OPTIONS.Binary:
         viewportRefs.physical.style.width = '435pt'
         viewportRefs.logical.style.width = '100pt'
         break
@@ -87,17 +89,17 @@ limitations under the License.
     <FlexContainer --dir="row" --align-items="center">
       <label for="radix">Byte Display Radix:</label>
       <select class={$UIThemeCSSClass} bind:value={$displayRadix}>
-        <option value={RadixOptions.Hexidecimal}>Hexidecimal</option>
-        <option value={RadixOptions.Decimal}>Decimal</option>
-        <option value={RadixOptions.Octal}>Octal</option>
-        <option value={RadixOptions.Binary}>Binary</option>
+        <option value={RADIX_OPTIONS.Hexidecimal}>Hexidecimal</option>
+        <option value={RADIX_OPTIONS.Decimal}>Decimal</option>
+        <option value={RADIX_OPTIONS.Octal}>Octal</option>
+        <option value={RADIX_OPTIONS.Binary}>Binary</option>
       </select>
     </FlexContainer>
 
     <FlexContainer --dir="row" --align-items="center">
       <label for="encoding">Byte Edit Encoding:</label>
       <select class={$UIThemeCSSClass} bind:value={$editorEncoding}>
-        {#each encoding_groups as { group, encodings }}
+        {#each ENCODING_GROUPS as { group, encodings }}
           <optgroup label={group}>
             {#each encodings as { name, value }}
               <option {value}>{name}</option>
@@ -110,7 +112,8 @@ limitations under the License.
     <hr />
 
     <FlexContainer --dir="row" --align-items="center">
-      <label for={goToInputId}>Go to Offset:
+      <label for={goToInputId}
+        >Go to Offset:
         <Input id={goToInputId} bind:value={$gotoOffsetInput} --width="40%" />
       </label>
       <Error
@@ -129,8 +132,9 @@ limitations under the License.
     <!-- Viewport diagnostic information.  TODO: remove once infinite scrolling is working -->
     <FlexContainer --dir="row" --align-items="center">
       <sub>
-        Viewport start offset: {$viewportOffset}, length: {$viewportLength},
-        following byte count: {$viewportFollowingByteCount}, lines: {$viewportNumLines} <br />
+        Viewport start offset: {$viewportStartOffset}, length: {$viewportLength},
+        following byte count: {$viewportFollowingByteCount}, lines: {$viewportNumLinesDisplayed}
+        <br />
         Scroll top: {$viewportScrollTop}, scroll height: {$viewportScrollHeight},
         client height: {$viewportClientHeight} <br />
         Scrolled to the top: {$viewportScrolledToTop}, to the end: {$viewportScrolledToEnd}

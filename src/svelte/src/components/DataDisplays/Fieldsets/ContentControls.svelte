@@ -15,8 +15,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
-  import { commitErrMsg, commitable } from '../../../stores'
-  import { EditByteModes } from '../../../stores/Configuration'
+  import { commitErrMsg, committable } from '../../../stores'
+  import { EditByteModes } from '../../../stores/configuration'
   import { createEventDispatcher } from 'svelte'
   import { fileMetrics } from '../../Header/fieldsets/FileMetrics'
   import FlexContainer from '../../layouts/FlexContainer.svelte'
@@ -53,14 +53,14 @@ limitations under the License.
 <fieldset class="box margin-top">
   <legend
     >Content Controls
-    {#if !$commitable && $editMode === EditByteModes.Multiple}
+    {#if !$committable && $editMode === EditByteModes.Multiple}
       <span class="errMsg">{$commitErrMsg}</span>
     {/if}
   </legend>
   <FlexContainer>
     <!-- Full Mode Content Controls -->
     {#if $editMode === EditByteModes.Multiple}
-      <Button disabledBy={!$commitable} fn={commitChanges}>
+      <Button disabledBy={!$committable} fn={commitChanges}>
         <span slot="left" class="btn-icon">&#10003;</span>
         <span slot="default">Commit</span>
       </Button>

@@ -52,14 +52,20 @@ import {
   startServer,
   stopServerUsingPID,
   undo,
+  ViewportDataResponse,
   ViewportEvent,
+  ViewportEventKind,
 } from '@omega-edit/client'
 import path from 'path'
 import XDGAppPaths from 'xdg-app-paths'
 import assert from 'assert'
 import { SvelteWebviewInitializer } from './svelteWebviewInitializer'
-import { EditorMessage, MessageCommand } from '../svelte/src/utilities/message'
-import { EditByteModes } from '../svelte/src/stores/Configuration'
+import {
+  EditorMessage,
+  MessageCommand,
+  MessageLevel,
+} from '../svelte/src/utilities/message'
+import { EditByteModes } from '../svelte/src/stores/configuration'
 import net from 'net'
 import * as vscode from 'vscode'
 
@@ -81,7 +87,7 @@ const HEARTBEAT_INTERVAL_MS: number = 1000 // 1 second (1000 ms)
 const MAX_LOG_FILES: number = 5 // Maximum number of log files to keep TODO: make this configurable
 const OMEGA_EDIT_MAX_PORT: number = 65535
 const OMEGA_EDIT_MIN_PORT: number = 1024
-const VIEWPORT_CAPACITY_MAX: number = 16 * 640 // 10240, Ωedit maximum viewport size is 1048576 (1024 * 1024)
+const VIEWPORT_CAPACITY_MAX: number = 16 * 64 // 10240, Ωedit maximum viewport size is 1048576 (1024 * 1024)
 
 // *****************************************************************************
 // file-scoped types
@@ -254,6 +260,7 @@ export class DataEditorClient implements vscode.Disposable {
       this.currentViewportId = viewportDataResponse.getViewportId()
       assert(this.currentViewportId.length > 0, 'currentViewportId is not set')
       await viewportSubscribe(this.panel, this.currentViewportId)
+      sendViewportRefresh(this.panel, viewportDataResponse)
     } catch {
       vscode.window.showErrorMessage(
         `Failed to create viewport for ${this.fileToEdit}`
@@ -340,11 +347,26 @@ export class DataEditorClient implements vscode.Disposable {
         })
         break
 
+      case MessageCommand.showMessage:
+        switch (message.data.messageLevel as MessageLevel) {
+          case MessageLevel.Error:
+            vscode.window.showErrorMessage(message.data.message)
+            break
+          case MessageLevel.Info:
+            vscode.window.showInformationMessage(message.data.message)
+            break
+          case MessageLevel.Warn:
+            vscode.window.showWarningMessage(message.data.message)
+            break
+        }
+        break
+
       case MessageCommand.scrollViewport:
         vscode.window.showInformationMessage(
           `scrollViewport offset: ${message.data.scrollOffset}, bytesPerRow: ${message.data.bytesPerRow}`
         )
         await this.scrollViewport(
+          this.panel,
           this.currentViewportId,
           message.data.scrollOffset,
           message.data.bytesPerRow
@@ -545,17 +567,18 @@ export class DataEditorClient implements vscode.Disposable {
   }
 
   private async scrollViewport(
+    panel: vscode.WebviewPanel,
     viewportId: string,
     offset: number,
     bytesPerRow: number
   ) {
     try {
-      // TODO: try to get the offset somewhere near the middle of the viewport
-      //const linesPerViewport = Math.floor(VIEWPORT_CAPACITY_MAX / bytesPerRow)
-      //const centerOffset = offset - (offset % bytesPerRow) + (linesPerViewport * bytesPerRow) / 2
-      // scroll the viewport to the start of the row containing the offset
+      // start of the row containing the offset
       const startOffset = offset - (offset % bytesPerRow)
-      await modifyViewport(viewportId, startOffset, VIEWPORT_CAPACITY_MAX)
+      sendViewportRefresh(
+        panel,
+        await modifyViewport(viewportId, startOffset, VIEWPORT_CAPACITY_MAX)
+      )
     } catch {
       vscode.window.showErrorMessage(
         `Failed to scroll viewport ${viewportId} to offset ${offset}`
@@ -732,31 +755,21 @@ function setupLogging(): void {
   vscode.window.showInformationMessage(`Logging (${logLevel}) to '${logFile}'`)
 }
 
-/**
- * Get the viewport data for a given viewport and send it to the editor
- * @param panel webview panel to send updates to
- * @param viewportId id of the viewport to get data for
- */
-async function sendViewportData(
+function sendViewportRefresh(
   panel: vscode.WebviewPanel,
-  viewportId: string
-): Promise<void> {
-  try {
-    const viewportDataResponse = await getViewportData(viewportId)
-    panel.webview.postMessage({
-      command: MessageCommand.viewportRefresh,
-      data: {
-        viewportOffset: viewportDataResponse.getOffset(),
-        viewportLength: viewportDataResponse.getLength(),
-        viewportFollowingByteCount:
-          viewportDataResponse.getFollowingByteCount(),
-        viewportData: viewportDataResponse.getData_asU8(),
-        viewportCapacity: VIEWPORT_CAPACITY_MAX,
-      },
-    })
-  } catch {
-    vscode.window.showErrorMessage(`failed to get viewport data`)
-  }
+  viewportDataResponse: ViewportDataResponse
+): void {
+  panel.webview.postMessage({
+    command: MessageCommand.viewportRefresh,
+    data: {
+      viewportId: viewportDataResponse.getViewportId(),
+      viewportOffset: viewportDataResponse.getOffset(),
+      viewportLength: viewportDataResponse.getLength(),
+      viewportFollowingByteCount: viewportDataResponse.getFollowingByteCount(),
+      viewportData: viewportDataResponse.getData_asU8(),
+      viewportCapacity: VIEWPORT_CAPACITY_MAX,
+    },
+  })
 }
 
 /**
@@ -768,19 +781,18 @@ async function viewportSubscribe(
   panel: vscode.WebviewPanel,
   viewportId: string
 ) {
-  // initial viewport population
-  await sendViewportData(panel, viewportId)
-
   // subscribe to all viewport events
   client
     .subscribeToViewportEvents(
-      new EventSubscriptionRequest().setId(viewportId).setInterest(ALL_EVENTS)
+      new EventSubscriptionRequest()
+        .setId(viewportId)
+        .setInterest(ALL_EVENTS & ~ViewportEventKind.VIEWPORT_EVT_MODIFY)
     )
     .on('data', async (event: ViewportEvent) => {
       getLogger().debug(
         `viewport '${event.getViewportId()}' received event: ${event.getViewportEventKind()}`
       )
-      await sendViewportData(panel, viewportId)
+      sendViewportRefresh(panel, await getViewportData(viewportId))
     })
     .on('error', (err) => {
       // Call cancelled thrown sometimes when server is shutdown

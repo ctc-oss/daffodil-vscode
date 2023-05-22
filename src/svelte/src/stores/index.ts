@@ -15,19 +15,20 @@
  * limitations under the License.
  */
 
-import { writable, derived } from 'svelte/store'
+import type { ValidationResponse } from '../utilities/display'
+import { EditByteModes } from './configuration'
 import { ThemeType } from '../utilities/colorScheme'
+import { editMode, selectionData } from '../components/Editors/DataEditor'
+import { fileMetrics } from '../components/Header/fieldsets/FileMetrics'
 import {
-  validRequestableData,
   radixBytePad,
   regexEditDataTest,
+  validateEncodingStr,
 } from '../utilities/display'
-import { fileMetrics } from '../components/Header/fieldsets/FileMetrics'
-import { EditByteModes } from './Configuration'
-import { editMode, selectionData } from '../components/Editors/DataEditor'
+import { derived, writable } from 'svelte/store'
 
 export const UITheme = writable(ThemeType.Dark)
-export const addressValue = writable(16)
+export const addressRadix = writable(16)
 export const commitErrMsg = writable('')
 export const cursorPos = writable(0)
 export const dataViewEndianness = writable('le') // 'le' for little endian and 'be' for big endian
@@ -38,7 +39,6 @@ export const editedDataSegment = writable(new Uint8Array(0))
 export const editedDataStore = writable(new Uint8Array(0))
 export const editorEncoding = writable('latin1')
 export const editorSelection = writable('')
-export const fileByteStart = writable(0)
 export const focusedViewportId = writable('')
 export const gotoOffset = writable(0)
 export const gotoOffsetInput = writable('')
@@ -46,14 +46,28 @@ export const headerHidden = writable(false)
 export const rawEditorSelectionTxt = writable('')
 export const searchCaseInsensitive = writable(false)
 export const viewportData = writable(new Uint8Array(0))
-export const viewportOffset = writable(0)
+export const viewportStartOffset = writable(0)
 export const viewportLength = writable(0)
 export const viewportFollowingByteCount = writable(0)
 export const viewportScrollTop = writable(0)
 export const viewportScrollHeight = writable(0)
 export const viewportClientHeight = writable(0)
 export const viewportCapacity = writable(0)
-export const viewportNumLines = writable(0)
+export const viewportLineHeight = writable(0)
+
+export const viewportNumLinesDisplayed = derived(
+  [viewportClientHeight, viewportLineHeight],
+  ([$viewportClientHeight, $viewportLineHeight]) => {
+    return Math.floor($viewportClientHeight / $viewportLineHeight) + 1
+  }
+)
+
+export const viewportEndOffset = derived(
+  [viewportStartOffset, viewportLength],
+  ([$viewportStartOffset, $viewportLength]) => {
+    return $viewportStartOffset + $viewportLength
+  }
+)
 
 export const viewportScrolledToTop = derived(
   [viewportScrollTop],
@@ -69,8 +83,8 @@ export const viewportScrolledToEnd = derived(
   }
 )
 
-export const gotoOffsetMax = derived(
-  [viewportOffset, viewportLength, viewportFollowingByteCount],
+export const offsetMax = derived(
+  [viewportStartOffset, viewportLength, viewportFollowingByteCount],
   ([$viewportOffset, $viewportLength, $viewportFollowingByteCount]) => {
     // this should be the same as the computed file size
     return $viewportOffset + $viewportLength + $viewportFollowingByteCount
@@ -113,13 +127,6 @@ export const editedByteIsOriginalByte = derived(
 export const bytesPerRow = derived(displayRadix, ($displayRadix) => {
   return $displayRadix === 2 ? 8 : 16
 })
-
-export const fileByteEnd = derived(
-  [bytesPerRow, fileMetrics],
-  ([$bytesPerRow, $fileMetrics]) => {
-    return $fileMetrics.diskSize / $bytesPerRow
-  }
-)
 
 export const allowCaseInsensitiveSearch = derived(
   editorEncoding,
@@ -173,7 +180,7 @@ export const originalDataSegment = derived(
   }
 )
 
-export const commitable = derived(
+export const committable = derived(
   [
     requestable,
     viewportData,
@@ -214,7 +221,7 @@ export const commitable = derived(
 )
 
 export const gotoable = derived(
-  [gotoOffset, gotoOffsetInput, gotoOffsetMax, addressValue],
+  [gotoOffset, gotoOffsetInput, offsetMax, addressRadix],
   ([$gotoOffset, $gotoOffsetInput, $gotoOffsetMax, $addressValue]) => {
     if ($gotoOffsetInput.length <= 0) return { valid: false, gotoErrMsg: '' }
     if ($gotoOffset > $gotoOffsetMax)
@@ -254,7 +261,7 @@ export const dataView = derived(
 )
 
 export const dataViewOffsetText = derived(
-  [selectionData, byteOffsetPos, addressValue],
+  [selectionData, byteOffsetPos, addressRadix],
   ([$selectionData, $byteOffsetPos, $addressValue]) => {
     return ($selectionData.startOffset + $byteOffsetPos).toString($addressValue)
   }
@@ -395,3 +402,23 @@ export const float64 = derived(
     return ''
   }
 )
+
+function validRequestableData(
+  data: string,
+  viewport: string,
+  encoding: string,
+  editMode: string,
+  radix: number
+): ValidationResponse {
+  switch (editMode) {
+    case EditByteModes.Single:
+      if (data.length === 0) return { valid: false, errMsg: '' }
+      return viewport === 'physical'
+        ? validateEncodingStr(data, radix, editMode)
+        : validateEncodingStr(data, 'latin1', editMode)
+    case EditByteModes.Multiple:
+      return validateEncodingStr(data, encoding)
+    default:
+      return { valid: false, errMsg: 'illegal edit mode' }
+  }
+}

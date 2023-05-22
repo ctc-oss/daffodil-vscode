@@ -16,7 +16,7 @@ limitations under the License.
 -->
 <script lang="ts">
   import { editorSelection } from '../../stores'
-  import { EditByteModes } from '../../stores/Configuration'
+  import { EditByteModes } from '../../stores/configuration'
   import { UIThemeCSSClass } from '../../utilities/colorScheme'
   import { createEventDispatcher } from 'svelte'
   import ContentControls from '../DataDisplays/Fieldsets/ContentControls.svelte'
