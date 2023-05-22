@@ -66,6 +66,7 @@ limitations under the License.
   import ServerMetrics from './ServerMetrics/ServerMetrics.svelte'
   import { selectionData, editMode } from './Editors/DataEditor'
   import BinaryDataContainer from './DataDisplays/CustomByteDisplay/BinaryDataContainer.svelte'
+  import { writable } from 'svelte/store'
 
   $: updateLogicalDisplay($bytesPerRow)
   $: $gotoOffset = parseInt($gotoOffsetInput, $addressValue)
@@ -298,15 +299,13 @@ limitations under the License.
       case MessageCommand.setUITheme:
         $darkUITheme = msg.data.theme === 2
         break
-
-      default:
-        console.error('Unknown message command: ' + msg.data.command)
-        break
     }
   })
   let editByteWindowHide: boolean
   $: editByteWindowHide =
     $editMode === EditByteModes.Single ? $editByteWindowHidden : true
+
+  const binaryDataStr = writable('')
 </script>
 
 <svelte:window on:keydown|nonpassive={handleKeybind} />
@@ -365,9 +364,13 @@ limitations under the License.
   <hr />
   <details>
     <summary>Flexible Custom Div Box</summary>
-    <BinaryDataContainer
-      binaryDataStr={'000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20'}
-    />
+    <FlexContainer --dir="column">
+      <input type="text" bind:value={$binaryDataStr} style="width: 100pt;"/>
+      <button style="width: 100pt;" on:click={() => {$binaryDataStr = '23212f62696e2f626173680a0a62696e733d606c73202f7573722f62696e600a6a61766162696e733d606c73202f4c6962726172792f4a6176612f4a6176615669727475616c4d616368696e65732f74656d7572696e2d382e6a646b2f436f6e74656e74732f486f6d652f62696e600a0a6563686f202d6520223d3d202f757372'}}>Quick Populate</button>
+      <BinaryDataContainer
+        bind:binaryDataStr={$binaryDataStr}
+      />      
+    </FlexContainer>
   </details>
 </body>
 

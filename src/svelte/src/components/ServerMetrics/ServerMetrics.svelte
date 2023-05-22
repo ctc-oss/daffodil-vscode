@@ -81,10 +81,7 @@ limitations under the License.
         heartbeat.serverUsedMemory = msg.data.data.serverUsedMemory
         heartbeat.serverVersion = msg.data.data.serverVersion
         heartbeat.sessionCount = msg.data.data.sessionCount
-        console.log('Heartbeat received: ' + JSON.stringify(msg.data.data))
-        break
-      default:
-        console.error('Unknown message command: ' + msg.data.command)
+        // console.log('Heartbeat received: ' + JSON.stringify(msg.data.data))
         break
     }
   })

@@ -215,9 +215,6 @@ limitations under the License.
         case MessageCommand.updateLogicalDisplay:
           logicalDisplayText = msg.data.data.logicalDisplay
           break
-        default:
-          console.error('Unknown message command: ' + msg.data.command)
-          break
       }
     })
   })
