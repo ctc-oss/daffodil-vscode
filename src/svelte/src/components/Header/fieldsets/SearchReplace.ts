@@ -32,7 +32,7 @@ class SearchData implements QueryableData {
   searchResults: Array<number> = []
 }
 class SearchQuery extends SimpleWritable<SearchData> {
-  protected store_init(): SearchData {
+  protected init(): SearchData {
     return new SearchData()
   }
   public clear_results() {
@@ -75,7 +75,7 @@ class ReplaceData implements QueryableData {
   count: number = -1
 }
 export class ReplaceQuery extends SimpleWritable<ReplaceData> {
-  protected store_init(): ReplaceData {
+  protected init(): ReplaceData {
     return new ReplaceData()
   }
 }

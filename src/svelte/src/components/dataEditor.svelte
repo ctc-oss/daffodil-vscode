@@ -52,6 +52,7 @@ limitations under the License.
   import {
     type ViewportReferences,
     viewport_references,
+    radixBytePad,
   } from '../utilities/display'
   import { MessageCommand } from '../utilities/message'
   import { vscode } from '../utilities/vscode'
@@ -340,6 +341,35 @@ limitations under the License.
     $editMode === EditByteModes.Single ? $editByteWindowHidden : true
 
   const binaryDataStr = writable('')
+
+  $: $binaryDataStr = encodeForDisplay(
+    $viewportData,
+    $displayRadix,
+    $bytesPerRow
+  ).toUpperCase()
+
+  function encodeForDisplay(
+    arr: Uint8Array,
+    radix: number,
+    bytes_per_row: number
+  ): string {
+    let result = ''
+    if (arr.byteLength > 0) {
+      const pad = radixBytePad(radix)
+      let i = 0
+      while (true) {
+        for (let col = 0; i < arr.byteLength && col < bytes_per_row; ++col) {
+          result += arr[i++].toString(radix).padStart(pad, '0') + ' '
+        }
+        result = result.slice(0, result.length - 1)
+        if (i === arr.byteLength) {
+          break
+        }
+        result += '\n'
+      }
+    }
+    return result
+  }
 </script>
 
 <svelte:window on:keydown|nonpassive={handleKeybind} />
@@ -399,14 +429,6 @@ limitations under the License.
   <details>
     <summary>Flexible Custom Div Box</summary>
     <FlexContainer --dir="column">
-      <input type="text" bind:value={$binaryDataStr} style="width: 100pt;" />
-      <button
-        style="width: 100pt;"
-        on:click={() => {
-          $binaryDataStr =
-            '23212f62696e2f626173680a0a62696e733d606c73202f7573722f62696e600a6a61766162696e733d606c73202f4c6962726172792f4a6176612f4a6176615669727475616c4d616368696e65732f74656d7572696e2d382e6a646b2f436f6e74656e74732f486f6d652f62696e600a0a6563686f202d6520223d3d202f757372'
-        }}>Quick Populate</button
-      >
       <BinaryDataContainer bind:binaryDataStr={$binaryDataStr} />
     </FlexContainer>
   </details>

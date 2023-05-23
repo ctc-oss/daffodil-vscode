@@ -28,15 +28,15 @@ class SelectionData {
 }
 
 class SelectionDataStore extends SimpleWritable<SelectionData> {
-  protected store_init(): SelectionData {
+  protected init(): SelectionData {
     return new SelectionData()
   }
-  public byte_length(): number {
+  public byteLength(): number {
     let data = get(this.store)
     return data.endOffset - data.startOffset + 1
   }
-  public str_length(radix: RadixValues): number {
-    return this.byte_length() * radixBytePad(radix)
+  public strLength(radix: RadixValues): number {
+    return this.byteLength() * radixBytePad(radix)
   }
 }
 
@@ -52,7 +52,7 @@ class DataDisplayTexts {
 }
 
 class DataDisplayTextStore extends SimpleWritable<DataDisplayTexts> {
-  protected store_init(): DataDisplayTexts {
+  protected init(): DataDisplayTexts {
     return new DataDisplayTexts()
   }
 }

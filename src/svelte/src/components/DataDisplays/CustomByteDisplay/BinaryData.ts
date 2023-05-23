@@ -17,11 +17,21 @@
 
 import { writable } from 'svelte/store'
 
+export const BYTE_VALUE_DIV_WIDTH = 24
+
 export type ByteValue = {
   offset: number
   text: string
   value: number
+  editingActive: boolean
 }
+
+export const byteActionPxOffsets = {
+  left: 0,
+  right: 0,
+  top: 0,
+}
+
 export enum ByteValuePxWidths {
   DISPLAY = 20,
   EDITING = 68,

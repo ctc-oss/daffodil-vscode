@@ -31,10 +31,10 @@ export abstract class SimpleWritable<T> {
     return this.store.subscribe(run)
   }
   public update(updater: Updater<T>) {
-    return this.store.update(updater)
+    this.store.update(updater)
   }
-  protected abstract store_init(): T
+  protected abstract init(): T
   constructor() {
-    this.store.set(this.store_init())
+    this.store.set(this.init())
   }
 }

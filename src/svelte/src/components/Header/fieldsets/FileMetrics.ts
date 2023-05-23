@@ -25,7 +25,7 @@ class FileMetricsData {
 }
 
 class FileMetrics extends SimpleWritable<FileMetricsData> {
-  protected store_init(): FileMetricsData {
+  protected init(): FileMetricsData {
     return new FileMetricsData()
   }
 }

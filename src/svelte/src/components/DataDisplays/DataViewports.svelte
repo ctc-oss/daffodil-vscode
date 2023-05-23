@@ -44,7 +44,6 @@ limitations under the License.
   import { editByteWindowHidden } from '../../stores'
   import { vscode } from '../../utilities/vscode'
   import { EditByteModes, RADIX_OPTIONS } from '../../stores/configuration'
-  import { frame_selected_on_whitespace } from './DataViewports'
   import { selectionData, editMode } from '../Editors/DataEditor'
   import { viewportLineHeight } from '../../stores/index.js'
 
@@ -78,9 +77,9 @@ limitations under the License.
 
   $: {
     $editMode === EditByteModes.Single
-      ? post_editorOnChange_msg('hex')
-      : post_editorOnChange_msg($editorEncoding)
-    if (editByteWindow) change_edit_byte_window($displayRadix)
+      ? postEditorOnChangeMsg('hex')
+      : postEditorOnChangeMsg($editorEncoding)
+    if (editByteWindow) changeEditByteWindow($displayRadix)
     if ($viewportScrolledToEnd) eventDispatcher('scrolledToEnd')
     if ($viewportScrolledToTop) eventDispatcher('scrolledToTop')
   }
@@ -172,15 +171,11 @@ limitations under the License.
     }
   }
 
-  function set_selected_stores_from_event(event: Event) {
+  function setSelectedStoresFromEvent(event: Event) {
     const areaRef = event.currentTarget as HTMLTextAreaElement
     $focusedViewportId = areaRef.id
 
-    let selectionFrame = frame_selected_on_whitespace(
-      areaRef,
-      $displayRadix,
-      $selectionData.originalEndOffset
-    )
+    const selectionFrame = frameSelectedOnWhitespace(areaRef, $displayRadix)
     selectionData.update((data) => {
       data.startOffset = selectionFrame.start
       data.endOffset = selectionFrame.end
@@ -190,7 +185,7 @@ limitations under the License.
     })
   }
 
-  function change_edit_byte_window(radix: number, event?: MouseEvent) {
+  function changeEditByteWindow(radix: number, event?: MouseEvent) {
     if (!editByteWindow) editByteWindow = edit_byte_window_ref()
 
     if (event) {
@@ -205,11 +200,89 @@ limitations under the License.
 
   function handleSelectionEvent(event: Event) {
     eventDispatcher('clearDataDisplays')
-    set_selected_stores_from_event(event)
-    update_editor_data(event as MouseEvent)
+    setSelectedStoresFromEvent(event)
+    updateEditorData(event as MouseEvent)
   }
 
-  function update_editor_data(event: MouseEvent) {
+  type SelectedFrameOffsets = {
+    start: number
+    end: number
+  }
+
+  function frameSelectedOnWhitespace(
+    selected: HTMLTextAreaElement,
+    radix: number
+  ): SelectedFrameOffsets {
+    let selectionStart = selected.selectionStart
+    let selectionEnd = selected.selectionEnd
+    if (selectionStart != undefined && selectionEnd != undefined) {
+      if (
+        isWhitespace(selected.value.at(selectionStart)) &&
+        selectionStart % 2
+      ) {
+        ++selectionStart
+      } else {
+        while (
+          selectionStart &&
+          !isWhitespace(selected.value.at(selectionStart - 1))
+        ) {
+          --selectionStart
+        }
+      }
+      selected.selectionStart = selectionStart
+
+      // Adjust the end to align with the closest ending of content
+      if (isWhitespace(selected.value.at(selectionEnd))) {
+        --selectionEnd
+      } else {
+        while (
+          selectionEnd < selected.value.length &&
+          !isWhitespace(selected.value.at(selectionEnd + 1))
+        ) {
+          ++selectionEnd
+        }
+      }
+      selected.selectionEnd =
+        selectionEnd < selected.value.length ? selectionEnd + 1 : selectionEnd
+    }
+
+    const selectionOffsetsByRadix = {
+      2: {
+        start: Math.floor(selectionStart / 9),
+        end: Math.floor((selectionEnd - 8) / 9 + 1),
+      },
+      8: {
+        start: Math.floor(selectionStart / 4),
+        end: Math.floor((selectionEnd - 3) / 4 + 1),
+      },
+      10: {
+        start: Math.floor(selectionStart / 4),
+        end: Math.floor((selectionEnd - 3) / 4 + 1),
+      },
+      16: {
+        start: Math.floor(selectionStart / 3),
+        end: Math.floor((selectionEnd - 2) / 3 + 1),
+      },
+    }
+
+    const start =
+      selected.id === 'logical'
+        ? Math.floor(selectionStart / 2)
+        : selectionOffsetsByRadix[radix].start
+
+    const end =
+      selected.id === 'logical'
+        ? Math.floor(selectionEnd / 2)
+        : selectionOffsetsByRadix[radix].end
+
+    return { start, end }
+  }
+
+  function isWhitespace(c: string | undefined): boolean {
+    return c ? ' \t\n\r\v'.indexOf(c) > -1 : false
+  }
+
+  function updateEditorData(event: MouseEvent) {
     editedDataSegment.update(() => {
       return Uint8Array.from(
         $viewportData.subarray(
@@ -220,12 +293,12 @@ limitations under the License.
     })
 
     if ($editMode === EditByteModes.Single) {
-      post_editorOnChange_msg('hex')
-      change_edit_byte_window($displayRadix, event)
-    } else post_editorOnChange_msg($editorEncoding)
+      postEditorOnChangeMsg('hex')
+      changeEditByteWindow($displayRadix, event)
+    } else postEditorOnChangeMsg($editorEncoding)
   }
 
-  function post_editorOnChange_msg(forcedEncoding?: string) {
+  function postEditorOnChangeMsg(forcedEncoding?: string) {
     vscode.postMessage({
       command: MessageCommand.editorOnChange,
       data: {

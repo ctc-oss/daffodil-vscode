@@ -15,24 +15,31 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
-  import type { ByteValue } from './BinaryData'
+  import { displayRadix, viewportData } from '../../../stores'
+  import { radixBytePad } from '../../../utilities/display'
+  import { BYTE_VALUE_DIV_WIDTH, type ByteValue } from './BinaryData'
   import { bytesPerRow } from './BinaryData'
   import BinaryValue from './BinaryValueDiv.svelte'
 
-  export let binaryDataStr: string =
-    document.getElementById('physical').innerHTML
+  export let binaryDataStr: string
+
   let byteValues: string[] = []
   let binaryData: ByteValue[] = []
-  let width
+
   $: {
     byteValues = binaryDataStr.match(/[0-9a-fA-F]{2}/g) || []
     binaryData = byteValues.map((byteStr, index) => {
-      return { text: byteStr, offset: index / 2, value: parseInt(byteStr, 16) }
+      return {
+        text: byteStr,
+        offset: index,
+        value: parseInt(byteStr, 16),
+        editingActive: false,
+      }
     })
   }
 </script>
 
-<div style="width: calc({$bytesPerRow} * {24}px);">
+<div style="width: calc({$bytesPerRow} * {BYTE_VALUE_DIV_WIDTH}px);">
   {#each binaryData as byte}
     <BinaryValue {byte} />
   {/each}
