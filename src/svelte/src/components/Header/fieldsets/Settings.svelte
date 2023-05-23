@@ -15,11 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts" xmlns="http://www.w3.org/1999/html">
-  import {
-    RADIX_OPTIONS,
-    ENCODING_GROUPS,
-
-  } from '../../../stores/configuration'
+  import { RADIX_OPTIONS, ENCODING_GROUPS } from '../../../stores/configuration'
   import {
     addressRadix,
     displayRadix,
@@ -48,7 +44,7 @@ limitations under the License.
     viewport_references,
     type ViewportReferences,
   } from '../../../utilities/display'
-  import {enterKeypressEvents} from "../../../utilities/enterKeypressEvents";
+  import { enterKeypressEvents } from '../../../utilities/enterKeypressEvents'
 
   const EventDispatcher = createEventDispatcher()
   const goToInputId = 'goto-input'

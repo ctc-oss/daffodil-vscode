@@ -60,10 +60,7 @@ limitations under the License.
   import SearchReplace from './Header/fieldsets/SearchReplace.svelte'
   import Settings from './Header/fieldsets/Settings.svelte'
   import Main from './Main.svelte'
-  import {
-    EditByteModes,
-
-  } from '../stores/configuration'
+  import { EditByteModes } from '../stores/configuration'
   import Ephemeral from './layouts/Ephemeral.svelte'
   import EditByteWindow from './DataDisplays/EditByteWindow.svelte'
   import FlexContainer from './layouts/FlexContainer.svelte'
@@ -71,7 +68,7 @@ limitations under the License.
   import { selectionData, editMode } from './Editors/DataEditor'
   import BinaryDataContainer from './DataDisplays/CustomByteDisplay/BinaryDataContainer.svelte'
   import { writable } from 'svelte/store'
-  import {enterKeypressEvents} from "../utilities/enterKeypressEvents";
+  import { enterKeypressEvents } from '../utilities/enterKeypressEvents'
 
   $: updateLogicalDisplay($bytesPerRow)
   $: $gotoOffset = parseInt($gotoOffsetInput, $addressRadix)

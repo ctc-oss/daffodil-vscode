@@ -162,7 +162,7 @@ limitations under the License.
           title="delete this byte"
           id="insert-delete"
           class="delete"
-          on:click={commitChanges}>✖</button
+          on:click={commitChanges}>&#10006;</button
         >
       {:else if $editedByteIsOriginalByte}
         <button

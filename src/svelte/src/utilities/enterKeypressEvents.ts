@@ -21,20 +21,20 @@ type EnterKeypressEvent = {
 }
 
 class EnterKeypressEvents {
-    private events: Array<EnterKeypressEvent> = []
+  private events: Array<EnterKeypressEvent> = []
 
-    public register(event: EnterKeypressEvent) {
-        this.events = this.events.filter((eventItem) => {
-            return eventItem.id === event.id
-        })
-        this.events.push(event)
-    }
+  public register(event: EnterKeypressEvent) {
+    this.events = this.events.filter((eventItem) => {
+      return eventItem.id === event.id
+    })
+    this.events.push(event)
+  }
 
-    public run(elementId: string) {
-        this.events.forEach((eventItem) => {
-            if (eventItem.id === elementId) eventItem.run()
-        })
-    }
+  public run(elementId: string) {
+    this.events.forEach((eventItem) => {
+      if (eventItem.id === elementId) eventItem.run()
+    })
+  }
 }
 
 export let enterKeypressEvents = new EnterKeypressEvents()

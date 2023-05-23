@@ -22,12 +22,60 @@ export type ByteValue = {
   text: string
   value: number
 }
-export enum ByteValueWidths {
+export enum ByteValuePxWidths {
   DISPLAY = 20,
   EDITING = 68,
 }
 type ByteValueDivWidths = 20 | 68
 
-export type ByteValues = Array<ByteValue>
+export let ByteValueArray: Array<ByteValue> = []
+
+export type EditByteInsertionKeys = 'insert-left' | 'insert-right'
+export type EditByteInsertionElements = {
+  'insert-left': HTMLDivElement
+  'insert-right': HTMLDivElement
+}
+export const EditByteInsertionElements = {
+  'insert-left': HTMLDivElement,
+  'insert-right': HTMLDivElement,
+}
+export type FocusedByteValue = {
+  byte: ByteValue
+  active: boolean
+}
+export const FocusedByteValue = {
+  byte: {
+    offset: 0,
+    text: '',
+    value: 0,
+  },
+  active: false,
+}
+
+export function set_focused_byte(event: Event) {
+  const click = event as PointerEvent
+
+  const elements = get_edit_byte_element_refs() as EditByteInsertionElements
+  const clickedByteElement = click.target as HTMLDivElement
+}
+
+export function get_edit_byte_element_refs(
+  specificElement?: EditByteInsertionKeys
+): HTMLDivElement | EditByteInsertionElements {
+  return specificElement
+    ? (document.getElementById(specificElement) as HTMLDivElement)
+    : ({
+        'insert-left': document.getElementById('insert-left'),
+        'insert-right': document.getElementById('insert-right'),
+      } as EditByteInsertionElements)
+}
+
+export function update_pixel_width(
+  pixelWidth: string,
+  offset?: number
+): string {
+  return (parseInt(pixelWidth.split('px')[0]) + offset).toString() + 'px'
+}
+
 export const bytesPerRow = writable(16)
 export const editingByte = writable(false)

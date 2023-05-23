@@ -23,7 +23,10 @@ limitations under the License.
     cursorPos,
     selectionSize,
   } from '../../../stores'
-  import { EditByteModes, ADDRESS_RADIX_OPTIONS } from '../../../stores/configuration'
+  import {
+    EditByteModes,
+    ADDRESS_RADIX_OPTIONS,
+  } from '../../../stores/configuration'
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
   import {
     viewport_references,
