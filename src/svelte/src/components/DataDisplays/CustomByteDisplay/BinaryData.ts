@@ -23,13 +23,74 @@ export type ByteValue = {
   offset: number
   text: string
   value: number
-  editingActive: boolean
 }
 
-export const byteActionPxOffsets = {
-  left: 0,
-  right: 0,
-  top: 0,
+export type EditByteAction =
+  | 'insert-before'
+  | 'insert-after'
+  | 'delete'
+  | 'byte-input'
+
+export type EditByteEvent = {
+  targetByte: ByteValue
+  action: EditByteAction
+}
+
+type ByteActionPxOffsets = {
+  insertBefore: {
+    left: number
+    top: number
+  }
+  insertAfter: {
+    left: number
+    top: number
+  }
+  delete: {
+    left: number
+    top: number
+  }
+  input: {
+    left: number
+    top: number
+  }
+}
+export let byteActionPxOffsets: ByteActionPxOffsets = {
+  insertBefore: {
+    left: 0,
+    top: 0,
+  },
+  insertAfter: {
+    left: 0,
+    top: 0,
+  },
+  delete: {
+    left: 0,
+    top: 0,
+  },
+  input: {
+    left: 0,
+    top: 0,
+  },
+}
+export function update_byte_action_offsets(targetDiv: HTMLDivElement) {
+  byteActionPxOffsets = {
+    insertBefore: {
+      left: targetDiv.offsetLeft - BYTE_VALUE_DIV_OFFSET,
+      top: targetDiv.offsetTop,
+    },
+    insertAfter: {
+      left: targetDiv.offsetLeft + BYTE_VALUE_DIV_OFFSET,
+      top: targetDiv.offsetTop,
+    },
+    delete: {
+      left: targetDiv.offsetLeft,
+      top: targetDiv.offsetTop + BYTE_VALUE_DIV_OFFSET,
+    },
+    input: {
+      left: targetDiv.offsetLeft,
+      top: targetDiv.offsetTop,
+    },
+  }
 }
 
 export enum ByteValuePxWidths {
@@ -40,52 +101,9 @@ type ByteValueDivWidths = 20 | 68
 
 export let ByteValueArray: Array<ByteValue> = []
 
-export type EditByteInsertionKeys = 'insert-left' | 'insert-right'
-export type EditByteInsertionElements = {
-  'insert-left': HTMLDivElement
-  'insert-right': HTMLDivElement
-}
-export const EditByteInsertionElements = {
-  'insert-left': HTMLDivElement,
-  'insert-right': HTMLDivElement,
-}
-export type FocusedByteValue = {
-  byte: ByteValue
-  active: boolean
-}
-export const FocusedByteValue = {
-  byte: {
-    offset: 0,
-    text: '',
-    value: 0,
-  },
-  active: false,
-}
-
-export function set_focused_byte(event: Event) {
-  const click = event as PointerEvent
-
-  const elements = get_edit_byte_element_refs() as EditByteInsertionElements
-  const clickedByteElement = click.target as HTMLDivElement
-}
-
-export function get_edit_byte_element_refs(
-  specificElement?: EditByteInsertionKeys
-): HTMLDivElement | EditByteInsertionElements {
-  return specificElement
-    ? (document.getElementById(specificElement) as HTMLDivElement)
-    : ({
-        'insert-left': document.getElementById('insert-left'),
-        'insert-right': document.getElementById('insert-right'),
-      } as EditByteInsertionElements)
-}
-
-export function update_pixel_width(
-  pixelWidth: string,
-  offset?: number
-): string {
-  return (parseInt(pixelWidth.split('px')[0]) + offset).toString() + 'px'
-}
-
 export const bytesPerRow = writable(16)
 export const editingByte = writable(false)
+
+export function focus_byte_input() {
+  document.getElementById('byte-input').focus()
+}

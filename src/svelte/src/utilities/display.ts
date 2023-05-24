@@ -58,6 +58,20 @@ export function radixBytePad(radix: number): number {
   return 0
 }
 
+export function radixToString(radix: number): string {
+  switch (radix) {
+    case 2:
+      return 'binary'
+    case 8:
+      return 'octal'
+    case 10:
+      return 'decimal'
+    case 16:
+      return 'hex'
+  }
+  return 'binary'
+}
+
 export function regexEditDataTest(
   text: string,
   dataType: string | number

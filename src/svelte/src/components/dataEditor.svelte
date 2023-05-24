@@ -70,6 +70,7 @@ limitations under the License.
   import BinaryDataContainer from './DataDisplays/CustomByteDisplay/BinaryDataContainer.svelte'
   import { writable } from 'svelte/store'
   import { enterKeypressEvents } from '../utilities/enterKeypressEvents'
+  import type { EditByteAction } from './DataDisplays/CustomByteDisplay/BinaryData'
 
   $: updateLogicalDisplay($bytesPerRow)
   $: $gotoOffset = parseInt($gotoOffsetInput, $addressRadix)
@@ -197,6 +198,38 @@ limitations under the License.
 
     $cursorPos = document.getSelection().anchorOffset
     requestEditedData()
+  }
+  function custom_commit_changes(event: CustomEvent) {
+    const action = event.detail.action
+    const byte = event.detail.byte
+
+    let editedData: Uint8Array
+    let editedOffset = $selectionData.startOffset
+    let originalData = $originalDataSegment
+
+    switch (action as EditByteAction) {
+      case 'insert-after':
+        ++editedOffset
+      case 'insert-before':
+        originalData = new Uint8Array(0)
+      case 'byte-input':
+        editedData = $editedDataSegment.subarray(0, 1)
+        break
+      case 'delete':
+        editedData = new Uint8Array(0)
+        break
+    }
+    $editedDataStore = editedData
+    vscode.postMessage({
+      command: MessageCommand.commit,
+      data: {
+        offset: editedOffset,
+        originalSegment: originalData,
+        editedSegment: editedData,
+      },
+    })
+    closeEditByteWindow()
+    clearDataDisplays()
   }
 
   function commitChanges(event: CustomEvent) {
@@ -374,13 +407,13 @@ limitations under the License.
 
 <svelte:window on:keydown|nonpassive={handleKeybind} />
 <body class={$UIThemeCSSClass}>
-  <Ephemeral anchorId="edit-byte-window" hideWhen={editByteWindowHide}>
+  <!-- <Ephemeral anchorId="edit-byte-window" hideWhen={editByteWindowHide}>
     <EditByteWindow
       on:commitChanges={commitChanges}
       on:moveEditByteWindow
       on:handleEditorEvent={handleEditorEvent}
     />
-  </Ephemeral>
+  </Ephemeral> -->
 
   <FlexContainer>
     <header class="header-container">
@@ -429,7 +462,11 @@ limitations under the License.
   <details>
     <summary>Flexible Custom Div Box</summary>
     <FlexContainer --dir="column">
-      <BinaryDataContainer bind:binaryDataStr={$binaryDataStr} />
+      <BinaryDataContainer
+        bind:binaryDataStr={$binaryDataStr}
+        on:commitChanges={custom_commit_changes}
+        on:handleEditorEvent={handleEditorEvent}
+      />
     </FlexContainer>
   </details>
 </body>

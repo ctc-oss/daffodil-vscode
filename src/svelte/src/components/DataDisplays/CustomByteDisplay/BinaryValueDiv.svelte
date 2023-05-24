@@ -20,32 +20,11 @@ limitations under the License.
 
   const eventDispatcher = createEventDispatcher()
 
-  export let byte: ByteValue = {
-    text: '',
-    offset: 0,
-    value: 0,
-    editingActive: false,
-  }
+  export let byte: ByteValue
 
-  // const update_byte_info = (event: Event): Promise<void> => {
-  //   byte.editingActive = byte.editingActive ? false : true
-
-  //   return new Promise<void>((res, rej) => {
-  //     const click = event as PointerEvent
-  //     const byteElement = click.target as HTMLDivElement
-  //     byteActionPxOffsets = {
-  //       left: byteElement.offsetLeft - BYTE_VALUE_DIV_OFFSET,
-  //       right: byteElement.offsetLeft + BYTE_VALUE_DIV_OFFSET,
-  //       top: byteElement.offsetTop + BYTE_VALUE_DIV_OFFSET,
-  //     }
-  //     ByteValueArray.push(byte)
-  //     res()
-  //   })
-  // }
-
-  async function select_byte(event: Event) {
+  function select_byte(event: Event) {
     eventDispatcher('select_byte', {
-      targetDiv: event.target,
+      targetDiv: event.target as HTMLDivElement,
       targetByte: byte,
     })
   }

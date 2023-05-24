@@ -35,6 +35,12 @@ class EnterKeypressEvents {
       if (eventItem.id === elementId) eventItem.run()
     })
   }
+
+  public remove(eventId: string) {
+    this.events = this.events.filter((event) => {
+      return event.id === eventId
+    })
+  }
 }
 
 export let enterKeypressEvents = new EnterKeypressEvents()
