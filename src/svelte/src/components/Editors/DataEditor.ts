@@ -31,32 +31,9 @@ class SelectionDataStore extends SimpleWritable<SelectionData> {
   protected init(): SelectionData {
     return new SelectionData()
   }
-  public byteLength(): number {
-    let data = get(this.store)
-    return data.endOffset - data.startOffset + 1
-  }
-  public strLength(radix: RadixValues): number {
-    return this.byteLength() * radixBytePad(radix)
-  }
 }
 
 export const selectionData = new SelectionDataStore()
-
-interface EditorText {
-  raw: string
-  formatted: string
-}
-
-class DataDisplayTexts {
-  editor: EditorText = { raw: '', formatted: '' }
-}
-
-class DataDisplayTextStore extends SimpleWritable<DataDisplayTexts> {
-  protected init(): DataDisplayTexts {
-    return new DataDisplayTexts()
-  }
-}
-export const dataDisplayTexts = new DataDisplayTextStore()
 
 export const editMode = derived(
   selectionData,
