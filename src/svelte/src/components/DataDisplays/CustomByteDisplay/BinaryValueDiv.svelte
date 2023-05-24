@@ -44,7 +44,10 @@ limitations under the License.
   // }
 
   async function select_byte(event: Event) {
-    eventDispatcher('select_byte', {targetDiv: event.target, targetByte: byte})
+    eventDispatcher('select_byte', {
+      targetDiv: event.target,
+      targetByte: byte,
+    })
   }
 </script>
 

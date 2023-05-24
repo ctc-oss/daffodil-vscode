@@ -292,18 +292,24 @@ export const int8 = derived(
   ([$byteOffsetPos, $dataViewLookAhead, $dataView, $displayRadix]) => {
     try {
       if ($dataViewLookAhead >= 1)
-        return $dataView.getInt8($byteOffsetPos).toString($displayRadix).toUpperCase()
+        return $dataView
+          .getInt8($byteOffsetPos)
+          .toString($displayRadix)
+          .toUpperCase()
     } catch (RangeError) {}
     return ''
   }
 )
 
 export const uint8 = derived(
-    [byteOffsetPos, dataViewLookAhead, dataView, displayRadix],
-    ([$byteOffsetPos, $dataViewLookAhead, $dataView, $displayRadix]) => {
+  [byteOffsetPos, dataViewLookAhead, dataView, displayRadix],
+  ([$byteOffsetPos, $dataViewLookAhead, $dataView, $displayRadix]) => {
     try {
       if ($dataViewLookAhead >= 1)
-        return $dataView.getUint8($byteOffsetPos).toString($displayRadix).toUpperCase()
+        return $dataView
+          .getUint8($byteOffsetPos)
+          .toString($displayRadix)
+          .toUpperCase()
       return ''
     } catch (RangeError) {}
     return ''
@@ -311,104 +317,208 @@ export const uint8 = derived(
 )
 
 export const int16 = derived(
-  [byteOffsetPos, dataViewLookAhead, dataView, displayRadix, dataViewEndianness],
-  ([$byteOffsetPos, $dataViewLookAhead, $dataView, $displayRadix, $dataViewEndianness]) => {
+  [
+    byteOffsetPos,
+    dataViewLookAhead,
+    dataView,
+    displayRadix,
+    dataViewEndianness,
+  ],
+  ([
+    $byteOffsetPos,
+    $dataViewLookAhead,
+    $dataView,
+    $displayRadix,
+    $dataViewEndianness,
+  ]) => {
     try {
       if ($dataViewLookAhead >= 2)
         return $dataView
           .getInt16($byteOffsetPos, $dataViewEndianness === 'le')
-          .toString($displayRadix).toUpperCase()
+          .toString($displayRadix)
+          .toUpperCase()
     } catch (RangeError) {}
     return ''
   }
 )
 
 export const uint16 = derived(
-    [byteOffsetPos, dataViewLookAhead, dataView, displayRadix, dataViewEndianness],
-    ([$byteOffsetPos, $dataViewLookAhead, $dataView, $displayRadix, $dataViewEndianness]) => {
+  [
+    byteOffsetPos,
+    dataViewLookAhead,
+    dataView,
+    displayRadix,
+    dataViewEndianness,
+  ],
+  ([
+    $byteOffsetPos,
+    $dataViewLookAhead,
+    $dataView,
+    $displayRadix,
+    $dataViewEndianness,
+  ]) => {
     try {
       if ($dataViewLookAhead >= 2)
         return $dataView
           .getUint16($byteOffsetPos, $dataViewEndianness === 'le')
-          .toString($displayRadix).toUpperCase()
+          .toString($displayRadix)
+          .toUpperCase()
     } catch (RangeError) {}
     return ''
   }
 )
 
 export const int32 = derived(
-    [byteOffsetPos, dataViewLookAhead, dataView, displayRadix, dataViewEndianness],
-    ([$byteOffsetPos, $dataViewLookAhead, $dataView, $displayRadix, $dataViewEndianness]) => {
+  [
+    byteOffsetPos,
+    dataViewLookAhead,
+    dataView,
+    displayRadix,
+    dataViewEndianness,
+  ],
+  ([
+    $byteOffsetPos,
+    $dataViewLookAhead,
+    $dataView,
+    $displayRadix,
+    $dataViewEndianness,
+  ]) => {
     try {
       if ($dataViewLookAhead >= 4)
         return $dataView
           .getInt32($byteOffsetPos, $dataViewEndianness === 'le')
-          .toString($displayRadix).toUpperCase()
+          .toString($displayRadix)
+          .toUpperCase()
     } catch (RangeError) {}
     return ''
   }
 )
 
 export const uint32 = derived(
-    [byteOffsetPos, dataViewLookAhead, dataView, displayRadix, dataViewEndianness],
-    ([$byteOffsetPos, $dataViewLookAhead, $dataView, $displayRadix, $dataViewEndianness]) => {
+  [
+    byteOffsetPos,
+    dataViewLookAhead,
+    dataView,
+    displayRadix,
+    dataViewEndianness,
+  ],
+  ([
+    $byteOffsetPos,
+    $dataViewLookAhead,
+    $dataView,
+    $displayRadix,
+    $dataViewEndianness,
+  ]) => {
     try {
       if ($dataViewLookAhead >= 4)
         return $dataView
           .getUint32($byteOffsetPos, $dataViewEndianness === 'le')
-          .toString($displayRadix).toUpperCase()
+          .toString($displayRadix)
+          .toUpperCase()
     } catch (RangeError) {}
     return ''
   }
 )
 
 export const float32 = derived(
-    [byteOffsetPos, dataViewLookAhead, dataView, displayRadix, dataViewEndianness],
-    ([$byteOffsetPos, $dataViewLookAhead, $dataView, $displayRadix, $dataViewEndianness]) => {
+  [
+    byteOffsetPos,
+    dataViewLookAhead,
+    dataView,
+    displayRadix,
+    dataViewEndianness,
+  ],
+  ([
+    $byteOffsetPos,
+    $dataViewLookAhead,
+    $dataView,
+    $displayRadix,
+    $dataViewEndianness,
+  ]) => {
     try {
       if ($dataViewLookAhead >= 4)
         return $dataView
           .getFloat32($byteOffsetPos, $dataViewEndianness === 'le')
-          .toString($displayRadix).toUpperCase()
+          .toString($displayRadix)
+          .toUpperCase()
     } catch (RangeError) {}
     return ''
   }
 )
 
 export const int64 = derived(
-    [byteOffsetPos, dataViewLookAhead, dataView, displayRadix, dataViewEndianness],
-    ([$byteOffsetPos, $dataViewLookAhead, $dataView, $displayRadix, $dataViewEndianness]) => {
+  [
+    byteOffsetPos,
+    dataViewLookAhead,
+    dataView,
+    displayRadix,
+    dataViewEndianness,
+  ],
+  ([
+    $byteOffsetPos,
+    $dataViewLookAhead,
+    $dataView,
+    $displayRadix,
+    $dataViewEndianness,
+  ]) => {
     try {
       if ($dataViewLookAhead >= 8)
         return $dataView
           .getBigInt64($byteOffsetPos, $dataViewEndianness === 'le')
-          .toString($displayRadix).toUpperCase()
+          .toString($displayRadix)
+          .toUpperCase()
     } catch (RangeError) {}
     return ''
   }
 )
 
 export const uint64 = derived(
-    [byteOffsetPos, dataViewLookAhead, dataView, displayRadix, dataViewEndianness],
-    ([$byteOffsetPos, $dataViewLookAhead, $dataView, $displayRadix, $dataViewEndianness]) => {
+  [
+    byteOffsetPos,
+    dataViewLookAhead,
+    dataView,
+    displayRadix,
+    dataViewEndianness,
+  ],
+  ([
+    $byteOffsetPos,
+    $dataViewLookAhead,
+    $dataView,
+    $displayRadix,
+    $dataViewEndianness,
+  ]) => {
     try {
       if ($dataViewLookAhead >= 8)
         return $dataView
           .getBigUint64($byteOffsetPos, $dataViewEndianness === 'le')
-          .toString($displayRadix).toUpperCase()
+          .toString($displayRadix)
+          .toUpperCase()
     } catch (RangeError) {}
     return ''
   }
 )
 
 export const float64 = derived(
-    [byteOffsetPos, dataViewLookAhead, dataView, displayRadix, dataViewEndianness],
-    ([$byteOffsetPos, $dataViewLookAhead, $dataView, $displayRadix, $dataViewEndianness]) => {
+  [
+    byteOffsetPos,
+    dataViewLookAhead,
+    dataView,
+    displayRadix,
+    dataViewEndianness,
+  ],
+  ([
+    $byteOffsetPos,
+    $dataViewLookAhead,
+    $dataView,
+    $displayRadix,
+    $dataViewEndianness,
+  ]) => {
     try {
       if ($dataViewLookAhead >= 8)
         return $dataView
           .getFloat64($byteOffsetPos, $dataViewEndianness === 'le')
-          .toString($displayRadix).toUpperCase()
+          .toString($displayRadix)
+          .toUpperCase()
     } catch (RangeError) {}
     return ''
   }

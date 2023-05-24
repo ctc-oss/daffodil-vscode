@@ -24,6 +24,7 @@ limitations under the License.
     editedDataSegment,
     editorEncoding,
     selectionSize,
+    viewportLineHeight,
     viewportScrolledToTop,
     viewportScrolledToEnd,
     viewportScrollTop,
@@ -45,7 +46,6 @@ limitations under the License.
   import { vscode } from '../../utilities/vscode'
   import { EditByteModes, RADIX_OPTIONS } from '../../stores/configuration'
   import { selectionData, editMode } from '../Editors/DataEditor'
-  import { viewportLineHeight } from '../../stores/index.js'
 
   const eventDispatcher = createEventDispatcher()
   const viewportRefs = viewport_references() as ViewportReferences
@@ -80,8 +80,14 @@ limitations under the License.
       ? postEditorOnChangeMsg('hex')
       : postEditorOnChangeMsg($editorEncoding)
     if (editByteWindow) changeEditByteWindow($displayRadix)
-    if ($viewportScrolledToEnd) eventDispatcher('scrolledToEnd')
-    if ($viewportScrolledToTop) eventDispatcher('scrolledToTop')
+
+    // when the viewport is scrolled to the end, dispatch a 'scrolledToEnd' event
+    if ($viewportScrolledToEnd && !$viewportScrolledToTop)
+      eventDispatcher('scrolledToEnd')
+
+    // when the viewport is scrolled to the top, dispatch a 'scrolledToTop' event
+    if ($viewportScrolledToTop && !$viewportScrolledToEnd)
+      eventDispatcher('scrolledToTop')
   }
 
   function encodeForDisplay(
@@ -131,43 +137,34 @@ limitations under the License.
     )
   }
 
-  function syncScroll(from: HTMLElement, to: HTMLElement) {
-    // Scroll the "to" by the same percentage as the "from"
-    if (from && to) {
-      const sf = from.scrollHeight - from.clientHeight
-      if (sf >= 1) {
-        const st = to.scrollHeight - to.clientHeight
-        to.scrollTop = (st / 100) * ((from.scrollTop / sf) * 100)
-      }
-    }
-  }
-
   function scrollHandle(e: Event) {
     const element = e.target as HTMLElement
+
+    // get the current scroll position of the viewport and the viewport geometry
     $viewportScrollTop = Math.ceil(element.scrollTop)
     $viewportScrollHeight = element.scrollHeight
     $viewportClientHeight = element.clientHeight
+
+    // scroll the other viewports to the same position after a short delay (100ms)
     if (!currentScrollEvt || currentScrollEvt === element.id) {
       clearTimeout(scrollSyncTimer)
       currentScrollEvt = element.id
       switch (currentScrollEvt) {
         case 'physical':
-          syncScroll(viewportRefs.physical, viewportRefs.address)
-          syncScroll(viewportRefs.physical, viewportRefs.logical)
+          viewportRefs.logical.scrollTop = viewportRefs.physical.scrollTop
+          viewportRefs.address.scrollTop = viewportRefs.physical.scrollTop
           break
         case 'logical':
-          syncScroll(viewportRefs.logical, viewportRefs.address)
-          syncScroll(viewportRefs.logical, viewportRefs.physical)
+          viewportRefs.physical.scrollTop = viewportRefs.address.scrollTop
+          viewportRefs.address.scrollTop = viewportRefs.logical.scrollTop
           break
         case 'address':
-          syncScroll(viewportRefs.address, viewportRefs.physical)
-          syncScroll(viewportRefs.address, viewportRefs.logical)
+          viewportRefs.physical.scrollTop = viewportRefs.address.scrollTop
+          viewportRefs.logical.scrollTop = viewportRefs.address.scrollTop
           break
       }
       // noinspection TypeScriptValidateTypes
-      scrollSyncTimer = setTimeout(function () {
-        currentScrollEvt = null
-      }, 200)
+      scrollSyncTimer = setTimeout(() => (currentScrollEvt = null), 100)
     }
   }
 
