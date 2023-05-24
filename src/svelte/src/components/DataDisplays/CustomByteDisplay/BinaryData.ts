@@ -17,7 +17,7 @@
 
 import { writable } from 'svelte/store'
 
-export const BYTE_VALUE_DIV_WIDTH = 24
+export const BYTE_VALUE_DIV_OFFSET = 24
 
 export type ByteValue = {
   offset: number
