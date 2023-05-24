@@ -28,6 +28,7 @@ limitations under the License.
     int8,
     uint8,
     dataViewOffsetText,
+    latin1,
   } from '../../../stores'
   import { ENDIANNESS_OPTIONS } from '../../../stores/configuration'
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
@@ -56,6 +57,9 @@ limitations under the License.
         >&nbsp;Offset: <text-field id="offset_dv" />{$dataViewOffsetText}</label
       >
       <span id="b8_dv">
+        <br /><label for="latin1_dv"
+          >latin-1: <text-field id="latin1_dv" />{$latin1}</label
+        >
         <br /><label for="int8_dv"
           >&nbsp;&nbsp;&nbsp;int8: <text-field id="int8_dv" />{$int8}</label
         >
@@ -78,9 +82,6 @@ limitations under the License.
         <br /><label for="uint32_dv"
           >&nbsp;uint32: <text-field id="uint32_dv" />{$uint32}</label
         >
-        <br /><label for="float32_dv"
-          >float32: <text-field id="float32_dv" />{$float32}</label
-        >
       </span>
       <span id="b64_dv">
         <br /><label for="int64_dv"
@@ -88,9 +89,6 @@ limitations under the License.
         >
         <br /><label for="uint64_dv"
           >&nbsp;uint64: <text-field id="uint64_dv" />{$uint64}</label
-        >
-        <br /><label for="float64_dv"
-          >float64: <text-field id="float64_dv" />{$float64}</label
         >
       </span>
     </div>
