@@ -335,18 +335,6 @@ export class DataEditorClient implements vscode.Disposable {
   // handle messages from the webview
   private async messageReceiver(message: EditorMessage) {
     switch (message.command) {
-      case MessageCommand.updateLogicalDisplay:
-        this.panel.webview.postMessage({
-          command: MessageCommand.updateLogicalDisplay,
-          data: {
-            logicalDisplay: logicalDisplay(
-              message.data.viewportData,
-              message.data.bytesPerRow
-            ),
-          },
-        })
-        break
-
       case MessageCommand.showMessage:
         switch (message.data.messageLevel as MessageLevel) {
           case MessageLevel.Error:
@@ -572,16 +560,16 @@ export class DataEditorClient implements vscode.Disposable {
     offset: number,
     bytesPerRow: number
   ) {
+    // start of the row containing the offset
+    const startOffset = offset - (offset % bytesPerRow)
     try {
-      // start of the row containing the offset
-      const startOffset = offset - (offset % bytesPerRow)
       sendViewportRefresh(
         panel,
         await modifyViewport(viewportId, startOffset, VIEWPORT_CAPACITY_MAX)
       )
     } catch {
       vscode.window.showErrorMessage(
-        `Failed to scroll viewport ${viewportId} to offset ${offset}`
+        `Failed to scroll viewport ${viewportId} to offset ${startOffset}`
       )
     }
   }
@@ -827,36 +815,6 @@ class DisplayState {
       theme: this.colorThemeKind,
     })
   }
-}
-
-function latin1Undefined(c: string): boolean {
-  const charCode = c.charCodeAt(0)
-  return charCode < 32 || (charCode > 126 && charCode < 160)
-}
-
-function logicalDisplay(bytes: ArrayBuffer, bytesPerRow: number): string {
-  const undefinedCharStandIn = 9617
-  let result = ''
-  if (bytes.byteLength > 0) {
-    // TODO: How does this affect the simple editor?
-    // replace newlines with spaces for the logical display
-    const data = Buffer.from(bytes).toString('latin1').replace('\n', ' ')
-    let i = 0
-    while (true) {
-      for (let col = 0; i < data.length && col < bytesPerRow; ++col) {
-        const c = data.charAt(i++)
-        result +=
-          (latin1Undefined(c) ? String.fromCharCode(undefinedCharStandIn) : c) +
-          ' '
-      }
-      result = result.slice(0, result.length - 1)
-      if (i === data.length) {
-        break
-      }
-      result += '\n'
-    }
-  }
-  return result
 }
 
 function fillRequestData(message: EditorMessage): [Buffer, string] {

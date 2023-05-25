@@ -32,6 +32,7 @@ limitations under the License.
     viewportClientHeight,
     viewportStartOffset,
     viewportEndOffset,
+    viewportLogicalDisplayText,
   } from '../../stores'
   import { UIThemeCSSClass } from '../../utilities/colorScheme'
   import {
@@ -52,7 +53,6 @@ limitations under the License.
 
   let currentScrollEvt: string | null, scrollSyncTimer: NodeJS.Timeout
   let editByteWindow = edit_byte_window_ref()
-  let logicalDisplayText: string = ''
 
   //
   // reactive variables
@@ -313,14 +313,6 @@ limitations under the License.
 
     // recalculate number of lines when the window is resized
     window.addEventListener('resize', calculateNumberOfLines)
-
-    window.addEventListener('message', (msg) => {
-      switch (msg.data.command) {
-        case MessageCommand.updateLogicalDisplay:
-          logicalDisplayText = msg.data.data.logicalDisplay
-          break
-      }
-    })
   })
 </script>
 
@@ -360,7 +352,7 @@ limitations under the License.
   contenteditable="true"
   readonly
   bind:this={viewportRefs.logical}
-  bind:innerHTML={logicalDisplayText}
+  bind:innerHTML={$viewportLogicalDisplayText}
   on:mouseup={handleSelectionEvent}
   on:scroll={scrollHandle}
 />

@@ -41,6 +41,7 @@ limitations under the License.
     viewportFollowingByteCount,
     viewportLength,
     viewportLineHeight,
+    viewportLogicalDisplayText,
     viewportNumLinesDisplayed,
     viewportStartOffset,
   } from '../stores'
@@ -72,7 +73,6 @@ limitations under the License.
   import { enterKeypressEvents } from '../utilities/enterKeypressEvents'
   import type { EditByteAction } from './DataDisplays/CustomByteDisplay/BinaryData'
 
-  $: updateLogicalDisplay($bytesPerRow)
   $: $gotoOffset = parseInt($gotoOffsetInput, $addressRadix)
   $: $rawEditorSelectionTxt = $editorSelection
   $: $UIThemeCSSClass = $darkUITheme ? CSSThemeClass.Dark : CSSThemeClass.Light
@@ -180,14 +180,33 @@ limitations under the License.
     goTo($gotoOffset)
   }
 
-  function updateLogicalDisplay(bytesPerRow) {
-    vscode.postMessage({
-      command: MessageCommand.updateLogicalDisplay,
-      data: {
-        viewportData: $viewportData,
-        bytesPerRow: bytesPerRow,
-      },
-    })
+  function latin1Undefined(charCode: number): boolean {
+    return charCode < 32 || (charCode > 126 && charCode < 160)
+  }
+
+  function logicalDisplay(bytes: Uint8Array, bytesPerRow: number): string {
+    const undefinedCharStandIn = String.fromCharCode(9617)
+    let result = ''
+
+    for (let i = 0, col = 0; i < bytes.length; ++i) {
+      if (latin1Undefined(bytes[i])) {
+        result += undefinedCharStandIn
+      } else {
+        const char = String.fromCharCode(bytes[i])
+        result += char === '\n' ? ' ' : char
+      }
+
+      if (++col === bytesPerRow) {
+        col = 0
+        if (i < bytes.length) {
+          result += '\n'
+        }
+      } else {
+        result += ' '
+      }
+    }
+
+    return result
   }
 
   function handleEditorEvent(_: Event) {
@@ -344,7 +363,10 @@ limitations under the License.
         $viewportFollowingByteCount = msg.data.data.viewportFollowingByteCount
         $viewportCapacity = msg.data.data.viewportCapacity
         $gotoOffset = 0
-        updateLogicalDisplay($bytesPerRow)
+        $viewportLogicalDisplayText = logicalDisplay(
+          $viewportData,
+          $bytesPerRow
+        )
         break
 
       case MessageCommand.editorOnChange:
