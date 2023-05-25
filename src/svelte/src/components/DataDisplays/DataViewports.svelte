@@ -79,7 +79,6 @@ limitations under the License.
     $editMode === EditByteModes.Single
       ? postEditorOnChangeMsg('hex')
       : postEditorOnChangeMsg($editorEncoding)
-    if (editByteWindow) changeEditByteWindow($displayRadix)
 
     // when the viewport is scrolled to the end, dispatch a 'scrolledToEnd' event
     if ($viewportScrolledToEnd && !$viewportScrolledToTop)
@@ -182,19 +181,6 @@ limitations under the License.
     })
   }
 
-  function changeEditByteWindow(radix: number, event?: MouseEvent) {
-    if (!editByteWindow) editByteWindow = edit_byte_window_ref()
-
-    if (event) {
-      const clickEvent = event as MouseEvent
-      editByteWindow.style.left = (clickEvent.x - 5).toString() + 'px'
-      editByteWindow.style.top = (clickEvent.y - 5).toString() + 'px'
-    }
-    editByteWindow.style.width = radix === 2 ? '175pt' : '100pt'
-    $editByteWindowHidden = false
-    document.getElementById('editByteInput').focus()
-  }
-
   function handleSelectionEvent(event: Event) {
     eventDispatcher('clearDataDisplays')
     setSelectedStoresFromEvent(event)
@@ -289,10 +275,8 @@ limitations under the License.
       )
     })
 
-    if ($editMode === EditByteModes.Single) {
-      postEditorOnChangeMsg('hex')
-      changeEditByteWindow($displayRadix, event)
-    } else postEditorOnChangeMsg($editorEncoding)
+    if ($editMode === EditByteModes.Single) postEditorOnChangeMsg('hex')
+    else postEditorOnChangeMsg($editorEncoding)
   }
 
   function postEditorOnChangeMsg(forcedEncoding?: string) {

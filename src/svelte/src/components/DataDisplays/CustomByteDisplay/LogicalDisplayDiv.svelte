@@ -15,13 +15,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
-  import type { LogicalByteValue } from './BinaryData'
+  import type { ByteValue } from './BinaryData'
   import { selectedByte } from './BinaryData'
   import { createEventDispatcher } from 'svelte'
 
   const eventDispatcher = createEventDispatcher()
 
-  export let byte: LogicalByteValue
+  export let byte: ByteValue
 
   function select_byte(event: Event) {
     eventDispatcher('select_byte', {
@@ -34,7 +34,7 @@ limitations under the License.
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <div
   class="byte"
-  class:undefined={byte.undefined}
+  class:undefined={byte.text === ''}
   class:selected={$selectedByte.offset === byte.offset}
   on:click={select_byte}
 >

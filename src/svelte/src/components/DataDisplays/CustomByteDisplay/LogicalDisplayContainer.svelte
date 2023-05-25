@@ -10,13 +10,13 @@
     BYTE_VALUE_DIV_OFFSET,
     _viewportData,
     selectedByte,
-    type LogicalByteValue,
+    type ByteValue,
   } from './BinaryData'
   import BinaryValueActions from './BinaryValueActions.svelte'
   import BinaryValue from './BinaryValueDiv.svelte'
   import LogicalDisplayDiv from './LogicalDisplayDiv.svelte'
 
-  let logicalByteArray: LogicalByteValue[] = []
+  let logicalByteArray: ByteValue[] = []
   let selectionActive = false
 
   $: logicalByteArray = logical_bytes_from($_viewportData)
@@ -27,18 +27,18 @@
     return charCode < 32 || (charCode > 126 && charCode < 160)
   }
 
-  function logical_bytes_from(bytes: Uint8Array): LogicalByteValue[] {
+  function logical_bytes_from(bytes: Uint8Array): ByteValue[] {
     // const undefinedCharStandIn = String.fromCharCode(9617)
-    let ret = new Array<LogicalByteValue>(bytes.length)
+    let ret = new Array<ByteValue>(bytes.length)
 
     for (let i = 0; i < bytes.length; i++) {
       ret[i] = latin1_undefined(bytes[i])
-        ? ({ text: '', offset: i, undefined: true } as LogicalByteValue)
+        ? ({ text: '', offset: i, value: bytes[i] } as ByteValue)
         : ({
             text: String.fromCharCode(bytes[i]),
             offset: i,
-            undefined: false,
-          } as LogicalByteValue)
+            value: bytes[i],
+          } as ByteValue)
     }
     return ret
   }
@@ -62,7 +62,7 @@
   class:locked={$selectionData.active}
   style="width: calc({$bytesPerRow} * {BYTE_VALUE_DIV_OFFSET}px);"
 >
-  <!-- {#key selectionActive}
+  {#key selectionActive}
     {#if selectionActive}
       {#key $selectedByte.offset}
         <BinaryValueActions
@@ -72,7 +72,7 @@
         />
       {/key}
     {/if}
-  {/key} -->
+  {/key}
   {#key logicalByteArray}
     {#each logicalByteArray as byte}
       <LogicalDisplayDiv {byte} on:select_byte={select_byte} />

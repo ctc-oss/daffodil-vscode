@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { get, writable, type Updater } from 'svelte/store'
+import { get, writable } from 'svelte/store'
 import { SimpleWritable } from '../../../stores/localStore'
 import type { RadixValues } from '../../../stores/configuration'
 import { radixBytePad } from '../../../utilities/display'
@@ -24,14 +24,10 @@ export const BYTE_VALUE_DIV_OFFSET = 24
 
 export type ByteValue = {
   offset: number
-  text: string
+  text: string | undefined
   value: number
 }
-export type LogicalByteValue = {
-  text: ''
-  offset: number
-  undefined: boolean
-}
+
 export type EditByteAction =
   | 'insert-before'
   | 'insert-after'

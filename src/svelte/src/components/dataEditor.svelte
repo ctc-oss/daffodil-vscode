@@ -73,6 +73,7 @@ limitations under the License.
   import { enterKeypressEvents } from '../utilities/enterKeypressEvents'
   import {
     _viewportData,
+    selectedByte,
     type EditByteAction,
   } from './DataDisplays/CustomByteDisplay/BinaryData'
   import LogicalDisplayContainer from './DataDisplays/CustomByteDisplay/LogicalDisplayContainer.svelte'
@@ -243,6 +244,7 @@ limitations under the License.
         break
     }
     $editedDataStore = editedData
+    console.log(action, byte, editedData)
     vscode.postMessage({
       command: MessageCommand.commit,
       data: {
@@ -430,6 +432,10 @@ limitations under the License.
     }
     return result
   }
+  let selectionDataDebug
+  let selectedByteDebug
+  $: selectionDataDebug = $selectionData
+  $: selectedByteDebug = $selectedByte
 </script>
 
 <svelte:window on:keydown|nonpassive={handleKeybind} />
@@ -494,6 +500,19 @@ limitations under the License.
       on:handleEditorEvent={handleEditorEvent}
     />
     <LogicalDisplayContainer />
+
+    <FlexContainer --dir="column" --width="25%">
+      <h3>Debug Section</h3>
+      <div>
+        <b>$selectionData:</b> (startOffset: {selectionDataDebug.startOffset},
+        endOffset: {selectionDataDebug.endOffset}, originalEnd: {selectionDataDebug.originalEndOffset},
+        active: {selectionDataDebug.active})
+      </div>
+      <div>
+        <b>$selectedByte:</b> (text: {selectedByteDebug.text}, offset: {selectedByteDebug.offset},
+        value: {selectedByteDebug.value})
+      </div>
+    </FlexContainer>
   </FlexContainer>
 </body>
 

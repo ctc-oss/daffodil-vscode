@@ -59,7 +59,7 @@ limitations under the License.
 
     editedDataSegment.update(() => {
       return Uint8Array.from(
-        $viewportData.subarray(
+        $_viewportData.subarray(
           $selectionData.startOffset,
           $selectionData.endOffset + 1
         )
@@ -88,7 +88,6 @@ limitations under the License.
   class:locked={$selectionData.active}
   style="width: calc({$bytesPerRow} * {BYTE_VALUE_DIV_OFFSET}px);"
 >
-  <!-- <div class="byte"> -->
   {#key selectionActive}
     {#if selectionActive}
       {#key $selectedByte.offset}
@@ -101,7 +100,6 @@ limitations under the License.
       {/key}
     {/if}
   {/key}
-  <!-- </div> -->
   {#key $_viewportData}
     {#each _viewportData.physical_byte_values(16, 16) as byte}
       <BinaryValue {byte} on:select_byte={select_byte} />
