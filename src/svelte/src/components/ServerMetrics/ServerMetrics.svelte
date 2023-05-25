@@ -54,7 +54,6 @@ limitations under the License.
     const days = Math.floor(uptimeSeconds / (60 * 60 * 24))
     const hours = Math.floor((uptimeSeconds % (60 * 60 * 24)) / (60 * 60))
     const minutes = Math.floor((uptimeSeconds % (60 * 60)) / 60)
-    const seconds = Math.floor(uptimeSeconds % 60)
 
     let uptimeString = ''
     if (days > 0) {
@@ -66,9 +65,7 @@ limitations under the License.
     if (minutes > 0) {
       uptimeString += `${minutes} minutes, `
     }
-    uptimeString += `${seconds} seconds`
-
-    return uptimeString
+    return uptimeString + `${Math.floor(uptimeSeconds % 60)} seconds`
   }
 
   window.addEventListener('message', (msg) => {
@@ -77,18 +74,23 @@ limitations under the License.
         heartbeat.latency = msg.data.data.latency
         heartbeat.omegaEditPort = msg.data.data.omegaEditPort
         heartbeat.serverCpuLoadAverage = msg.data.data.serverCpuLoadAverage
+        heartbeat.serverTimestamp = msg.data.data.serverTimestamp
         heartbeat.serverUptime = msg.data.data.serverUptime
         heartbeat.serverUsedMemory = msg.data.data.serverUsedMemory
         heartbeat.serverVersion = msg.data.data.serverVersion
         heartbeat.sessionCount = msg.data.data.sessionCount
-        // console.log('Heartbeat received: ' + JSON.stringify(msg.data.data))
+
+        // set the serverTimestamp to 0 after 5 seconds of no heartbeat to indicate that no heartbeat has been received
+        setTimeout(() => {
+          heartbeat.serverTimestamp = 0
+        }, 5000)
         break
     }
   })
 </script>
 
 <FlexContainer --height="25pt" --align-items="center">
-  {#if heartbeat.sessionCount > 0}
+  {#if heartbeat.serverTimestamp > 0}
     <div class="info">
       Powered by Ωedit v{heartbeat.serverVersion} on port {heartbeat.omegaEditPort}
     </div>
