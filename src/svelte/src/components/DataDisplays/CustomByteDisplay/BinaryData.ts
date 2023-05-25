@@ -15,7 +15,10 @@
  * limitations under the License.
  */
 
-import { writable } from 'svelte/store'
+import { get, writable, type Updater } from 'svelte/store'
+import { SimpleWritable } from '../../../stores/localStore'
+import type { RadixValues } from '../../../stores/configuration'
+import { radixBytePad } from '../../../utilities/display'
 
 export const BYTE_VALUE_DIV_OFFSET = 24
 
@@ -24,7 +27,11 @@ export type ByteValue = {
   text: string
   value: number
 }
-
+export type LogicalByteValue = {
+  text: ''
+  offset: number
+  undefined: boolean
+}
 export type EditByteAction =
   | 'insert-before'
   | 'insert-after'
@@ -35,6 +42,58 @@ export type EditByteEvent = {
   targetByte: ByteValue
   action: EditByteAction
 }
+export const RADIX_REGEX_MATCH_STR = {
+  16: /[0-9a-fA-F]{2}/g,
+  10: /[0-9]{3}/g,
+  8: /[0-8]{3}/g,
+  2: /[0-1]{8}/g,
+}
+export class ViewportData extends SimpleWritable<Uint8Array> {
+  protected init(): Uint8Array {
+    return new Uint8Array()
+  }
+  public set(value: Uint8Array): void {
+    this.store.set(Uint8Array.from(value))
+    console.log('setting _viewport')
+  }
+  public physical_byte_values(
+    radix: RadixValues,
+    bytesPerRow: 16 | 8
+  ): ByteValue[] {
+    const byteValues =
+      this.phyiscal_display(radix, bytesPerRow).match(
+        RADIX_REGEX_MATCH_STR[radix]
+      ) || []
+
+    return byteValues.map((byteStr, index) => {
+      return {
+        text: byteStr,
+        offset: index,
+        value: parseInt(byteStr, radix),
+      }
+    })
+  }
+  private phyiscal_display(radix: RadixValues, bytesPerRow: 16 | 8): string {
+    let result = ''
+    let arr = get(this.store)
+    if (arr.byteLength > 0) {
+      const pad = radixBytePad(radix)
+      let i = 0
+      while (true) {
+        for (let col = 0; i < arr.byteLength && col < bytesPerRow; ++col) {
+          result += arr[i++].toString(radix).padStart(pad, '0') + ' '
+        }
+        result = result.slice(0, result.length - 1)
+        if (i === arr.byteLength) {
+          break
+        }
+        result += '\n'
+      }
+    }
+    return result
+  }
+}
+export const _viewportData = new ViewportData()
 
 type ByteActionPxOffsets = {
   insertBefore: {
@@ -72,6 +131,9 @@ export let byteActionPxOffsets: ByteActionPxOffsets = {
     top: 0,
   },
 }
+function latin1Undefined(charCode: number): boolean {
+  return charCode < 32 || (charCode > 126 && charCode < 160)
+}
 export function update_byte_action_offsets(targetDiv: HTMLDivElement) {
   byteActionPxOffsets = {
     insertBefore: {
@@ -103,6 +165,11 @@ export let ByteValueArray: Array<ByteValue> = []
 
 export const bytesPerRow = writable(16)
 export const editingByte = writable(false)
+export const selectedByte = writable({
+  text: '',
+  offset: 0,
+  value: 0,
+} as ByteValue)
 
 export function focus_byte_input() {
   document.getElementById('byte-input').focus()

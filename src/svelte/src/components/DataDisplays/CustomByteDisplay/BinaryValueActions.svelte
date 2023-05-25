@@ -4,7 +4,7 @@
     byteActionPxOffsets,
     type ByteValue,
     type EditByteAction,
-    type EditByteEvent,
+    selectedByte,
   } from './BinaryData'
   import { enterKeypressEvents } from '../../../utilities/enterKeypressEvents'
   import { addressRadix, editByte, editorSelection } from '../../../stores'
@@ -12,7 +12,6 @@
   import { radixToString } from '../../../utilities/display'
   import { EditByteModes } from '../../../stores/configuration'
 
-  export let selectedByte: ByteValue
   export let invalid: boolean
   const byteInputId = 'byte-input'
   const eventDispatcher = createEventDispatcher()
@@ -40,7 +39,7 @@
       console.log('Editing byte value invalid')
       return
     }
-    selectedByte = editByte
+    $selectedByte = editByte
   }
 
   function send_delete(_: Event) {
@@ -54,7 +53,7 @@
   function commitChanges(action?: EditByteAction) {
     update_selectedByte({
       text: editedByteText,
-      offset: selectedByte.offset,
+      offset: $selectedByte.offset,
       value: parseInt(editedByteText, 16),
     })
 

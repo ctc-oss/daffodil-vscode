@@ -20,6 +20,7 @@ import {
   type Subscriber,
   type Writable,
   type Updater,
+  get,
 } from 'svelte/store'
 
 export abstract class SimpleWritable<T> {
@@ -32,6 +33,9 @@ export abstract class SimpleWritable<T> {
   }
   public update(updater: Updater<T>) {
     this.store.update(updater)
+  }
+  protected store_data(): T {
+    return get(this.store)
   }
   protected abstract init(): T
   constructor() {

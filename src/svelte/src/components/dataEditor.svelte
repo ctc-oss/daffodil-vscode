@@ -71,7 +71,11 @@ limitations under the License.
   import BinaryDataContainer from './DataDisplays/CustomByteDisplay/BinaryDataContainer.svelte'
   import { writable } from 'svelte/store'
   import { enterKeypressEvents } from '../utilities/enterKeypressEvents'
-  import type { EditByteAction } from './DataDisplays/CustomByteDisplay/BinaryData'
+  import {
+    _viewportData,
+    type EditByteAction,
+  } from './DataDisplays/CustomByteDisplay/BinaryData'
+  import LogicalDisplayContainer from './DataDisplays/CustomByteDisplay/LogicalDisplayContainer.svelte'
 
   $: $gotoOffset = parseInt($gotoOffsetInput, $addressRadix)
   $: $rawEditorSelectionTxt = $editorSelection
@@ -358,6 +362,7 @@ limitations under the License.
       case MessageCommand.viewportRefresh:
         // the viewport has been refreshed, so the editor views need to be updated
         $viewportData = msg.data.data.viewportData
+        $_viewportData = msg.data.data.viewportData
         $viewportStartOffset = msg.data.data.viewportOffset
         $viewportLength = msg.data.data.viewportLength
         $viewportFollowingByteCount = msg.data.data.viewportFollowingByteCount
@@ -481,16 +486,15 @@ limitations under the License.
 
   <ServerMetrics />
   <hr />
-  <details>
-    <summary>Flexible Custom Div Box</summary>
-    <FlexContainer --dir="column">
-      <BinaryDataContainer
-        bind:binaryDataStr={$binaryDataStr}
-        on:commitChanges={custom_commit_changes}
-        on:handleEditorEvent={handleEditorEvent}
-      />
-    </FlexContainer>
-  </details>
+
+  <h2>Flexible Custom Div Box</h2>
+  <FlexContainer --dir="row">
+    <BinaryDataContainer
+      on:commitChanges={custom_commit_changes}
+      on:handleEditorEvent={handleEditorEvent}
+    />
+    <LogicalDisplayContainer />
+  </FlexContainer>
 </body>
 
 <!-- svelte-ignore css-unused-selector -->

@@ -21,7 +21,6 @@ limitations under the License.
     editedDataSegment,
     editorEncoding,
     focusedViewportId,
-    requestable,
     selectionSize,
     viewportData,
   } from '../../../stores'
@@ -33,40 +32,24 @@ limitations under the License.
     BYTE_VALUE_DIV_OFFSET,
     type ByteValue,
     update_byte_action_offsets,
+    _viewportData,
+    selectedByte,
   } from './BinaryData'
   import { bytesPerRow } from './BinaryData'
   import BinaryValueActions from './BinaryValueActions.svelte'
   import BinaryValue from './BinaryValueDiv.svelte'
 
-  export let binaryDataStr: string
-
-  let byteValues: string[] = []
-  let binaryData: ByteValue[] = []
-
-  let selectedByte: ByteValue
   let selectionActive = false
-
-  $: {
-    byteValues = binaryDataStr.match(/[0-9a-fA-F]{2}/g) || []
-    binaryData = byteValues.map((byteStr, index) => {
-      return {
-        text: byteStr,
-        offset: index,
-        value: parseInt(byteStr, 16),
-        editingActive: false,
-      }
-    })
-  }
 
   $: selectionActive = $selectionData.active
 
   function select_byte(event: CustomEvent) {
     $focusedViewportId = 'physical'
 
-    selectedByte = event.detail.targetByte
+    $selectedByte = event.detail.targetByte
     selectionData.update((data) => {
       data.active = true
-      data.startOffset = selectedByte.offset
+      data.startOffset = $selectedByte.offset
       data.endOffset = data.startOffset
       data.originalEndOffset = data.endOffset
       return data
@@ -108,10 +91,9 @@ limitations under the License.
   <!-- <div class="byte"> -->
   {#key selectionActive}
     {#if selectionActive}
-      {#key selectedByte.offset}
+      {#key $selectedByte.offset}
         <!-- Key off of offset changes, instead of entire object changes -->
         <BinaryValueActions
-          {selectedByte}
           invalid={!$committable && $commitErrMsg.length > 0}
           on:commitChanges
           on:handleEditorEvent
@@ -120,8 +102,8 @@ limitations under the License.
     {/if}
   {/key}
   <!-- </div> -->
-  {#key binaryDataStr}
-    {#each binaryData as byte}
+  {#key $_viewportData}
+    {#each _viewportData.physical_byte_values(16, 16) as byte}
       <BinaryValue {byte} on:select_byte={select_byte} />
     {/each}
   {/key}
