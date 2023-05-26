@@ -231,139 +231,24 @@ export const gotoable = derived(
   }
 )
 
+function typedArrayToBuffer(
+  array: Uint8Array,
+  startOffset: number,
+  length: number
+): ArrayBuffer {
+  startOffset += array.byteOffset
+  return array.buffer.slice(
+    startOffset,
+    startOffset + Math.min(array.byteLength, length)
+  )
+}
+
 export const dataView = derived(
-  [selectionData, editMode, viewportData, editedDataSegment],
-  ([$selectionData, $editMode, $viewportData, $editedDataSegment]) => {
-    return $editMode === EditByteModes.Single
-      ? new DataView(
-          $viewportData.buffer.slice(
-            $selectionData.startOffset,
-            $selectionData.startOffset + 8
-          )
-        )
-      : new DataView($editedDataSegment.buffer)
-  }
-)
-
-export const rawByte = derived([dataView], ([$dataView]) => {
-  try {
-    if ($dataView.byteLength >= 1)
-      return $dataView.getUint8(0).toString(16).toUpperCase()
-  } catch (RangeError) {}
-  return ''
-})
-
-export const latin1 = derived([dataView], ([$dataView]) => {
-  try {
-    if ($dataView.byteLength >= 1)
-      return String.fromCharCode($dataView.getUint8(0))
-  } catch (RangeError) {}
-  return ''
-})
-
-export const int8 = derived(
-  [dataView, displayRadix],
-  ([$dataView, $displayRadix]) => {
-    try {
-      if ($dataView.byteLength >= 1)
-        return $dataView.getInt8(0).toString($displayRadix).toUpperCase()
-    } catch (RangeError) {}
-    return ''
-  }
-)
-
-export const uint8 = derived(
-  [dataView, displayRadix],
-  ([$dataView, $displayRadix]) => {
-    try {
-      if ($dataView.byteLength >= 1)
-        return $dataView.getUint8(0).toString($displayRadix).toUpperCase()
-    } catch (RangeError) {}
-    return ''
-  }
-)
-
-export const int16 = derived(
-  [dataView, displayRadix, dataViewEndianness],
-  ([$dataView, $displayRadix, $dataViewEndianness]) => {
-    try {
-      if ($dataView.byteLength >= 2)
-        return $dataView
-          .getInt16(0, $dataViewEndianness === 'le')
-          .toString($displayRadix)
-          .toUpperCase()
-    } catch (RangeError) {}
-    return ''
-  }
-)
-
-export const uint16 = derived(
-  [dataView, displayRadix, dataViewEndianness],
-  ([$dataView, $displayRadix, $dataViewEndianness]) => {
-    try {
-      if ($dataView.byteLength >= 2)
-        return $dataView
-          .getUint16(0, $dataViewEndianness === 'le')
-          .toString($displayRadix)
-          .toUpperCase()
-    } catch (RangeError) {}
-    return ''
-  }
-)
-
-export const int32 = derived(
-  [dataView, displayRadix, dataViewEndianness],
-  ([$dataView, $displayRadix, $dataViewEndianness]) => {
-    try {
-      if ($dataView.byteLength >= 4)
-        return $dataView
-          .getInt32(0, $dataViewEndianness === 'le')
-          .toString($displayRadix)
-          .toUpperCase()
-    } catch (RangeError) {}
-    return ''
-  }
-)
-
-export const uint32 = derived(
-  [dataView, displayRadix, dataViewEndianness],
-  ([$dataView, $displayRadix, $dataViewEndianness]) => {
-    try {
-      if ($dataView.byteLength >= 4)
-        return $dataView
-          .getUint32(0, $dataViewEndianness === 'le')
-          .toString($displayRadix)
-          .toUpperCase()
-    } catch (RangeError) {}
-    return ''
-  }
-)
-
-export const int64 = derived(
-  [dataView, displayRadix, dataViewEndianness],
-  ([$dataView, $displayRadix, $dataViewEndianness]) => {
-    try {
-      if ($dataView.byteLength >= 8)
-        return $dataView
-          .getBigInt64(0, $dataViewEndianness === 'le')
-          .toString($displayRadix)
-          .toUpperCase()
-    } catch (RangeError) {}
-    return ''
-  }
-)
-
-export const uint64 = derived(
-  [dataView, displayRadix, dataViewEndianness],
-  ([$dataView, $displayRadix, $dataViewEndianness]) => {
-    try {
-      if ($dataView.byteLength >= 8)
-        return $dataView
-          .getBigUint64(0, $dataViewEndianness === 'le')
-          .toString($displayRadix)
-          .toUpperCase()
-    } catch (RangeError) {}
-    return ''
+  [selectionData, viewportData],
+  ([$selectionData, $viewportData]) => {
+    return new DataView(
+      typedArrayToBuffer($viewportData, $selectionData.startOffset, 8)
+    )
   }
 )
 

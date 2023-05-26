@@ -15,24 +15,91 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
-  import {
-    dataViewEndianness,
-    int64,
-    uint64,
-    int32,
-    uint32,
-    int16,
-    uint16,
-    int8,
-    uint8,
-    latin1,
-    rawByte,
-    displayRadix,
-  } from '../../../stores'
+  import { dataViewEndianness, displayRadix, dataView } from '../../../stores'
   import { ENDIANNESS_OPTIONS } from '../../../stores/configuration'
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
   import FlexContainer from '../../layouts/FlexContainer.svelte'
   import { selectionData } from '../../Editors/DataEditor'
+
+  let dataViewOffset = ''
+  let dataViewLatin1 = ''
+  let dataViewInt8 = ''
+  let dataViewUint8 = ''
+  let dataViewInt16 = ''
+  let dataViewUint16 = ''
+  let dataViewInt32 = ''
+  let dataViewUint32 = ''
+  let dataViewInt64 = ''
+  let dataViewUint64 = ''
+
+  $: {
+    dataViewOffset = $selectionData.active
+      ? $selectionData.startOffset.toString($displayRadix).toUpperCase()
+      : ''
+
+    dataViewLatin1 =
+      $selectionData.active && $dataView.byteLength >= 1
+        ? String.fromCharCode($dataView.getUint8(0))
+        : ''
+
+    dataViewInt8 =
+      $selectionData.active && $dataView.byteLength >= 1
+        ? $dataView.getInt8(0).toString($displayRadix).toUpperCase()
+        : ''
+
+    dataViewUint8 =
+      $selectionData.active && $dataView.byteLength >= 1
+        ? $dataView.getUint8(0).toString($displayRadix).toUpperCase()
+        : ''
+
+    dataViewInt16 =
+      $selectionData.active && $dataView.byteLength >= 2
+        ? $dataView
+            .getInt16(0, $dataViewEndianness === 'le')
+            .toString($displayRadix)
+            .toUpperCase()
+        : ''
+
+    dataViewUint16 =
+      $selectionData.active && $dataView.byteLength >= 2
+        ? $dataView
+            .getUint16(0, $dataViewEndianness === 'le')
+            .toString($displayRadix)
+            .toUpperCase()
+        : ''
+
+    dataViewInt32 =
+      $selectionData.active && $dataView.byteLength >= 4
+        ? $dataView
+            .getInt32(0, $dataViewEndianness === 'le')
+            .toString($displayRadix)
+            .toUpperCase()
+        : ''
+
+    dataViewUint32 =
+      $selectionData.active && $dataView.byteLength >= 4
+        ? $dataView
+            .getUint32(0, $dataViewEndianness === 'le')
+            .toString($displayRadix)
+            .toUpperCase()
+        : ''
+
+    dataViewInt64 =
+      $selectionData.active && $dataView.byteLength >= 8
+        ? $dataView
+            .getBigInt64(0, $dataViewEndianness === 'le')
+            .toString($displayRadix)
+            .toUpperCase()
+        : ''
+
+    dataViewUint64 =
+      $selectionData.active && $dataView.byteLength >= 8
+        ? $dataView
+            .getBigUint64(0, $dataViewEndianness === 'le')
+            .toString($displayRadix)
+            .toUpperCase()
+        : ''
+  }
 </script>
 
 <fieldset class="box margin-top">
@@ -54,53 +121,55 @@ limitations under the License.
   <FlexContainer>
     <div id="data_vw">
       <label
-        >&nbsp;Offset: <text-field id="offset_dv"
-          >{$selectionData.startOffset.toString($displayRadix)}</text-field
+        >&nbsp;Offset: <text-field id="offset_dv">{dataViewOffset}</text-field
         ></label
       >
       <span id="b8_dv">
         <br /><label
-          >latin-1: <text-field id="raw_dv">{$rawByte}</text-field></label
-        >
-        <br /><label
-          >latin-1: <text-field id="latin1_dv">{$latin1}</text-field></label
-        >
-        <br /><label
-          >&nbsp;&nbsp;&nbsp;int8: <text-field id="int8_dv">{$int8}</text-field
+          >latin-1: <text-field id="latin1_dv">{dataViewLatin1}</text-field
           ></label
         >
         <br /><label
-          >&nbsp;&nbsp;uint8: <text-field id="uint8_dv">{$uint8}</text-field
+          >&nbsp;&nbsp;&nbsp;int8: <text-field id="int8_dv"
+            >{dataViewInt8}</text-field
+          ></label
+        >
+        <br /><label
+          >&nbsp;&nbsp;uint8: <text-field id="uint8_dv"
+            >{dataViewUint8}</text-field
           ></label
         >
       </span>
       <span id="b16_dv">
         <br /><label
-          >&nbsp;&nbsp;int16: <text-field id="int16_dv">{$int16}</text-field
+          >&nbsp;&nbsp;int16: <text-field id="int16_dv"
+            >{dataViewInt16}</text-field
           ></label
         >
         <br /><label
-          >&nbsp;uint16: <text-field id="uint16_dv">{$uint16}</text-field
+          >&nbsp;uint16: <text-field id="uint16_dv">{dataViewUint16}</text-field
           ></label
         >
       </span>
       <span id="b32_dv">
         <br /><label
-          >&nbsp;&nbsp;int32: <text-field id="int32_dv">{$int32}</text-field
+          >&nbsp;&nbsp;int32: <text-field id="int32_dv"
+            >{dataViewInt32}</text-field
           ></label
         >
         <br /><label
-          >&nbsp;uint32: <text-field id="uint32_dv">{$uint32}</text-field
+          >&nbsp;uint32: <text-field id="uint32_dv">{dataViewUint32}</text-field
           ></label
         >
       </span>
       <span id="b64_dv">
         <br /><label
-          >&nbsp;&nbsp;int64: <text-field id="int64_dv">{$int64}</text-field
+          >&nbsp;&nbsp;int64: <text-field id="int64_dv"
+            >{dataViewInt64}</text-field
           ></label
         >
         <br /><label
-          >&nbsp;uint64: <text-field id="uint64_dv">{$uint64}</text-field
+          >&nbsp;uint64: <text-field id="uint64_dv">{dataViewUint64}</text-field
           ></label
         >
       </span>

@@ -43,7 +43,6 @@ limitations under the License.
   } from '../../utilities/display'
   import { MessageCommand } from '../../utilities/message'
   import { createEventDispatcher, onMount } from 'svelte'
-  import { editByteWindowHidden } from '../../stores'
   import { vscode } from '../../utilities/vscode'
   import { EditByteModes, RADIX_OPTIONS } from '../../stores/configuration'
   import { selectionData, editMode } from '../Editors/DataEditor'
@@ -52,7 +51,6 @@ limitations under the License.
   const viewportRefs = viewport_references() as ViewportReferences
 
   let currentScrollEvt: string | null, scrollSyncTimer: NodeJS.Timeout
-  let editByteWindow = edit_byte_window_ref()
 
   //
   // reactive variables
