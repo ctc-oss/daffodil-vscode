@@ -439,7 +439,6 @@ limitations under the License.
 
 <svelte:window on:keydown|nonpassive={handleKeybind} />
 <body class={$UIThemeCSSClass}>
-
   <FlexContainer>
     <header class="header-container">
       <FlexContainer>

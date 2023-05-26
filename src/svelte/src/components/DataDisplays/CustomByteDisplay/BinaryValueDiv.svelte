@@ -17,7 +17,7 @@ limitations under the License.
 <script lang="ts">
   import { selectionData } from '../../Editors/DataEditor'
   import type { ByteValue } from './BinaryData'
-  import { selectedByte } from './BinaryData';
+  import { selectedByte } from './BinaryData'
   import { createEventDispatcher } from 'svelte'
 
   const eventDispatcher = createEventDispatcher()
@@ -26,11 +26,13 @@ limitations under the License.
   let bgColor: string
   let selected: boolean
 
-  $: selected = $selectionData.active 
+  $: selected = $selectionData.active
     ? $selectedByte.offset === byte.offset
     : false
-  $: bgColor = selected ? 'var(--color-secondary-mid)' : 'var(--color-primary-dark)'
-  
+  $: bgColor = selected
+    ? 'var(--color-secondary-mid)'
+    : 'var(--color-primary-dark)'
+
   function select_byte(event: Event) {
     eventDispatcher('select_byte', {
       targetDiv: event.target as HTMLDivElement,
@@ -40,7 +42,7 @@ limitations under the License.
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
-<div 
+<div
   class="byte"
   style:background-color={bgColor}
   style:border-color={bgColor}

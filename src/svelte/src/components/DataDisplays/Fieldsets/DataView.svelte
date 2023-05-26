@@ -15,7 +15,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
-  import { dataViewEndianness, displayRadix, dataView } from '../../../stores'
+  import {
+    dataViewEndianness,
+    displayRadix,
+    dataView,
+    addressRadix,
+  } from '../../../stores'
   import { ENDIANNESS_OPTIONS } from '../../../stores/configuration'
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
   import FlexContainer from '../../layouts/FlexContainer.svelte'
@@ -34,7 +39,7 @@ limitations under the License.
 
   $: {
     dataViewOffset = $selectionData.active
-      ? $selectionData.startOffset.toString($displayRadix).toUpperCase()
+      ? $selectionData.startOffset.toString($addressRadix).toUpperCase()
       : ''
 
     dataViewLatin1 =

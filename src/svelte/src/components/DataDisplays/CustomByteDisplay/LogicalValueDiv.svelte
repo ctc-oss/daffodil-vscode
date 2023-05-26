@@ -28,14 +28,15 @@ limitations under the License.
   let latin1Undefined: boolean
 
   $: latin1Undefined = byte.text === ''
-  $: selected = $selectionData.active 
+  $: selected = $selectionData.active
     ? $selectedByte.offset === byte.offset
     : false
   $: {
-    if(selected)
-      bgColor = 'var(--color-secondary-mid)'
-    else if(!selected)
-      bgColor = latin1Undefined ? 'var(--color-primary-darkest)' : 'var(--color-primary-dark)'
+    if (selected) bgColor = 'var(--color-secondary-mid)'
+    else if (!selected)
+      bgColor = latin1Undefined
+        ? 'var(--color-primary-darkest)'
+        : 'var(--color-primary-dark)'
   }
 
   function select_byte(event: Event) {
@@ -51,7 +52,9 @@ limitations under the License.
   class="byte"
   style:background-color={bgColor}
   style:border-color={bgColor}
-  style:color={latin1Undefined ? 'var(--color-secondary-lightest)' : 'var(--color-primary-lightest)'}
+  style:color={latin1Undefined
+    ? 'var(--color-secondary-lightest)'
+    : 'var(--color-primary-lightest)'}
   class:latin1Undefined
   on:click={select_byte}
 >
