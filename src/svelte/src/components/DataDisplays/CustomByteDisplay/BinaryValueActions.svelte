@@ -1,38 +1,46 @@
 <script lang="ts">
-  import { createEventDispatcher, onDestroy, onMount } from 'svelte'
+  import { createEventDispatcher, onMount } from 'svelte'
   import {
     byteActionPxOffsets,
     type ByteValue,
     type EditByteAction,
     selectedByte,
+    type ByteActionPxOffsets,
   } from './BinaryData'
   import { enterKeypressEvents } from '../../../utilities/enterKeypressEvents'
-  import { addressRadix, editByte, editorSelection } from '../../../stores'
+  import {
+    addressRadix,
+    committable,
+    commitErrMsg,
+    editByte,
+    editorSelection,
+  } from '../../../stores'
   import { editMode, selectionData } from '../../Editors/DataEditor'
   import { radixToString } from '../../../utilities/display'
   import { EditByteModes } from '../../../stores/configuration'
 
-  export let invalid: boolean
   const byteInputId = 'byte-input'
   const eventDispatcher = createEventDispatcher()
   let editedByteText: string
-
+  let invalid: boolean
+  let active: boolean
+  let styleOffsets: ByteActionPxOffsets
   onMount(() => {
     enterKeypressEvents.register({
       id: byteInputId,
       run: () => {
-        commitChanges()
+        commitChanges('byte-input')
       },
     })
     // document.getElementById('byte-input').focus() // Why does this always fail?
   })
-  onDestroy(() => {
-    enterKeypressEvents.remove(byteInputId)
-  })
 
+  $: styleOffsets = $byteActionPxOffsets
+  $: active = $selectionData.active
   $: if ($editMode === EditByteModes.Single) {
     $editorSelection = $editByte
   }
+  $: invalid = !$committable && $commitErrMsg.length > 0
 
   function update_selectedByte(editByte: ByteValue) {
     if (invalid) {
@@ -44,21 +52,26 @@
 
   function send_delete(_: Event) {
     commitChanges('delete')
+    console.log('send-delete')
   }
+
   function send_insert(event: Event) {
     const target = event.target as HTMLElement
     commitChanges(target.id as EditByteAction)
   }
 
-  function commitChanges(action?: EditByteAction) {
-    update_selectedByte({
-      text: editedByteText,
-      offset: $selectedByte.offset,
-      value: parseInt(editedByteText, 16),
-    })
+  function commitChanges(action: EditByteAction) {
+    const replacing = action === 'byte-input'
+    if (replacing) {
+      update_selectedByte({
+        text: editedByteText,
+        offset: $selectedByte.offset,
+        value: parseInt(editedByteText, 16),
+      })
+    }
 
     eventDispatcher('commitChanges', {
-      byte: selectedByte,
+      byte: replacing ? selectedByte : $selectedByte,
       action: action,
     })
   }
@@ -67,49 +80,50 @@
   }
 </script>
 
-<!-- svelte-ignore a11y-click-events-have-key-events -->
-<div
-  class="delete"
-  on:click={send_delete}
-  style="top: {byteActionPxOffsets.delete.top}px; left: {byteActionPxOffsets
-    .delete.left}px;"
->
-  &#10006;
-</div>
-<!-- svelte-ignore a11y-click-events-have-key-events -->
-<div
-  class="insert-before"
-  id="insert-before"
-  style="top: {byteActionPxOffsets.insertBefore
-    .top}px; left: {byteActionPxOffsets.insertBefore.left}px;"
-  on:click={send_insert}
->
-  &#8676;
-</div>
+{#if active}
+  <!-- svelte-ignore a11y-click-events-have-key-events -->
+  <div
+    class="delete"
+    on:click={send_delete}
+    style="top: {styleOffsets.delete.top}px; left: {styleOffsets.delete
+      .left}px;"
+  >
+    &#10006;
+  </div>
+  <!-- svelte-ignore a11y-click-events-have-key-events -->
+  <div
+    class="insert-before"
+    id="insert-before"
+    style="top: {styleOffsets.insertBefore.top}px; left: {styleOffsets
+      .insertBefore.left}px;"
+    on:click={send_insert}
+  >
+    &#8676;
+  </div>
 
-<input
-  id="byte-input"
-  type="text"
-  class:invalid
-  title="byte position {$selectionData.startOffset.toString(
-    $addressRadix
-  )} {radixToString($addressRadix)}"
-  bind:value={$editorSelection}
-  on:input={handleEditorEvent}
-  style="top: {byteActionPxOffsets.input.top}px; left: {byteActionPxOffsets
-    .input.left}px;"
-/>
+  <input
+    id="byte-input"
+    type="text"
+    class:invalid
+    title="byte position {$selectionData.startOffset.toString(
+      $addressRadix
+    )} {radixToString($addressRadix)}"
+    bind:value={$editorSelection}
+    on:input={handleEditorEvent}
+    style="top: {styleOffsets.input.top}px; left: {styleOffsets.input.left}px;"
+  />
 
-<!-- svelte-ignore a11y-click-events-have-key-events -->
-<div
-  id="insert-after"
-  class="insert-after"
-  style="top: {byteActionPxOffsets.insertAfter
-    .top}px; left: {byteActionPxOffsets.insertAfter.left}px;"
-  on:click={send_insert}
->
-  &#8677;
-</div>
+  <!-- svelte-ignore a11y-click-events-have-key-events -->
+  <div
+    id="insert-after"
+    class="insert-after"
+    style="top: {styleOffsets.insertAfter.top}px; left: {styleOffsets
+      .insertAfter.left}px;"
+    on:click={send_insert}
+  >
+    &#8677;
+  </div>
+{/if}
 
 <style lang="scss">
   div.insert-before,

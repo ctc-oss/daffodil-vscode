@@ -91,7 +91,7 @@ export class ViewportData extends SimpleWritable<Uint8Array> {
 }
 export const _viewportData = new ViewportData()
 
-type ByteActionPxOffsets = {
+export type ByteActionPxOffsets = {
   insertBefore: {
     left: number
     top: number
@@ -109,46 +109,30 @@ type ByteActionPxOffsets = {
     top: number
   }
 }
-export let byteActionPxOffsets: ByteActionPxOffsets = {
-  insertBefore: {
-    left: 0,
-    top: 0,
-  },
-  insertAfter: {
-    left: 0,
-    top: 0,
-  },
-  delete: {
-    left: 0,
-    top: 0,
-  },
-  input: {
-    left: 0,
-    top: 0,
-  },
-}
+
 function latin1Undefined(charCode: number): boolean {
   return charCode < 32 || (charCode > 126 && charCode < 160)
 }
 export function update_byte_action_offsets(targetDiv: HTMLDivElement) {
-  byteActionPxOffsets = {
-    insertBefore: {
-      left: targetDiv.offsetLeft - BYTE_VALUE_DIV_OFFSET,
-      top: targetDiv.offsetTop,
-    },
-    insertAfter: {
-      left: targetDiv.offsetLeft + BYTE_VALUE_DIV_OFFSET,
-      top: targetDiv.offsetTop,
-    },
-    delete: {
+  byteActionPxOffsets.update((currentOffsets) => {
+    currentOffsets.delete = {
       left: targetDiv.offsetLeft,
       top: targetDiv.offsetTop + BYTE_VALUE_DIV_OFFSET,
-    },
-    input: {
+    }
+    currentOffsets.input = {
       left: targetDiv.offsetLeft,
       top: targetDiv.offsetTop,
-    },
-  }
+    }
+    currentOffsets.insertAfter = {
+      left: targetDiv.offsetLeft + BYTE_VALUE_DIV_OFFSET,
+      top: targetDiv.offsetTop,
+    }
+    currentOffsets.insertBefore = {
+      left: targetDiv.offsetLeft - BYTE_VALUE_DIV_OFFSET,
+      top: targetDiv.offsetTop,
+    }
+    return currentOffsets
+  })
 }
 
 export enum ByteValuePxWidths {
@@ -166,7 +150,24 @@ export const selectedByte = writable({
   offset: 0,
   value: 0,
 } as ByteValue)
-
+export const byteActionPxOffsets = writable({
+  insertBefore: {
+    left: 0,
+    top: 0,
+  },
+  insertAfter: {
+    left: 0,
+    top: 0,
+  },
+  delete: {
+    left: 0,
+    top: 0,
+  },
+  input: {
+    left: 0,
+    top: 0,
+  },
+} as ByteActionPxOffsets)
 export function focus_byte_input() {
   document.getElementById('byte-input').focus()
 }

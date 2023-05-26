@@ -30,18 +30,12 @@ limitations under the License.
   import { editMode, selectionData } from '../../Editors/DataEditor'
   import {
     BYTE_VALUE_DIV_OFFSET,
-    type ByteValue,
     update_byte_action_offsets,
     _viewportData,
     selectedByte,
   } from './BinaryData'
   import { bytesPerRow } from './BinaryData'
-  import BinaryValueActions from './BinaryValueActions.svelte'
   import BinaryValue from './BinaryValueDiv.svelte'
-
-  let selectionActive = false
-
-  $: selectionActive = $selectionData.active
 
   function select_byte(event: CustomEvent) {
     $focusedViewportId = 'physical'
@@ -88,18 +82,6 @@ limitations under the License.
   class:locked={$selectionData.active}
   style="width: calc({$bytesPerRow} * {BYTE_VALUE_DIV_OFFSET}px);"
 >
-  {#key selectionActive}
-    {#if selectionActive}
-      {#key $selectedByte.offset}
-        <!-- Key off of offset changes, instead of entire object changes -->
-        <BinaryValueActions
-          invalid={!$committable && $commitErrMsg.length > 0}
-          on:commitChanges
-          on:handleEditorEvent
-        />
-      {/key}
-    {/if}
-  {/key}
   {#key $_viewportData}
     {#each _viewportData.physical_byte_values(16, 16) as byte}
       <BinaryValue {byte} on:select_byte={select_byte} />

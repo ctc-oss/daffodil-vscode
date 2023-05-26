@@ -63,8 +63,6 @@ limitations under the License.
   import Settings from './Header/fieldsets/Settings.svelte'
   import Main from './Main.svelte'
   import { EditByteModes } from '../stores/configuration'
-  import Ephemeral from './layouts/Ephemeral.svelte'
-  import EditByteWindow from './DataDisplays/EditByteWindow.svelte'
   import FlexContainer from './layouts/FlexContainer.svelte'
   import ServerMetrics from './ServerMetrics/ServerMetrics.svelte'
   import { selectionData, editMode } from './Editors/DataEditor'
@@ -77,6 +75,7 @@ limitations under the License.
     type EditByteAction,
   } from './DataDisplays/CustomByteDisplay/BinaryData'
   import LogicalDisplayContainer from './DataDisplays/CustomByteDisplay/LogicalDisplayContainer.svelte'
+  import BinaryValueActions from './DataDisplays/CustomByteDisplay/BinaryValueActions.svelte'
 
   $: $gotoOffset = parseInt($gotoOffsetInput, $addressRadix)
   $: $rawEditorSelectionTxt = $editorSelection
@@ -495,10 +494,11 @@ limitations under the License.
 
   <h2>Flexible Custom Div Box</h2>
   <FlexContainer --dir="row">
-    <BinaryDataContainer
+    <BinaryValueActions
       on:commitChanges={custom_commit_changes}
       on:handleEditorEvent={handleEditorEvent}
     />
+    <BinaryDataContainer />
     <LogicalDisplayContainer />
 
     <FlexContainer --dir="column" --width="25%">

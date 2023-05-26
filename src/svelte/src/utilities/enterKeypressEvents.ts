@@ -24,9 +24,7 @@ class EnterKeypressEvents {
   private events: Array<EnterKeypressEvent> = []
 
   public register(event: EnterKeypressEvent) {
-    this.events = this.events.filter((eventItem) => {
-      return eventItem.id === event.id
-    })
+    this.remove(event.id)
     this.events.push(event)
   }
 
@@ -36,7 +34,7 @@ class EnterKeypressEvents {
     })
   }
 
-  public remove(eventId: string) {
+  private remove(eventId: string) {
     this.events = this.events.filter((event) => {
       return event.id === eventId
     })

@@ -62,17 +62,6 @@
   class:locked={$selectionData.active}
   style="width: calc({$bytesPerRow} * {BYTE_VALUE_DIV_OFFSET}px);"
 >
-  {#key selectionActive}
-    {#if selectionActive}
-      {#key $selectedByte.offset}
-        <BinaryValueActions
-          invalid={!$committable && $commitErrMsg.length > 0}
-          on:commitChanges
-          on:handleEditorEvent
-        />
-      {/key}
-    {/if}
-  {/key}
   {#key logicalByteArray}
     {#each logicalByteArray as byte}
       <LogicalDisplayDiv {byte} on:select_byte={select_byte} />
