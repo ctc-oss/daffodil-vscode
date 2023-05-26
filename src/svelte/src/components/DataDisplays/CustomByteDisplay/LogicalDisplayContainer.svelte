@@ -3,14 +3,21 @@
     bytesPerRow,
     commitErrMsg,
     committable,
+    editedDataSegment,
+    editorEncoding,
     focusedViewportId,
+    selectionSize,
   } from '../../../stores'
-  import { selectionData } from '../../Editors/DataEditor'
+  import { EditByteModes } from '../../../stores/configuration'
+  import { MessageCommand } from '../../../utilities/message'
+  import { vscode } from '../../../utilities/vscode'
+  import { editMode, selectionData } from '../../Editors/DataEditor'
   import {
     BYTE_VALUE_DIV_OFFSET,
     _viewportData,
     selectedByte,
     type ByteValue,
+    update_byte_action_offsets,
   } from './BinaryData'
   import BinaryValueActions from './BinaryValueActions.svelte'
   import BinaryValue from './BinaryValueDiv.svelte'
@@ -52,6 +59,30 @@
       data.endOffset = data.startOffset
       data.originalEndOffset = data.endOffset
       return data
+    })
+    update_byte_action_offsets(event.detail.targetDiv)
+
+    editedDataSegment.update(() => {
+      return Uint8Array.from(
+        $_viewportData.subarray(
+          $selectionData.startOffset,
+          $selectionData.endOffset + 1
+        )
+      )
+    })
+    if ($editMode === EditByteModes.Single) postEditorOnChangeMsg('hex')
+  }
+
+  function postEditorOnChangeMsg(forcedEncoding?: string) {
+    vscode.postMessage({
+      command: MessageCommand.editorOnChange,
+      data: {
+        fileOffset: $selectionData.startOffset,
+        selectionData: $editedDataSegment,
+        encoding: forcedEncoding ? forcedEncoding : $editorEncoding,
+        selectionSize: $selectionSize,
+        editMode: $editMode,
+      },
     })
   }
 </script>

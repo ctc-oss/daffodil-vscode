@@ -72,6 +72,7 @@ limitations under the License.
     _viewportData,
     selectedByte,
     type EditByteAction,
+    byteActionPxOffsets,
   } from './DataDisplays/CustomByteDisplay/BinaryData'
   import LogicalDisplayContainer from './DataDisplays/CustomByteDisplay/LogicalDisplayContainer.svelte'
   import BinaryValueActions from './DataDisplays/CustomByteDisplay/BinaryValueActions.svelte'
@@ -428,6 +429,11 @@ limitations under the License.
   }
   let selectionDataDebug
   let selectedByteDebug
+  let actionPxOffsetsDebug = $byteActionPxOffsets
+  $: {
+    actionPxOffsetsDebug = $byteActionPxOffsets
+    console.table(actionPxOffsetsDebug)
+  }
   $: selectionDataDebug = $selectionData
   $: selectedByteDebug = $selectedByte
 </script>

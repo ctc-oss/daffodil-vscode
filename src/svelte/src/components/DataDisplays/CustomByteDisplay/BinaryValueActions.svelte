@@ -14,21 +14,25 @@
     commitErrMsg,
     editByte,
     editorSelection,
+    displayRadix,
   } from '../../../stores'
   import { editMode, selectionData } from '../../Editors/DataEditor'
-  import { radixToString } from '../../../utilities/display'
+  import { radixBytePad, radixToString } from '../../../utilities/display'
   import { EditByteModes } from '../../../stores/configuration'
 
   const byteInputId = 'byte-input'
   const eventDispatcher = createEventDispatcher()
   let editedByteText: string
   let invalid: boolean
+  let inProgress: boolean
   let active: boolean
   let styleOffsets: ByteActionPxOffsets
+
   onMount(() => {
     enterKeypressEvents.register({
       id: byteInputId,
       run: () => {
+        if (invalid || inProgress) return
         commitChanges('byte-input')
       },
     })
@@ -40,13 +44,29 @@
   $: if ($editMode === EditByteModes.Single) {
     $editorSelection = $editByte
   }
-  $: invalid = !$committable && $commitErrMsg.length > 0
+  $: {
+    if (
+      !$committable &&
+      $commitErrMsg.length > 0 &&
+      $editorSelection.length >= radixBytePad($displayRadix)
+    ) {
+      invalid = true
+      inProgress = false
+    } else if (
+      !$committable &&
+      $commitErrMsg.length > 0 &&
+      $editorSelection.length < radixBytePad($displayRadix)
+    ) {
+      invalid = false
+      inProgress = true
+    } else {
+      invalid = false
+      inProgress = false
+    }
+  }
 
   function update_selectedByte(editByte: ByteValue) {
-    if (invalid) {
-      console.log('Editing byte value invalid')
-      return
-    }
+    if (invalid) return
     $selectedByte = editByte
   }
 
@@ -61,8 +81,7 @@
   }
 
   function commitChanges(action: EditByteAction) {
-    const replacing = action === 'byte-input'
-    if (replacing) {
+    if (action === 'byte-input') {
       update_selectedByte({
         text: editedByteText,
         offset: $selectedByte.offset,
@@ -71,7 +90,7 @@
     }
 
     eventDispatcher('commitChanges', {
-      byte: replacing ? selectedByte : $selectedByte,
+      byte: $selectedByte,
       action: action,
     })
   }
@@ -105,6 +124,7 @@
     id="byte-input"
     type="text"
     class:invalid
+    class:inProgress
     title="byte position {$selectionData.startOffset.toString(
       $addressRadix
     )} {radixToString($addressRadix)}"
@@ -126,6 +146,18 @@
 {/if}
 
 <style lang="scss">
+  @keyframes shake {
+    0%,
+    100% {
+      translate: 0px;
+    }
+    25% {
+      translate: -3px;
+    }
+    75% {
+      translate: 3px;
+    }
+  }
   div.insert-before,
   div.insert-after,
   div.delete,
@@ -165,12 +197,13 @@
   div.insert-after:hover {
     background-color: var(--color-primary-dark);
     color: var(--color-secondary-lightest);
+    border-color: var(--color-secondary-light);
     cursor: pointer;
   }
   div.delete {
     background-color: crimson;
     border-style: solid;
-    color: white;
+    color: var(--color-secondary-lightest);
   }
   div.delete:hover {
     border-color: var(--color-secondary-light);
@@ -182,7 +215,14 @@
     color: var(--color-secondary-lightest);
     padding: 0;
   }
+  input {
+    animation: none;
+  }
   input.invalid {
     border-color: crimson;
+    animation: shake 0.15s 3;
+  }
+  input.inProgress {
+    border-color: gold;
   }
 </style>
