@@ -30,11 +30,12 @@ limitations under the License.
     update_byte_action_offsets,
     _viewportData,
     selectedByte,
+    type ByteSelectionEvent,
   } from './BinaryData'
   import { bytesPerRow } from './BinaryData'
   import BinaryValue from './BinaryValueDiv.svelte'
 
-  function select_byte(event: CustomEvent) {
+  function select_byte(event: CustomEvent<ByteSelectionEvent>) {
     $focusedViewportId = 'physical'
 
     $selectedByte = event.detail.targetByte
@@ -46,7 +47,7 @@ limitations under the License.
       return data
     })
 
-    update_byte_action_offsets(event.detail.targetDiv)
+    update_byte_action_offsets(event.detail.targetElement)
 
     editedDataSegment.update(() => {
       return Uint8Array.from(

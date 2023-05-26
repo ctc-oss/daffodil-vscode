@@ -241,7 +241,7 @@ limitations under the License.
         break
     }
     $editedDataStore = editedData
-    console.log(action, byte, editedData)
+
     vscode.postMessage({
       command: MessageCommand.commit,
       data: {

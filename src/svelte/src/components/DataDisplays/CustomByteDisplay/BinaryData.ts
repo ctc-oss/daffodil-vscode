@@ -17,7 +17,7 @@
 
 import { get, writable } from 'svelte/store'
 import { SimpleWritable } from '../../../stores/localStore'
-import type { RadixValues } from '../../../stores/configuration'
+import type { EditByteModes, RadixValues } from '../../../stores/configuration'
 import { radixBytePad } from '../../../utilities/display'
 
 export const BYTE_VALUE_DIV_OFFSET = 24
@@ -38,6 +38,11 @@ export type EditByteEvent = {
   targetByte: ByteValue
   action: EditByteAction
 }
+export type ByteSelectionEvent = {
+  targetElement: HTMLDivElement
+  targetByte: ByteValue
+  type: keyof typeof EditByteModes
+}
 export const RADIX_REGEX_MATCH_STR = {
   16: /[0-9a-fA-F]{2}/g,
   10: /[0-9]{3}/g,
@@ -50,7 +55,6 @@ export class ViewportData extends SimpleWritable<Uint8Array> {
   }
   public set(value: Uint8Array): void {
     this.store.set(Uint8Array.from(value))
-    console.log('setting _viewport')
   }
   public physical_byte_values(
     radix: RadixValues,
@@ -168,6 +172,7 @@ export const byteActionPxOffsets = writable({
     top: 0,
   },
 } as ByteActionPxOffsets)
+export const mouseSelectionBytes = writable({ mousedown: -1, mouseup: -1 })
 export function focus_byte_input() {
   document.getElementById('byte-input').focus()
 }

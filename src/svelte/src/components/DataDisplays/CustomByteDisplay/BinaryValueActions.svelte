@@ -72,7 +72,6 @@
 
   function send_delete(_: Event) {
     commitChanges('delete')
-    console.log('send-delete')
   }
 
   function send_insert(event: Event) {
@@ -99,7 +98,7 @@
   }
 </script>
 
-{#if active}
+{#if active && $editMode === EditByteModes.Single}
   <!-- svelte-ignore a11y-click-events-have-key-events -->
   <div
     class="delete"

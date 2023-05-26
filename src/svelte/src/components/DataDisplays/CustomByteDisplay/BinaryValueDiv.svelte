@@ -15,8 +15,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
-  import { selectionData } from '../../Editors/DataEditor'
-  import type { ByteValue } from './BinaryData'
+  import { displayRadix } from '../../../stores'
+  import { EditByteModes, RADIX_OPTIONS } from '../../../stores/configuration'
+  import { editMode, selectionData } from '../../Editors/DataEditor'
+  import {
+    mouseSelectionBytes,
+    type ByteSelectionEvent,
+    type ByteValue,
+  } from './BinaryData'
   import { selectedByte } from './BinaryData'
   import { createEventDispatcher } from 'svelte'
 
@@ -33,11 +39,43 @@ limitations under the License.
     ? 'var(--color-secondary-mid)'
     : 'var(--color-primary-dark)'
 
-  function select_byte(event: Event) {
+  function select_byte(targetElement: HTMLDivElement) {
     eventDispatcher('select_byte', {
-      targetDiv: event.target as HTMLDivElement,
+      targetElement: targetElement,
       targetByte: byte,
-    })
+      type: 'Single',
+    } as ByteSelectionEvent)
+  }
+  function select_byte_range(event: Event) {
+    $mouseSelectionBytes.mouseup = byte.offset
+    const target = event.target as HTMLDivElement
+
+    if ($mouseSelectionBytes.mousedown === $mouseSelectionBytes.mouseup) {
+      select_byte(target)
+      return
+    }
+    if (
+      $mouseSelectionBytes.mousedown >= 0 &&
+      $mouseSelectionBytes.mouseup >= 0
+    ) {
+      const startOffset =
+        $mouseSelectionBytes.mousedown < $mouseSelectionBytes.mouseup
+          ? $mouseSelectionBytes.mousedown
+          : $mouseSelectionBytes.mouseup
+      const endOffset =
+        $mouseSelectionBytes.mousedown > $mouseSelectionBytes.mouseup
+          ? $mouseSelectionBytes.mousedown
+          : $mouseSelectionBytes.mouseup
+
+      $selectedByte = { text: '', offset: -1, value: -1 }
+      selectionData.update((data) => {
+        data.active = true
+        data.startOffset = startOffset
+        data.endOffset = endOffset
+        data.originalEndOffset = endOffset
+        return data
+      })
+    }
   }
 </script>
 
@@ -46,9 +84,16 @@ limitations under the License.
   class="byte"
   style:background-color={bgColor}
   style:border-color={bgColor}
-  on:click={select_byte}
+  on:mouseup={select_byte_range}
+  on:mousedown={() => {
+    $mouseSelectionBytes.mousedown = byte.offset
+  }}
 >
-  {byte.text}
+  {#if $displayRadix === RADIX_OPTIONS.Hexadecimal}
+    {byte.text.toUpperCase()}
+  {:else}
+    {byte.text}
+  {/if}
 </div>
 
 <style>
