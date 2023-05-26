@@ -20,7 +20,6 @@ limitations under the License.
     gotoOffsetInput,
     addressRadix,
     displayRadix,
-    cursorPos,
     selectionSize,
   } from '../../../stores'
   import {
@@ -160,8 +159,7 @@ limitations under the License.
     from: string,
     start: number,
     end: number,
-    size: number,
-    cursorPos?: number
+    size: number
   ): string {
     return `${from} [${start} - ${end}] Size: ${size} `
   }
@@ -221,7 +219,7 @@ limitations under the License.
       <div class="clear-selection" />
     {/if}
     <div>
-      {selectionOffsetText}{#if $cursorPos} | cursor: {$cursorPos} {/if}
+      {selectionOffsetText}
     </div>
   {:else}
     <div>

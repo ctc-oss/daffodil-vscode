@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-export type Radixes = 'Hexidecimal' | 'Decimal' | 'Octal' | 'Binary'
+export type Radixes = 'Hexadecimal' | 'Decimal' | 'Octal' | 'Binary'
 
 export type RadixValues = 16 | 10 | 8 | 2
 
@@ -25,7 +25,7 @@ export enum EditByteModes {
 }
 
 export const RADIX_OPTIONS: Record<Radixes, RadixValues> = {
-  Hexidecimal: 16,
+  Hexadecimal: 16,
   Decimal: 10,
   Octal: 8,
   Binary: 2,

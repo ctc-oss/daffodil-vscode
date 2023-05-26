@@ -144,7 +144,7 @@ limitations under the License.
     $viewportScrollHeight = element.scrollHeight
     $viewportClientHeight = element.clientHeight
 
-    // scroll the other viewports to the same position after a short delay (100ms)
+    // scroll the other view ports to the same position after a short delay (100ms)
     if (!currentScrollEvt || currentScrollEvt === element.id) {
       clearTimeout(scrollSyncTimer)
       currentScrollEvt = element.id
@@ -313,7 +313,7 @@ limitations under the License.
 <textarea
   class={$UIThemeCSSClass + ' physical'}
   class:locked={$selectionData.active}
-  class:hexWidth={$displayRadix === RADIX_OPTIONS.Hexidecimal}
+  class:hexWidth={$displayRadix === RADIX_OPTIONS.Hexadecimal}
   class:decoctWidth={$displayRadix === RADIX_OPTIONS.Decimal ||
     $displayRadix === RADIX_OPTIONS.Octal}
   class:binWidth={$displayRadix === RADIX_OPTIONS.Binary}
@@ -328,7 +328,7 @@ limitations under the License.
 <textarea
   class={$UIThemeCSSClass + ' logical'}
   class:locked={$selectionData.active}
-  class:hexWidth={$displayRadix === RADIX_OPTIONS.Hexidecimal}
+  class:hexWidth={$displayRadix === RADIX_OPTIONS.Hexadecimal}
   class:decoctWidth={$displayRadix === RADIX_OPTIONS.Decimal ||
     $displayRadix === RADIX_OPTIONS.Octal}
   class:binWidth={$displayRadix === RADIX_OPTIONS.Binary}

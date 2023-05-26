@@ -62,7 +62,7 @@ limitations under the License.
     let viewportRefs = viewport_references() as ViewportReferences
 
     switch ($displayRadix) {
-      case RADIX_OPTIONS.Hexidecimal:
+      case RADIX_OPTIONS.Hexadecimal:
         viewportRefs.physical.style.width = '300pt'
         viewportRefs.logical.style.width = '200pt'
         break
@@ -85,7 +85,7 @@ limitations under the License.
     <FlexContainer --dir="row" --align-items="center">
       <label for="radix">Byte Display Radix:</label>
       <select class={$UIThemeCSSClass} bind:value={$displayRadix}>
-        <option value={RADIX_OPTIONS.Hexidecimal}>Hexidecimal</option>
+        <option value={RADIX_OPTIONS.Hexadecimal}>Hexidecimal</option>
         <option value={RADIX_OPTIONS.Decimal}>Decimal</option>
         <option value={RADIX_OPTIONS.Octal}>Octal</option>
         <option value={RADIX_OPTIONS.Binary}>Binary</option>

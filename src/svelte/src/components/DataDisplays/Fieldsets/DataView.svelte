@@ -25,12 +25,14 @@ limitations under the License.
     uint16,
     int8,
     uint8,
-    dataViewOffsetText,
     latin1,
+    rawByte,
+    displayRadix,
   } from '../../../stores'
   import { ENDIANNESS_OPTIONS } from '../../../stores/configuration'
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
   import FlexContainer from '../../layouts/FlexContainer.svelte'
+  import { selectionData } from '../../Editors/DataEditor'
 </script>
 
 <fieldset class="box margin-top">
@@ -51,42 +53,55 @@ limitations under the License.
   </FlexContainer>
   <FlexContainer>
     <div id="data_vw">
-      <label for="offset_dv"
-        >&nbsp;Offset: <text-field id="offset_dv" />{$dataViewOffsetText}</label
+      <label
+        >&nbsp;Offset: <text-field id="offset_dv"
+          >{$selectionData.startOffset.toString($displayRadix)}</text-field
+        ></label
       >
       <span id="b8_dv">
-        <br /><label for="latin1_dv"
-          >latin-1: <text-field id="latin1_dv" />{$latin1}</label
+        <br /><label
+          >latin-1: <text-field id="raw_dv">{$rawByte}</text-field></label
         >
-        <br /><label for="int8_dv"
-          >&nbsp;&nbsp;&nbsp;int8: <text-field id="int8_dv" />{$int8}</label
+        <br /><label
+          >latin-1: <text-field id="latin1_dv">{$latin1}</text-field></label
         >
-        <br /><label for="uint8_dv"
-          >&nbsp;&nbsp;uint8: <text-field id="uint8_dv" />{$uint8}</label
+        <br /><label
+          >&nbsp;&nbsp;&nbsp;int8: <text-field id="int8_dv">{$int8}</text-field
+          ></label
+        >
+        <br /><label
+          >&nbsp;&nbsp;uint8: <text-field id="uint8_dv">{$uint8}</text-field
+          ></label
         >
       </span>
       <span id="b16_dv">
-        <br /><label for="int16_dv"
-          >&nbsp;&nbsp;int16: <text-field id="int16_dv" />{$int16}</label
+        <br /><label
+          >&nbsp;&nbsp;int16: <text-field id="int16_dv">{$int16}</text-field
+          ></label
         >
-        <br /><label for="uint16_dv"
-          >&nbsp;uint16: <text-field id="uint16_dv" />{$uint16}</label
+        <br /><label
+          >&nbsp;uint16: <text-field id="uint16_dv">{$uint16}</text-field
+          ></label
         >
       </span>
       <span id="b32_dv">
-        <br /><label for="int32_dv"
-          >&nbsp;&nbsp;int32: <text-field id="int32_dv" />{$int32}</label
+        <br /><label
+          >&nbsp;&nbsp;int32: <text-field id="int32_dv">{$int32}</text-field
+          ></label
         >
-        <br /><label for="uint32_dv"
-          >&nbsp;uint32: <text-field id="uint32_dv" />{$uint32}</label
+        <br /><label
+          >&nbsp;uint32: <text-field id="uint32_dv">{$uint32}</text-field
+          ></label
         >
       </span>
       <span id="b64_dv">
-        <br /><label for="int64_dv"
-          >&nbsp;&nbsp;int64: <text-field id="int64_dv" />{$int64}</label
+        <br /><label
+          >&nbsp;&nbsp;int64: <text-field id="int64_dv">{$int64}</text-field
+          ></label
         >
-        <br /><label for="uint64_dv"
-          >&nbsp;uint64: <text-field id="uint64_dv" />{$uint64}</label
+        <br /><label
+          >&nbsp;uint64: <text-field id="uint64_dv">{$uint64}</text-field
+          ></label
         >
       </span>
     </div>

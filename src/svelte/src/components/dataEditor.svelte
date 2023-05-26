@@ -19,7 +19,6 @@ limitations under the License.
   import {
     addressRadix,
     bytesPerRow,
-    cursorPos,
     displayRadix,
     editByteWindowHidden,
     editedDataSegment,
@@ -218,8 +217,6 @@ limitations under the License.
       clearDataDisplays()
       return
     }
-
-    $cursorPos = document.getSelection().anchorOffset
     requestEditedData()
   }
   function custom_commit_changes(event: CustomEvent) {
@@ -338,7 +335,6 @@ limitations under the License.
     $selectionData.endOffset = 0
     $selectionData.originalEndOffset = 0
     $selectionData.active = false
-    $cursorPos = 0
     $editorSelection = ''
     $editedDataSegment = new Uint8Array(0)
   }
@@ -387,7 +383,6 @@ limitations under the License.
         } else {
           $editedDataSegment[0] = msg.data.data.data
         }
-        $cursorPos = document.getSelection().anchorOffset
         $selectionData.endOffset =
           $selectionData.startOffset + $editedDataSegment.byteLength - 1
         break

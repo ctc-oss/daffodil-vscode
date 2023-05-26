@@ -30,9 +30,7 @@ import { derived, writable } from 'svelte/store'
 export const UITheme = writable(ThemeType.Dark)
 export const addressRadix = writable(16)
 export const commitErrMsg = writable('')
-export const cursorPos = writable(0)
 export const dataViewEndianness = writable('le') // 'le' for little endian and 'be' for big endian
-export const disableDataView = writable(false)
 export const displayRadix = writable(16)
 export const editByteWindowHidden = writable(true)
 export const editedDataSegment = writable(new Uint8Array(0))
@@ -233,20 +231,6 @@ export const gotoable = derived(
   }
 )
 
-export const byteOffsetPos = derived(
-  [cursorPos, editorEncoding],
-  ([$cursorPos, $editorEncoding]) => {
-    switch ($editorEncoding) {
-      case 'hex':
-        return Math.floor($cursorPos / 2)
-      case 'binary':
-        return Math.floor($cursorPos / 8)
-      default:
-        return $cursorPos
-    }
-  }
-)
-
 export const dataView = derived(
   [selectionData, editMode, viewportData, editedDataSegment],
   ([$selectionData, $editMode, $viewportData, $editedDataSegment]) => {
@@ -261,81 +245,51 @@ export const dataView = derived(
   }
 )
 
-export const dataViewOffsetText = derived(
-  [selectionData, byteOffsetPos, addressRadix],
-  ([$selectionData, $byteOffsetPos, $addressValue]) => {
-    return ($selectionData.startOffset + $byteOffsetPos).toString($addressValue)
-  }
-)
+export const rawByte = derived([dataView], ([$dataView]) => {
+  try {
+    if ($dataView.byteLength >= 1)
+      return $dataView.getUint8(0).toString(16).toUpperCase()
+  } catch (RangeError) {}
+  return ''
+})
 
-export const dataViewLookAhead = derived(
-  [editMode, dataView, byteOffsetPos, disableDataView],
-  ([$editMode, $dataView, $byteOffsetPos]) => {
-    return $editMode === EditByteModes.Multiple
-      ? $dataView.byteLength - $byteOffsetPos.valueOf()
-      : $dataView.byteLength
-  }
-)
-
-export const latin1 = derived(
-  [byteOffsetPos, dataViewLookAhead, dataView],
-  ([$byteOffsetPos, $dataViewLookAhead, $dataView]) => {
-    try {
-      if ($dataViewLookAhead >= 1)
-        return String.fromCharCode($dataView.getUint8($byteOffsetPos))
-    } catch (RangeError) {}
-    return ''
-  }
-)
+export const latin1 = derived([dataView], ([$dataView]) => {
+  try {
+    if ($dataView.byteLength >= 1)
+      return String.fromCharCode($dataView.getUint8(0))
+  } catch (RangeError) {}
+  return ''
+})
 
 export const int8 = derived(
-  [byteOffsetPos, dataViewLookAhead, dataView, displayRadix],
-  ([$byteOffsetPos, $dataViewLookAhead, $dataView, $displayRadix]) => {
+  [dataView, displayRadix],
+  ([$dataView, $displayRadix]) => {
     try {
-      if ($dataViewLookAhead >= 1)
-        return $dataView
-          .getInt8($byteOffsetPos)
-          .toString($displayRadix)
-          .toUpperCase()
+      if ($dataView.byteLength >= 1)
+        return $dataView.getInt8(0).toString($displayRadix).toUpperCase()
     } catch (RangeError) {}
     return ''
   }
 )
 
 export const uint8 = derived(
-  [byteOffsetPos, dataViewLookAhead, dataView, displayRadix],
-  ([$byteOffsetPos, $dataViewLookAhead, $dataView, $displayRadix]) => {
+  [dataView, displayRadix],
+  ([$dataView, $displayRadix]) => {
     try {
-      if ($dataViewLookAhead >= 1)
-        return $dataView
-          .getUint8($byteOffsetPos)
-          .toString($displayRadix)
-          .toUpperCase()
-      return ''
+      if ($dataView.byteLength >= 1)
+        return $dataView.getUint8(0).toString($displayRadix).toUpperCase()
     } catch (RangeError) {}
     return ''
   }
 )
 
 export const int16 = derived(
-  [
-    byteOffsetPos,
-    dataViewLookAhead,
-    dataView,
-    displayRadix,
-    dataViewEndianness,
-  ],
-  ([
-    $byteOffsetPos,
-    $dataViewLookAhead,
-    $dataView,
-    $displayRadix,
-    $dataViewEndianness,
-  ]) => {
+  [dataView, displayRadix, dataViewEndianness],
+  ([$dataView, $displayRadix, $dataViewEndianness]) => {
     try {
-      if ($dataViewLookAhead >= 2)
+      if ($dataView.byteLength >= 2)
         return $dataView
-          .getInt16($byteOffsetPos, $dataViewEndianness === 'le')
+          .getInt16(0, $dataViewEndianness === 'le')
           .toString($displayRadix)
           .toUpperCase()
     } catch (RangeError) {}
@@ -344,24 +298,12 @@ export const int16 = derived(
 )
 
 export const uint16 = derived(
-  [
-    byteOffsetPos,
-    dataViewLookAhead,
-    dataView,
-    displayRadix,
-    dataViewEndianness,
-  ],
-  ([
-    $byteOffsetPos,
-    $dataViewLookAhead,
-    $dataView,
-    $displayRadix,
-    $dataViewEndianness,
-  ]) => {
+  [dataView, displayRadix, dataViewEndianness],
+  ([$dataView, $displayRadix, $dataViewEndianness]) => {
     try {
-      if ($dataViewLookAhead >= 2)
+      if ($dataView.byteLength >= 2)
         return $dataView
-          .getUint16($byteOffsetPos, $dataViewEndianness === 'le')
+          .getUint16(0, $dataViewEndianness === 'le')
           .toString($displayRadix)
           .toUpperCase()
     } catch (RangeError) {}
@@ -370,24 +312,12 @@ export const uint16 = derived(
 )
 
 export const int32 = derived(
-  [
-    byteOffsetPos,
-    dataViewLookAhead,
-    dataView,
-    displayRadix,
-    dataViewEndianness,
-  ],
-  ([
-    $byteOffsetPos,
-    $dataViewLookAhead,
-    $dataView,
-    $displayRadix,
-    $dataViewEndianness,
-  ]) => {
+  [dataView, displayRadix, dataViewEndianness],
+  ([$dataView, $displayRadix, $dataViewEndianness]) => {
     try {
-      if ($dataViewLookAhead >= 4)
+      if ($dataView.byteLength >= 4)
         return $dataView
-          .getInt32($byteOffsetPos, $dataViewEndianness === 'le')
+          .getInt32(0, $dataViewEndianness === 'le')
           .toString($displayRadix)
           .toUpperCase()
     } catch (RangeError) {}
@@ -396,24 +326,12 @@ export const int32 = derived(
 )
 
 export const uint32 = derived(
-  [
-    byteOffsetPos,
-    dataViewLookAhead,
-    dataView,
-    displayRadix,
-    dataViewEndianness,
-  ],
-  ([
-    $byteOffsetPos,
-    $dataViewLookAhead,
-    $dataView,
-    $displayRadix,
-    $dataViewEndianness,
-  ]) => {
+  [dataView, displayRadix, dataViewEndianness],
+  ([$dataView, $displayRadix, $dataViewEndianness]) => {
     try {
-      if ($dataViewLookAhead >= 4)
+      if ($dataView.byteLength >= 4)
         return $dataView
-          .getUint32($byteOffsetPos, $dataViewEndianness === 'le')
+          .getUint32(0, $dataViewEndianness === 'le')
           .toString($displayRadix)
           .toUpperCase()
     } catch (RangeError) {}
@@ -422,24 +340,12 @@ export const uint32 = derived(
 )
 
 export const int64 = derived(
-  [
-    byteOffsetPos,
-    dataViewLookAhead,
-    dataView,
-    displayRadix,
-    dataViewEndianness,
-  ],
-  ([
-    $byteOffsetPos,
-    $dataViewLookAhead,
-    $dataView,
-    $displayRadix,
-    $dataViewEndianness,
-  ]) => {
+  [dataView, displayRadix, dataViewEndianness],
+  ([$dataView, $displayRadix, $dataViewEndianness]) => {
     try {
-      if ($dataViewLookAhead >= 8)
+      if ($dataView.byteLength >= 8)
         return $dataView
-          .getBigInt64($byteOffsetPos, $dataViewEndianness === 'le')
+          .getBigInt64(0, $dataViewEndianness === 'le')
           .toString($displayRadix)
           .toUpperCase()
     } catch (RangeError) {}
@@ -448,24 +354,12 @@ export const int64 = derived(
 )
 
 export const uint64 = derived(
-  [
-    byteOffsetPos,
-    dataViewLookAhead,
-    dataView,
-    displayRadix,
-    dataViewEndianness,
-  ],
-  ([
-    $byteOffsetPos,
-    $dataViewLookAhead,
-    $dataView,
-    $displayRadix,
-    $dataViewEndianness,
-  ]) => {
+  [dataView, displayRadix, dataViewEndianness],
+  ([$dataView, $displayRadix, $dataViewEndianness]) => {
     try {
-      if ($dataViewLookAhead >= 8)
+      if ($dataView.byteLength >= 8)
         return $dataView
-          .getBigUint64($byteOffsetPos, $dataViewEndianness === 'le')
+          .getBigUint64(0, $dataViewEndianness === 'le')
           .toString($displayRadix)
           .toUpperCase()
     } catch (RangeError) {}
