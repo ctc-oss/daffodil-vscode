@@ -15,10 +15,9 @@
  * limitations under the License.
  */
 
-import { derived, get } from 'svelte/store'
+import { derived } from 'svelte/store'
 import { SimpleWritable } from '../../stores/localStore'
-import { EditByteModes, type RadixValues } from '../../stores/configuration'
-import { radixBytePad } from '../../utilities/display'
+import { EditByteModes } from '../../stores/configuration'
 
 class SelectionData {
   startOffset = 0
@@ -37,8 +36,8 @@ export const selectionData = new SelectionDataStore()
 
 export const editMode = derived(
   selectionData,
-  (selectionData) => {
-    return selectionData.originalEndOffset - selectionData.startOffset <= 0
+  ($selectionData) => {
+    return $selectionData.originalEndOffset - $selectionData.startOffset <= 0
       ? EditByteModes.Single
       : EditByteModes.Multiple
   },

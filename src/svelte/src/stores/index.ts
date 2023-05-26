@@ -249,15 +249,15 @@ export const byteOffsetPos = derived(
 
 export const dataView = derived(
   [selectionData, editMode, viewportData, editedDataSegment],
-  ([selectionData, editMode, viewportData, editedDataSegment]) => {
-    return editMode === EditByteModes.Single
+  ([$selectionData, $editMode, $viewportData, $editedDataSegment]) => {
+    return $editMode === EditByteModes.Single
       ? new DataView(
-          viewportData.buffer.slice(
-            selectionData.startOffset,
-            selectionData.startOffset + 8
+          $viewportData.buffer.slice(
+            $selectionData.startOffset,
+            $selectionData.startOffset + 8
           )
         )
-      : new DataView(editedDataSegment.buffer)
+      : new DataView($editedDataSegment.buffer)
   }
 )
 
@@ -421,32 +421,6 @@ export const uint32 = derived(
   }
 )
 
-export const float32 = derived(
-  [
-    byteOffsetPos,
-    dataViewLookAhead,
-    dataView,
-    displayRadix,
-    dataViewEndianness,
-  ],
-  ([
-    $byteOffsetPos,
-    $dataViewLookAhead,
-    $dataView,
-    $displayRadix,
-    $dataViewEndianness,
-  ]) => {
-    try {
-      if ($dataViewLookAhead >= 4)
-        return $dataView
-          .getFloat32($byteOffsetPos, $dataViewEndianness === 'le')
-          .toString($displayRadix)
-          .toUpperCase()
-    } catch (RangeError) {}
-    return ''
-  }
-)
-
 export const int64 = derived(
   [
     byteOffsetPos,
@@ -492,32 +466,6 @@ export const uint64 = derived(
       if ($dataViewLookAhead >= 8)
         return $dataView
           .getBigUint64($byteOffsetPos, $dataViewEndianness === 'le')
-          .toString($displayRadix)
-          .toUpperCase()
-    } catch (RangeError) {}
-    return ''
-  }
-)
-
-export const float64 = derived(
-  [
-    byteOffsetPos,
-    dataViewLookAhead,
-    dataView,
-    displayRadix,
-    dataViewEndianness,
-  ],
-  ([
-    $byteOffsetPos,
-    $dataViewLookAhead,
-    $dataView,
-    $displayRadix,
-    $dataViewEndianness,
-  ]) => {
-    try {
-      if ($dataViewLookAhead >= 8)
-        return $dataView
-          .getFloat64($byteOffsetPos, $dataViewEndianness === 'le')
           .toString($displayRadix)
           .toUpperCase()
     } catch (RangeError) {}

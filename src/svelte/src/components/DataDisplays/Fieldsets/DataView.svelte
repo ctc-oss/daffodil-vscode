@@ -17,8 +17,6 @@ limitations under the License.
 <script lang="ts">
   import {
     dataViewEndianness,
-    float32,
-    float64,
     int64,
     uint64,
     int32,

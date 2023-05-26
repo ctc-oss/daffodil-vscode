@@ -34,9 +34,10 @@ export abstract class SimpleWritable<T> {
   public update(updater: Updater<T>) {
     this.store.update(updater)
   }
-  protected store_data(): T {
+  protected storeData(): T {
     return get(this.store)
   }
+
   protected abstract init(): T
   constructor() {
     this.store.set(this.init())
