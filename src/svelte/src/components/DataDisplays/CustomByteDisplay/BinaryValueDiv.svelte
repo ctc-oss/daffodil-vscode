@@ -15,13 +15,22 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
+  import { selectionData } from '../../Editors/DataEditor'
   import type { ByteValue } from './BinaryData'
+  import { selectedByte } from './BinaryData';
   import { createEventDispatcher } from 'svelte'
 
   const eventDispatcher = createEventDispatcher()
 
   export let byte: ByteValue
+  let bgColor: string
+  let selected: boolean
 
+  $: selected = $selectionData.active 
+    ? $selectedByte.offset === byte.offset
+    : false
+  $: bgColor = selected ? 'var(--color-secondary-mid)' : 'var(--color-primary-dark)'
+  
   function select_byte(event: Event) {
     eventDispatcher('select_byte', {
       targetDiv: event.target as HTMLDivElement,
@@ -31,7 +40,12 @@ limitations under the License.
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
-<div class="byte" on:click={select_byte}>
+<div 
+  class="byte"
+  style:background-color={bgColor}
+  style:border-color={bgColor}
+  on:click={select_byte}
+>
   {byte.text}
 </div>
 

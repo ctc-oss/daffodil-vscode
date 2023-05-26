@@ -16,13 +16,10 @@ limitations under the License.
 -->
 <script lang="ts">
   import {
-    commitErrMsg,
-    committable,
     editedDataSegment,
     editorEncoding,
     focusedViewportId,
     selectionSize,
-    viewportData,
   } from '../../../stores'
   import { EditByteModes } from '../../../stores/configuration'
   import { MessageCommand } from '../../../utilities/message'

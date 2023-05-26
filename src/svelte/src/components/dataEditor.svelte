@@ -65,7 +65,7 @@ limitations under the License.
   import FlexContainer from './layouts/FlexContainer.svelte'
   import ServerMetrics from './ServerMetrics/ServerMetrics.svelte'
   import { selectionData, editMode } from './Editors/DataEditor'
-  import BinaryDataContainer from './DataDisplays/CustomByteDisplay/BinaryDataContainer.svelte'
+  import BinaryDataContainer from './DataDisplays/CustomByteDisplay/BinaryDisplayContainer.svelte'
   import { writable } from 'svelte/store'
   import { enterKeypressEvents } from '../utilities/enterKeypressEvents'
   import {
@@ -432,7 +432,6 @@ limitations under the License.
   let actionPxOffsetsDebug = $byteActionPxOffsets
   $: {
     actionPxOffsetsDebug = $byteActionPxOffsets
-    console.table(actionPxOffsetsDebug)
   }
   $: selectionDataDebug = $selectionData
   $: selectedByteDebug = $selectedByte
@@ -440,13 +439,6 @@ limitations under the License.
 
 <svelte:window on:keydown|nonpassive={handleKeybind} />
 <body class={$UIThemeCSSClass}>
-  <!-- <Ephemeral anchorId="edit-byte-window" hideWhen={editByteWindowHide}>
-    <EditByteWindow
-      on:commitChanges={commitChanges}
-      on:moveEditByteWindow
-      on:handleEditorEvent={handleEditorEvent}
-    />
-  </Ephemeral> -->
 
   <FlexContainer>
     <header class="header-container">

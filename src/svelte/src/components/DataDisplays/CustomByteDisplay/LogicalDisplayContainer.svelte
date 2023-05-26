@@ -1,8 +1,6 @@
 <script lang="ts">
   import {
     bytesPerRow,
-    commitErrMsg,
-    committable,
     editedDataSegment,
     editorEncoding,
     focusedViewportId,
@@ -19,9 +17,7 @@
     type ByteValue,
     update_byte_action_offsets,
   } from './BinaryData'
-  import BinaryValueActions from './BinaryValueActions.svelte'
-  import BinaryValue from './BinaryValueDiv.svelte'
-  import LogicalDisplayDiv from './LogicalDisplayDiv.svelte'
+  import LogicalDisplayDiv from './LogicalValueDiv.svelte'
 
   let logicalByteArray: ByteValue[] = []
   let selectionActive = false

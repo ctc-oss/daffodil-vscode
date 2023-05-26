@@ -15,6 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
+  import { selectionData } from '../../Editors/DataEditor'
   import type { ByteValue } from './BinaryData'
   import { selectedByte } from './BinaryData'
   import { createEventDispatcher } from 'svelte'
@@ -22,6 +23,20 @@ limitations under the License.
   const eventDispatcher = createEventDispatcher()
 
   export let byte: ByteValue
+  let bgColor: string
+  let selected: boolean
+  let latin1Undefined: boolean
+
+  $: latin1Undefined = byte.text === ''
+  $: selected = $selectionData.active 
+    ? $selectedByte.offset === byte.offset
+    : false
+  $: {
+    if(selected)
+      bgColor = 'var(--color-secondary-mid)'
+    else if(!selected)
+      bgColor = latin1Undefined ? 'var(--color-primary-darkest)' : 'var(--color-primary-dark)'
+  }
 
   function select_byte(event: Event) {
     eventDispatcher('select_byte', {
@@ -34,8 +49,10 @@ limitations under the License.
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <div
   class="byte"
-  class:undefined={byte.text === ''}
-  class:selected={$selectedByte.offset === byte.offset}
+  style:background-color={bgColor}
+  style:border-color={bgColor}
+  style:color={latin1Undefined ? 'var(--color-secondary-lightest)' : 'var(--color-primary-lightest)'}
+  class:latin1Undefined
   on:click={select_byte}
 >
   {byte.text}
@@ -61,15 +78,9 @@ limitations under the License.
     border-color: var(--color-primary-mid);
     cursor: pointer;
   }
-  div.undefined {
-    width: 20px;
-    height: 20px;
-    background-color: var(--color-primary-darkest);
-  }
-  div.undefined::after {
+  div.latin1Undefined::after {
     content: '?';
-    color: #fff;
     font-size: 20px;
-    filter: brightness(0.5);
+    filter: brightness(0.75);
   }
 </style>
