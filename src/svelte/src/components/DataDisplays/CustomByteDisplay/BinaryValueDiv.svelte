@@ -31,13 +31,20 @@ limitations under the License.
   export let byte: ByteValue
   let bgColor: string
   let selected: boolean
+  let withinSelectionRange: boolean
 
   $: selected = $selectionData.active
     ? $selectedByte.offset === byte.offset
     : false
-  $: bgColor = selected
-    ? 'var(--color-secondary-mid)'
-    : 'var(--color-primary-dark)'
+  $: withinSelectionRange = byte.offset >= $mouseSelectionBytes.mousedown 
+    && byte.offset <= $mouseSelectionBytes.mouseup
+
+  $: {
+    if(selected || withinSelectionRange)
+      bgColor = 'var(--color-secondary-mid)'
+    else
+      bgColor = 'var(--color-primary-dark)'
+  }
 
   function select_byte(targetElement: HTMLDivElement) {
     eventDispatcher('select_byte', {
@@ -80,6 +87,7 @@ limitations under the License.
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
+
 <div
   class="byte"
   style:background-color={bgColor}
@@ -87,6 +95,12 @@ limitations under the License.
   on:mouseup={select_byte_range}
   on:mousedown={() => {
     $mouseSelectionBytes.mousedown = byte.offset
+  }}
+  on:mouseenter={(event)=>{
+    const selecting = $mouseSelectionBytes.mousedown >= 0 &&
+      $mouseSelectionBytes.mouseup === -1
+    if (selecting) 
+      select_byte_range(event)
   }}
 >
   {#if $displayRadix === RADIX_OPTIONS.Hexadecimal}
@@ -115,5 +129,8 @@ limitations under the License.
   div.byte:hover {
     border-color: var(--color-primary-mid);
     cursor: pointer;
+  }
+  div.byte::selection {
+    background-color: transparent;
   }
 </style>

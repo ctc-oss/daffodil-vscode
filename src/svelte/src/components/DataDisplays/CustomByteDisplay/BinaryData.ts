@@ -173,6 +173,7 @@ export const byteActionPxOffsets = writable({
   },
 } as ByteActionPxOffsets)
 export const mouseSelectionBytes = writable({ mousedown: -1, mouseup: -1 })
+
 export function focus_byte_input() {
   document.getElementById('byte-input').focus()
 }
