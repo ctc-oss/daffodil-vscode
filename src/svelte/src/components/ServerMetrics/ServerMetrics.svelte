@@ -28,25 +28,14 @@ limitations under the License.
     serverVersion: 'Unknown',
     sessionCount: 0,
   }
+  let timerId: number = 0
 
-  let displayInfo: boolean = false
+  function showHeartbeatInfo(show: boolean) {
+    const element = document.getElementsByClassName(
+      'heartbeat-info'
+    )[0] as HTMLElement
 
-  function toggleDisplay(_: Event) {
-    let textDiv: HTMLDivElement = get_text_element_ref()
-
-    if (displayInfo) {
-      displayInfo = false
-      textDiv.style.opacity = '0'
-      return
-    }
-    displayInfo = true
-    textDiv.style.opacity = '.7'
-  }
-
-  function get_text_element_ref(): HTMLDivElement {
-    return document.getElementsByClassName(
-      'heartbeat-text'
-    )[0] as HTMLDivElement
+    element.style.opacity = show ? '.7' : '0'
   }
 
   function prettyPrintUptime(uptimeInMilliseconds: number): string {
@@ -81,7 +70,8 @@ limitations under the License.
         heartbeat.sessionCount = msg.data.data.sessionCount
 
         // set the serverTimestamp to 0 after 5 seconds of no heartbeat to indicate that no heartbeat has been received
-        setTimeout(() => {
+        clearTimeout(timerId)
+        timerId = setTimeout(() => {
           heartbeat.serverTimestamp = 0
         }, 5000)
         break
@@ -90,40 +80,40 @@ limitations under the License.
 </script>
 
 <FlexContainer --height="25pt" --align-items="center">
-  {#if heartbeat.serverTimestamp > 0}
+  {#if heartbeat.serverTimestamp !== 0}
     <div class="info">
       Powered by Ωedit v{heartbeat.serverVersion} on port {heartbeat.omegaEditPort}
     </div>
     <FlexContainer>
       <svg
         class="latency-indicator"
-        on:mouseenter={toggleDisplay}
-        on:mouseleave={toggleDisplay}
+        on:mouseenter={() => showHeartbeatInfo(true)}
+        on:mouseleave={() => showHeartbeatInfo(false)}
       >
         {#if heartbeat.latency < 20}
           <circle cx="50%" cy="50%" r="4pt" fill="green" />
-        {:else if heartbeat.latency < 35}
+        {:else if heartbeat.latency < 40}
           <circle cx="50%" cy="50%" r="4pt" fill="yellow" />
-        {:else if heartbeat.latency > 50}
+        {:else if heartbeat.latency > 60}
           <circle cx="50%" cy="50%" r="4pt" fill="red" />
         {:else}
           <circle cx="50%" cy="50%" r="4pt" fill="grey" />
         {/if}
       </svg>
-      <div class="heartbeat-text">
+      <div class="heartbeat-info">
+        <b>Latency:</b>
+        {heartbeat.latency}ms,
         <b>CPU Load Avg:</b>
         {(heartbeat.serverCpuLoadAverage
           ? heartbeat.serverCpuLoadAverage
           : 0
-        ).toFixed(2)}
+        ).toFixed(2)},
         <b>Memory Usage:</b>
-        {heartbeat.serverUsedMemory}
+        {heartbeat.serverUsedMemory},
         <b>Session Count:</b>
-        {heartbeat.sessionCount}
+        {heartbeat.sessionCount},
         <b>Uptime:</b>
         {prettyPrintUptime(heartbeat.serverUptime)}
-        <b>Latency:</b>
-        {heartbeat.latency}ms
       </div>
     </FlexContainer>
   {:else}
@@ -137,7 +127,7 @@ limitations under the License.
     opacity: 0.7;
     font-style: italic;
   }
-  div.heartbeat-text {
+  div.heartbeat-info {
     opacity: 0;
     transition: opacity 1s ease-in-out;
   }

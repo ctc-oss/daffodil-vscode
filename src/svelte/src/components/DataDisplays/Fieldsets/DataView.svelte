@@ -41,8 +41,6 @@ limitations under the License.
   let dataViewInt64: string
   let dataViewUint64: string
 
-  $: myDataView = $dataView
-
   $: {
     dataViewOffset = $selectionData.active
       ? $selectionData.startOffset.toString($addressRadix).toUpperCase()
