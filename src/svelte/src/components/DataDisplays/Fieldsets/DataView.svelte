@@ -23,19 +23,25 @@ limitations under the License.
   } from '../../../stores'
   import { ENDIANNESS_OPTIONS } from '../../../stores/configuration'
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
-  import FlexContainer from '../../layouts/FlexContainer.svelte'
   import { selectionData } from '../../Editors/DataEditor'
+  import { vscode } from '../../../utilities/vscode'
+  import { MessageCommand } from '../../../utilities/message'
 
-  let dataViewOffset = ''
-  let dataViewLatin1 = ''
-  let dataViewInt8 = ''
-  let dataViewUint8 = ''
-  let dataViewInt16 = ''
-  let dataViewUint16 = ''
-  let dataViewInt32 = ''
-  let dataViewUint32 = ''
-  let dataViewInt64 = ''
-  let dataViewUint64 = ''
+  const ERROR_MESSAGE_TIMEOUT = 5000
+  let errorMessage: string
+
+  let dataViewOffset: string
+  let dataViewLatin1: string
+  let dataViewInt8: string
+  let dataViewUint8: string
+  let dataViewInt16: string
+  let dataViewUint16: string
+  let dataViewInt32: string
+  let dataViewUint32: string
+  let dataViewInt64: string
+  let dataViewUint64: string
+
+  $: myDataView = $dataView
 
   $: {
     dataViewOffset = $selectionData.active
@@ -105,92 +111,243 @@ limitations under the License.
             .toUpperCase()
         : ''
   }
+
+  function handleSubmit(e: SubmitEvent, intType) {
+    // determine the byteSize, minValue, and maxValue for the given intType
+    const rangeChecks = {
+      int8: [1, -128, 127],
+      uint8: [1, 0, 255],
+      int16: [2, -32768, 32767],
+      uint16: [2, 0, 65535],
+      int32: [4, -2147483648, 2147483647],
+      uint32: [4, 0, 4294967295],
+      int64: [8, -9223372036854775808, 9223372036854775807],
+      uint64: [8, 0, 18446744073709551615],
+    }
+    const form = e.target as HTMLFormElement // Get the form from the event target
+    const inputValue = form.elements['val'].value // Retrieve the input value
+    let value = NaN
+    if (intType === 'latin1') {
+      if (inputValue.length !== 1) {
+        errorMessage = `Value out of range for ${intType} (${displayRadix}): ${inputValue}`
+        setTimeout(() => {
+          errorMessage = ''
+        }, ERROR_MESSAGE_TIMEOUT)
+        form.reset()
+        return
+      }
+      // latin1 is a special case, since it's a single character, not a number, so we use charCodeAt to get the value of
+      // the character at index 0 in the string and store it in value as an integer and set intType to uint8
+      value = inputValue.charCodeAt(0)
+      intType = 'uint8'
+    } else {
+      value = parseInt(inputValue, $displayRadix)
+    }
+    if (!isNaN(value) && rangeChecks.hasOwnProperty(intType)) {
+      const [byteSize, minValue, maxValue] = rangeChecks[intType]
+      if (value < minValue || value > maxValue) {
+        errorMessage = `Value out of range for ${intType}: ${value}`
+        setTimeout(() => {
+          errorMessage = ''
+        }, ERROR_MESSAGE_TIMEOUT)
+        form.reset()
+        return
+      }
+
+      const dv = new DataView(new ArrayBuffer(byteSize))
+      const littleEndian = $dataViewEndianness === 'le'
+
+      switch (intType) {
+        case 'int8':
+          dv.setInt8(0, value)
+          break
+        case 'uint8':
+          dv.setUint8(0, value)
+          break
+        case 'int16':
+          dv.setInt16(0, value, littleEndian)
+          break
+        case 'uint16':
+          dv.setUint16(0, value, littleEndian)
+          break
+        case 'int32':
+          dv.setInt32(0, value, littleEndian)
+          break
+        case 'uint32':
+          dv.setUint32(0, value, littleEndian)
+          break
+        case 'int64':
+          dv.setBigInt64(0, BigInt(value), littleEndian)
+          break
+        case 'uint64':
+          dv.setBigUint64(0, BigInt(value), littleEndian)
+          break
+        default:
+          console.error('Invalid integer type: ' + intType)
+          form.reset()
+          return
+      }
+
+      // Send edit to the extension
+      vscode.postMessage({
+        command: MessageCommand.commit,
+        data: {
+          offset: $selectionData.startOffset,
+          originalSegment: new Uint8Array($dataView.buffer, 0, byteSize),
+          editedSegment: new Uint8Array(dv.buffer, 0, byteSize),
+        },
+      })
+    } else {
+      errorMessage = `Invalid value ${inputValue} (radix ${$displayRadix}) for ${intType}`
+      setTimeout(() => {
+        errorMessage = ''
+      }, ERROR_MESSAGE_TIMEOUT)
+    }
+    form.reset()
+  }
 </script>
 
 <fieldset class="box margin-top">
-  <legend>Data View</legend>
-  <FlexContainer>
-    <FlexContainer --width="50%">
-      <label for="endianness">Endianness: </label>
-      <select
-        id="endianness"
-        class={$UIThemeCSSClass}
-        bind:value={$dataViewEndianness}
-      >
-        {#each ENDIANNESS_OPTIONS as { name, value }}
-          <option {value}>{name}</option>
-        {/each}
-      </select>
-    </FlexContainer>
-  </FlexContainer>
-  <FlexContainer>
+  <legend
+    >Data View{#if dataViewOffset}&nbsp;@ Offset {dataViewOffset}{/if}</legend
+  >
+  {#if errorMessage}
+    <b>message: {errorMessage}</b><br />
+  {/if}
+  <label for="endian"
+    >&nbsp;endian: <select
+      id="endian"
+      class={$UIThemeCSSClass}
+      bind:value={$dataViewEndianness}
+    >
+      {#each ENDIANNESS_OPTIONS as { name, value }}
+        <option {value}>{name}</option>
+      {/each}
+    </select>
+  </label>
+  {#if $selectionData.active && dataViewInt8}
     <div id="data_vw">
-      <label
-        >&nbsp;Offset: <text-field id="offset_dv">{dataViewOffset}</text-field
-        ></label
-      >
       <span id="b8_dv">
-        <br /><label
-          >latin-1: <text-field id="latin1_dv">{dataViewLatin1}</text-field
-          ></label
-        >
-        <br /><label
-          >&nbsp;&nbsp;&nbsp;int8: <text-field id="int8_dv"
-            >{dataViewInt8}</text-field
-          ></label
-        >
-        <br /><label
-          >&nbsp;&nbsp;uint8: <text-field id="uint8_dv"
-            >{dataViewUint8}</text-field
-          ></label
-        >
+        <form on:submit|preventDefault={(e) => handleSubmit(e, 'latin1')}>
+          <label for="latin1_dv"
+            >latin-1: <input
+              class={$UIThemeCSSClass}
+              name="val"
+              id="latin1_dv"
+              placeholder={dataViewLatin1}
+              maxlength="1"
+            /></label
+          >
+        </form>
+        <form on:submit|preventDefault={(e) => handleSubmit(e, 'int8')}>
+          <label for="int8_dv"
+            >&nbsp;&nbsp;&nbsp;int8: <input
+              class={$UIThemeCSSClass}
+              name="val"
+              id="int8_dv"
+              placeholder={dataViewInt8}
+            /></label
+          >
+        </form>
+        <form on:submit|preventDefault={(e) => handleSubmit(e, 'uint8')}>
+          <label for="uint8_dv"
+            >&nbsp;&nbsp;uint8: <input
+              class={$UIThemeCSSClass}
+              name="val"
+              id="uint8_dv"
+              placeholder={dataViewUint8}
+            /></label
+          >
+        </form>
       </span>
-      <span id="b16_dv">
-        <br /><label
-          >&nbsp;&nbsp;int16: <text-field id="int16_dv"
-            >{dataViewInt16}</text-field
-          ></label
-        >
-        <br /><label
-          >&nbsp;uint16: <text-field id="uint16_dv">{dataViewUint16}</text-field
-          ></label
-        >
-      </span>
-      <span id="b32_dv">
-        <br /><label
-          >&nbsp;&nbsp;int32: <text-field id="int32_dv"
-            >{dataViewInt32}</text-field
-          ></label
-        >
-        <br /><label
-          >&nbsp;uint32: <text-field id="uint32_dv">{dataViewUint32}</text-field
-          ></label
-        >
-      </span>
-      <span id="b64_dv">
-        <br /><label
-          >&nbsp;&nbsp;int64: <text-field id="int64_dv"
-            >{dataViewInt64}</text-field
-          ></label
-        >
-        <br /><label
-          >&nbsp;uint64: <text-field id="uint64_dv">{dataViewUint64}</text-field
-          ></label
-        >
-      </span>
+      {#if dataViewInt16}
+        <span id="b16_dv">
+          <form on:submit|preventDefault={(e) => handleSubmit(e, 'int16')}>
+            <label for="int16_dv"
+              >&nbsp;&nbsp;int16: <input
+                class={$UIThemeCSSClass}
+                name="val"
+                id="int16_dv"
+                placeholder={dataViewInt16}
+              /></label
+            >
+          </form>
+          <form on:submit|preventDefault={(e) => handleSubmit(e, 'uint16')}>
+            <label for="uint16_dv"
+              >&nbsp;uint16: <input
+                class={$UIThemeCSSClass}
+                name="val"
+                id="uint16_dv"
+                placeholder={dataViewUint16}
+              /></label
+            >
+          </form>
+        </span>
+      {/if}
+      {#if dataViewInt32}
+        <span id="b32_dv">
+          <form on:submit|preventDefault={(e) => handleSubmit(e, 'int32')}>
+            <label for="int32_dv"
+              >&nbsp;&nbsp;int32: <input
+                class={$UIThemeCSSClass}
+                name="val"
+                id="int32_dv"
+                placeholder={dataViewInt32}
+              /></label
+            >
+          </form>
+          <form on:submit|preventDefault={(e) => handleSubmit(e, 'uint32')}>
+            <label for="uint32_dv"
+              >&nbsp;uint32: <input
+                class={$UIThemeCSSClass}
+                name="val"
+                id="uint32_dv"
+                placeholder={dataViewUint32}
+              /></label
+            >
+          </form>
+        </span>
+      {/if}
+      {#if dataViewInt64}
+        <span id="b64_dv">
+          <form on:submit|preventDefault={(e) => handleSubmit(e, 'int64')}>
+            <label for="int64_dv"
+              >&nbsp;&nbsp;int64: <input
+                class={$UIThemeCSSClass}
+                name="val"
+                id="int64_dv"
+                placeholder={dataViewInt64}
+              /></label
+            >
+          </form>
+          <form on:submit|preventDefault={(e) => handleSubmit(e, 'uint64')}>
+            <label for="uint64_dv"
+              >&nbsp;uint64: <input
+                class={$UIThemeCSSClass}
+                name="val"
+                id="uint64_dv"
+                placeholder={dataViewUint64}
+              /></label
+            >
+          </form>
+        </span>
+      {/if}
     </div>
-  </FlexContainer>
+  {/if}
 </fieldset>
 
 <style lang="scss">
   label {
-    width: 50%;
-  }
-  select {
-    width: 25%;
-  }
-  label,
-  select {
     min-width: fit-content;
+    display: inline-block;
+    text-align: right;
+  }
+  input,
+  select {
+    width: 32ch;
+  }
+  form {
+    padding: 0;
+    margin: 2px;
   }
 </style>

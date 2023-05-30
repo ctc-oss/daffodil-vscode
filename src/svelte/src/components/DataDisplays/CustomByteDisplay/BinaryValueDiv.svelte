@@ -36,14 +36,13 @@ limitations under the License.
   $: selected = $selectionData.active
     ? $selectedByte.offset === byte.offset
     : false
-  $: withinSelectionRange = byte.offset >= $mouseSelectionBytes.mousedown 
-    && byte.offset <= $mouseSelectionBytes.mouseup
+  $: withinSelectionRange =
+    byte.offset >= $mouseSelectionBytes.mousedown &&
+    byte.offset <= $mouseSelectionBytes.mouseup
 
   $: {
-    if(selected || withinSelectionRange)
-      bgColor = 'var(--color-secondary-mid)'
-    else
-      bgColor = 'var(--color-primary-dark)'
+    if (selected || withinSelectionRange) bgColor = 'var(--color-secondary-mid)'
+    else bgColor = 'var(--color-primary-dark)'
   }
 
   function select_byte(targetElement: HTMLDivElement) {
@@ -96,11 +95,10 @@ limitations under the License.
   on:mousedown={() => {
     $mouseSelectionBytes.mousedown = byte.offset
   }}
-  on:mouseenter={(event)=>{
-    const selecting = $mouseSelectionBytes.mousedown >= 0 &&
-      $mouseSelectionBytes.mouseup === -1
-    if (selecting) 
-      select_byte_range(event)
+  on:mouseenter={(event) => {
+    const selecting =
+      $mouseSelectionBytes.mousedown >= 0 && $mouseSelectionBytes.mouseup === -1
+    if (selecting) select_byte_range(event)
   }}
 >
   {#if $displayRadix === RADIX_OPTIONS.Hexadecimal}

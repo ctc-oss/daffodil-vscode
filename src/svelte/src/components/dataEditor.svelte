@@ -221,14 +221,13 @@ limitations under the License.
     requestEditedData()
   }
   function custom_commit_changes(event: CustomEvent) {
-    const action = event.detail.action
-    const byte = event.detail.byte
+    const action = event.detail.action as EditByteAction
 
     let editedData: Uint8Array
     let editedOffset = $selectionData.startOffset
     let originalData = $originalDataSegment
 
-    switch (action as EditByteAction) {
+    switch (action) {
       case 'insert-after':
         ++editedOffset
       case 'insert-before':
