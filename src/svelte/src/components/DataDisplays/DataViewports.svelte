@@ -16,36 +16,37 @@ limitations under the License.
 -->
 <script lang="ts">
   import {
-    bytesPerRow,
     addressRadix,
-    viewportData,
+    bytesPerRow,
     displayRadix,
-    focusedViewportId,
+    editMode,
     editedDataSegment,
     editorEncoding,
+    focusedViewportId,
+    selectionData,
     selectionSize,
-    viewportLineHeight,
-    viewportScrolledToTop,
-    viewportScrolledToEnd,
-    viewportScrollTop,
-    viewportScrollHeight,
     viewportClientHeight,
-    viewportStartOffset,
+    viewportData,
     viewportEndOffset,
+    viewportLineHeight,
     viewportLogicalDisplayText,
+    viewportScrollHeight,
+    viewportScrollTop,
+    viewportScrolledToEnd,
+    viewportScrolledToTop,
+    viewportStartOffset,
+    viewportLength,
   } from '../../stores'
   import { UIThemeCSSClass } from '../../utilities/colorScheme'
   import {
-    edit_byte_window_ref,
     radixBytePad,
     viewport_references,
     type ViewportReferences,
   } from '../../utilities/display'
   import { MessageCommand } from '../../utilities/message'
-  import { createEventDispatcher, onMount } from 'svelte'
+  import { createEventDispatcher, onMount, tick } from 'svelte'
   import { vscode } from '../../utilities/vscode'
   import { EditByteModes, RADIX_OPTIONS } from '../../stores/configuration'
-  import { selectionData, editMode } from '../Editors/DataEditor'
 
   const eventDispatcher = createEventDispatcher()
   const viewportRefs = viewport_references() as ViewportReferences
@@ -85,6 +86,11 @@ limitations under the License.
     // when the viewport is scrolled to the top, dispatch a 'scrolledToTop' event
     if ($viewportScrolledToTop && !$viewportScrolledToEnd)
       eventDispatcher('scrolledToTop')
+
+    // when the viewport length changes, update the viewport geometry
+    if ($viewportLength >= 0) {
+      populateViewportGeometry()
+    }
   }
 
   function encodeForDisplay(
@@ -110,35 +116,52 @@ limitations under the License.
     return result
   }
 
+  /**
+   * Create a string of addresses for the address display
+   * @param start start address
+   * @param end end address
+   * @param stride number of bytes per row
+   * @param radix radix to use for the address display
+   */
   function makeAddressRange(
     start: number,
     end: number,
     stride: number,
     radix: number
   ): string {
+    const numLines = Math.ceil((end - start) / stride)
     let i = start
     let result = (i * stride).toString(radix)
-    for (++i; i < end; ++i) {
+    for (++i; i < numLines; ++i) {
       result += '\n' + (i * stride).toString(radix)
     }
 
     return result
   }
 
-  /**
-   * Determine the number of lines displayed in the physical viewport
-   */
-  function calculateNumberOfLines() {
-    $viewportLineHeight = parseFloat(
-      getComputedStyle(viewportRefs.physical).lineHeight
-    )
+  function populateViewportGeometry() {
+    // event handlers expect synchronous functions, so wrap the async function in a sync function
+    async function populateViewportGeometryOps_() {
+      if (viewportRefs.physical) {
+        // wait for the DOM to be updated before getting the viewport geometry
+        await tick()
+        $viewportScrollTop = viewportRefs.physical.scrollTop
+        $viewportScrollHeight = viewportRefs.physical.scrollHeight
+        $viewportClientHeight = viewportRefs.physical.clientHeight
+        $viewportLineHeight = parseFloat(
+          getComputedStyle(viewportRefs.physical).lineHeight
+        )
+      }
+    }
+
+    populateViewportGeometryOps_()
   }
 
   function scrollHandle(e: Event) {
     const element = e.target as HTMLElement
 
     // get the current scroll position of the viewport and the viewport geometry
-    $viewportScrollTop = Math.ceil(element.scrollTop)
+    $viewportScrollTop = element.scrollTop
     $viewportScrollHeight = element.scrollHeight
     $viewportClientHeight = element.clientHeight
 
@@ -146,18 +169,18 @@ limitations under the License.
     if (!currentScrollEvt || currentScrollEvt === element.id) {
       clearTimeout(scrollSyncTimer)
       currentScrollEvt = element.id
-      switch (currentScrollEvt) {
+      switch (element.id) {
         case 'physical':
-          viewportRefs.logical.scrollTop = viewportRefs.physical.scrollTop
-          viewportRefs.address.scrollTop = viewportRefs.physical.scrollTop
+          viewportRefs.logical.scrollTop = $viewportScrollTop
+          viewportRefs.address.scrollTop = $viewportScrollTop
           break
         case 'logical':
-          viewportRefs.physical.scrollTop = viewportRefs.address.scrollTop
-          viewportRefs.address.scrollTop = viewportRefs.logical.scrollTop
+          viewportRefs.physical.scrollTop = $viewportScrollTop
+          viewportRefs.address.scrollTop = $viewportScrollTop
           break
         case 'address':
-          viewportRefs.physical.scrollTop = viewportRefs.address.scrollTop
-          viewportRefs.logical.scrollTop = viewportRefs.address.scrollTop
+          viewportRefs.physical.scrollTop = $viewportScrollTop
+          viewportRefs.logical.scrollTop = $viewportScrollTop
           break
       }
       // noinspection TypeScriptValidateTypes
@@ -263,7 +286,7 @@ limitations under the License.
     return c ? ' \t\n\r\v'.indexOf(c) > -1 : false
   }
 
-  function updateEditorData(event: MouseEvent) {
+  function updateEditorData(_: MouseEvent) {
     editedDataSegment.update(() => {
       return Uint8Array.from(
         $viewportData.subarray(
@@ -272,9 +295,9 @@ limitations under the License.
         )
       )
     })
-
-    if ($editMode === EditByteModes.Single) postEditorOnChangeMsg('hex')
-    else postEditorOnChangeMsg($editorEncoding)
+    postEditorOnChangeMsg(
+      $editMode === EditByteModes.Single ? 'hex' : $editorEncoding
+    )
   }
 
   function postEditorOnChangeMsg(forcedEncoding?: string) {
@@ -291,10 +314,10 @@ limitations under the License.
   }
 
   onMount(() => {
-    calculateNumberOfLines()
+    populateViewportGeometry()
 
-    // recalculate number of lines when the window is resized
-    window.addEventListener('resize', calculateNumberOfLines)
+    // recalculate the viewport geometry when the window is resized
+    window.addEventListener('resize', populateViewportGeometry)
   })
 </script>
 

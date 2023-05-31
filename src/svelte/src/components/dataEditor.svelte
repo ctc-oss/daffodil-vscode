@@ -17,22 +17,21 @@ limitations under the License.
 <script lang="ts">
   import './globalStyles.css'
   import {
-    addressRadix,
     bytesPerRow,
     displayRadix,
     editByteWindowHidden,
     editedDataSegment,
-    editedDataStore,
+    editMode,
     editorEncoding,
     editorSelection,
     focusedViewportId,
-    gotoOffset,
-    gotoOffsetInput,
+    seekOffset,
     headerHidden,
     offsetMax,
     originalDataSegment,
     rawEditorSelectionTxt,
     requestable,
+    selectionData,
     selectionSize,
     viewportCapacity,
     viewportData,
@@ -40,7 +39,6 @@ limitations under the License.
     viewportFollowingByteCount,
     viewportLength,
     viewportLineHeight,
-    viewportLogicalDisplayText,
     viewportNumLinesDisplayed,
     viewportStartOffset,
   } from '../stores'
@@ -64,7 +62,6 @@ limitations under the License.
   import { EditByteModes } from '../stores/configuration'
   import FlexContainer from './layouts/FlexContainer.svelte'
   import ServerMetrics from './ServerMetrics/ServerMetrics.svelte'
-  import { selectionData, editMode } from './Editors/DataEditor'
   import BinaryDataContainer from './DataDisplays/CustomByteDisplay/BinaryDisplayContainer.svelte'
   import { writable } from 'svelte/store'
   import { enterKeypressEvents } from '../utilities/enterKeypressEvents'
@@ -77,7 +74,6 @@ limitations under the License.
   import LogicalDisplayContainer from './DataDisplays/CustomByteDisplay/LogicalDisplayContainer.svelte'
   import BinaryValueActions from './DataDisplays/CustomByteDisplay/BinaryValueActions.svelte'
 
-  $: $gotoOffset = parseInt($gotoOffsetInput, $addressRadix)
   $: $rawEditorSelectionTxt = $editorSelection
   $: $UIThemeCSSClass = $darkUITheme ? CSSThemeClass.Dark : CSSThemeClass.Light
 
@@ -98,8 +94,8 @@ limitations under the License.
     }
   }
 
-  function goTo(offsetArg?: number) {
-    if (!offsetArg) offsetArg = $gotoOffset
+  function seek(offsetArg?: number) {
+    if (!offsetArg) offsetArg = $seekOffset
 
     const offset =
       offsetArg > 0 && offsetArg < $offsetMax && offsetArg % $bytesPerRow === 0
@@ -143,7 +139,7 @@ limitations under the License.
   function scrolledToEnd(_: Event) {
     if ($viewportFollowingByteCount > 0) {
       // top the display must be the last page of the current viewport, plus one line
-      const goToOffset =
+      const topOfLastPagePlusOneLine =
         $viewportEndOffset +
         $bytesPerRow -
         $viewportNumLinesDisplayed * $bytesPerRow
@@ -156,61 +152,32 @@ limitations under the License.
           numLinesDisplayed: $viewportNumLinesDisplayed,
         },
       })
-      goTo(goToOffset)
+      seek(topOfLastPagePlusOneLine)
     }
   }
 
   function scrolledToTop(_: Event) {
     if ($viewportStartOffset > 0) {
       // offset to scroll to after the viewport is scrolled, which should be the previous line in the file
-      const goToOffset = $viewportStartOffset - $bytesPerRow
+      const topOfFirstPageMinusOneLine = $viewportStartOffset - $bytesPerRow
       vscode.postMessage({
         command: MessageCommand.scrollViewport,
         data: {
           // scroll the viewport with the desired offset in the middle
           scrollOffset: Math.max(
-            goToOffset - Math.floor($viewportCapacity / 2),
+            topOfFirstPageMinusOneLine - Math.floor($viewportCapacity / 2),
             0
           ),
           bytesPerRow: $bytesPerRow,
           numLinesDisplayed: $viewportNumLinesDisplayed,
         },
       })
-      goTo(goToOffset)
+      seek(topOfFirstPageMinusOneLine)
     }
   }
 
-  function goToEventHandler(_: Event) {
-    goTo($gotoOffset)
-  }
-
-  function latin1Undefined(charCode: number): boolean {
-    return charCode < 32 || (charCode > 126 && charCode < 160)
-  }
-
-  function logicalDisplay(bytes: Uint8Array, bytesPerRow: number): string {
-    const undefinedCharStandIn = String.fromCharCode(9617)
-    let result = ''
-
-    for (let i = 0, col = 0; i < bytes.length; ++i) {
-      if (latin1Undefined(bytes[i])) {
-        result += undefinedCharStandIn
-      } else {
-        const char = String.fromCharCode(bytes[i])
-        result += char === '\n' ? ' ' : char
-      }
-
-      if (++col === bytesPerRow) {
-        col = 0
-        if (i < bytes.length) {
-          result += '\n'
-        }
-      } else {
-        result += ' '
-      }
-    }
-
-    return result
+  function seekEventHandler(_: Event) {
+    seek($seekOffset)
   }
 
   function handleEditorEvent(_: Event) {
@@ -220,6 +187,7 @@ limitations under the License.
     }
     requestEditedData()
   }
+
   function custom_commit_changes(event: CustomEvent) {
     const action = event.detail.action as EditByteAction
 
@@ -227,11 +195,14 @@ limitations under the License.
     let editedOffset = $selectionData.startOffset
     let originalData = $originalDataSegment
 
+    // noinspection FallThroughInSwitchStatementJS
     switch (action) {
       case 'insert-after':
         ++editedOffset
+      // intentional fallthrough
       case 'insert-before':
         originalData = new Uint8Array(0)
+      // intentional fallthrough
       case 'byte-input':
         editedData = $editedDataSegment.subarray(0, 1)
         break
@@ -239,7 +210,6 @@ limitations under the License.
         editedData = new Uint8Array(0)
         break
     }
-    $editedDataStore = editedData
 
     vscode.postMessage({
       command: MessageCommand.commit,
@@ -279,7 +249,6 @@ limitations under the License.
           break
       }
     }
-    $editedDataStore = editedData
     vscode.postMessage({
       command: MessageCommand.commit,
       data: {
@@ -339,7 +308,7 @@ limitations under the License.
     $editedDataSegment = new Uint8Array(0)
   }
 
-  function handleKeybind(event: Event) {
+  function handleKeyBind(event: Event) {
     const kbdEvent = event as KeyboardEvent
     if (kbdEvent.key === 'Enter') {
       enterKeypressEvents.run(document.activeElement.id)
@@ -358,17 +327,12 @@ limitations under the License.
     switch (msg.data.command) {
       case MessageCommand.viewportRefresh:
         // the viewport has been refreshed, so the editor views need to be updated
-        $viewportData = msg.data.data.viewportData
         $_viewportData = msg.data.data.viewportData
+        $viewportData = msg.data.data.viewportData
         $viewportStartOffset = msg.data.data.viewportOffset
         $viewportLength = msg.data.data.viewportLength
         $viewportFollowingByteCount = msg.data.data.viewportFollowingByteCount
         $viewportCapacity = msg.data.data.viewportCapacity
-        $gotoOffset = 0
-        $viewportLogicalDisplayText = logicalDisplay(
-          $viewportData,
-          $bytesPerRow
-        )
         break
 
       case MessageCommand.editorOnChange:
@@ -428,7 +392,7 @@ limitations under the License.
   }
   let selectionDataDebug
   let selectedByteDebug
-  let actionPxOffsetsDebug = $byteActionPxOffsets
+  let actionPxOffsetsDebug
   $: {
     actionPxOffsetsDebug = $byteActionPxOffsets
   }
@@ -436,17 +400,21 @@ limitations under the License.
   $: selectedByteDebug = $selectedByte
 </script>
 
-<svelte:window on:keydown|nonpassive={handleKeybind} />
+<svelte:window on:keydown|nonpassive={handleKeyBind} />
 <body class={$UIThemeCSSClass}>
   <FlexContainer>
     <header class="header-container">
       <FlexContainer>
-        <FileMetrics />
+        <FileMetrics
+          on:clearChangeStack={clearChangeStack}
+          on:redo={redo}
+          on:undo={undo}
+        />
         <SearchReplace
-          on:goTo={goToEventHandler}
+          on:seek={seekEventHandler}
           on:clearDataDisplays={clearDataDisplays}
         />
-        <Settings on:goTo={goToEventHandler} />
+        <Settings on:seek={seekEventHandler} />
       </FlexContainer>
     </header>
     {#if $headerHidden}
@@ -454,14 +422,14 @@ limitations under the License.
         <div class="filename-display">{$fileMetrics.name}</div>
         <button
           class={$UIThemeCSSClass + ' minmax-icon'}
-          on:click={elementMinMax}>&#8691;</button
+          on:click={elementMinMax}>&#65291;</button
         >
       </FlexContainer>
     {:else}
       <div class="display-icons">
         <button
           class={$UIThemeCSSClass + ' minmax-icon'}
-          on:click={elementMinMax}>&#8691;</button
+          on:click={elementMinMax}>&#8722;</button
         >
       </div>
     {/if}
@@ -469,17 +437,13 @@ limitations under the License.
 
   <Main
     on:clearDataDisplays={clearDataDisplays}
-    on:clearChangeStack={clearChangeStack}
     on:commitChanges={commitChanges}
-    on:redo={redo}
-    on:undo={undo}
     on:handleEditorEvent={handleEditorEvent}
     on:scrolledToTop={scrolledToTop}
     on:scrolledToEnd={scrolledToEnd}
   />
 
   <hr />
-
   <ServerMetrics />
   <hr />
 
@@ -521,7 +485,8 @@ limitations under the License.
 
   div.filename-display {
     font-family: var(--vscode-editor-font-family, 'monospace');
-    font-size: large;
+    font-size: 14px;
+    font-weight: bold;
   }
 
   /* fonts */
@@ -534,14 +499,13 @@ limitations under the License.
     display: flex;
     justify-content: center;
     width: 100%;
-    max-height: 150pt;
+    max-height: 120pt;
     flex: 0 1 auto;
     transition: all 0.5s;
   }
 
   header div.display-icons {
     justify-content: space-between;
-    margin-top: 5px;
     transition: all 0.4s ease 0s;
     align-items: center;
   }
@@ -559,5 +523,10 @@ limitations under the License.
     padding: 0;
     font-weight: normal;
     border-width: 1px;
+  }
+
+  button.minmax-icon {
+    min-width: 14px;
+    font-weight: bold;
   }
 </style>

@@ -21,8 +21,12 @@ limitations under the License.
   import { MessageCommand } from '../../../utilities/message'
   import { vscode } from '../../../utilities/vscode'
   import { saveable } from '../../../stores'
-
+  import { createEventDispatcher } from 'svelte'
+  import SidePanel from '../../layouts/SidePanel.svelte'
+  const eventDispatcher = createEventDispatcher()
   let displayOpts = false
+
+  let isSidebarOpen = false
 
   function saveAs() {
     vscode.postMessage({
@@ -76,13 +80,108 @@ limitations under the License.
         break // do nothing
     }
   })
+
+  let canUndo: boolean
+  let canRedo: boolean
+  let canRevert: boolean
+  let redoText: string
+  let undoText: string
+  $: {
+    canUndo = $fileMetrics.changeCount > 0
+    canRedo = $fileMetrics.undoCount > 0
+    canRevert = $fileMetrics.undoCount + $fileMetrics.changeCount > 0
+    redoText = canRedo ? '(' + $fileMetrics.undoCount + ')' : ''
+    undoText = canUndo ? '(' + $fileMetrics.changeCount + ')' : ''
+  }
+  function redo() {
+    eventDispatcher('redo')
+  }
+  function undo() {
+    eventDispatcher('undo')
+  }
+  function clearChangeStack() {
+    eventDispatcher('clearChangeStack')
+  }
+
+  function toggleMetrics() {
+    isSidebarOpen = !isSidebarOpen
+  }
 </script>
+
+<SidePanel position="top-left" title="Metrics" bind:open={isSidebarOpen}>
+  01 Side Panel Content Here!<br />
+  02 Side Panel Content Here!<br />
+  03 Side Panel Content Here!<br />
+  04 Side Panel Content Here!<br />
+  05 Side Panel Content Here!<br />
+  06 Side Panel Content Here!<br />
+  07 Side Panel Content Here!<br />
+  08 Side Panel Content Here!<br />
+  09 Side Panel Content Here!<br />
+  10 Side Panel Content Here!<br />
+  11 Side Panel Content Here!<br />
+  12 Side Panel Content Here!<br />
+  13 Side Panel Content Here!<br />
+  14 Side Panel Content Here!<br />
+  15 Side Panel Content Here!<br />
+  16 Side Panel Content Here!<br />
+  17 Side Panel Content Here!<br />
+  18 Side Panel Content Here!<br />
+  19 Side Panel Content Here!<br />
+  20 Side Panel Content Here!<br />
+  21 Side Panel Content Here!<br />
+  22 Side Panel Content Here!<br />
+  23 Side Panel Content Here!<br />
+  24 Side Panel Content Here!<br />
+  25 Side Panel Content Here!<br />
+  26 Side Panel Content Here!<br />
+  27 Side Panel Content Here!<br />
+  28 Side Panel Content Here!<br />
+  29 Side Panel Content Here!<br />
+  30 Side Panel Content Here!<br />
+  31 Side Panel Content Here!<br />
+  32 Side Panel Content Here!<br />
+  33 Side Panel Content Here!<br />
+  34 Side Panel Content Here!<br />
+  35 Side Panel Content Here!<br />
+  36 Side Panel Content Here!<br />
+  37 Side Panel Content Here!<br />
+  38 Side Panel Content Here!<br />
+  39 Side Panel Content Here!<br />
+  40 Side Panel Content Here!<br />
+  51 Side Panel Content Here!<br />
+  52 Side Panel Content Here!<br />
+  53 Side Panel Content Here!<br />
+  54 Side Panel Content Here!<br />
+  55 Side Panel Content Here!<br />
+  56 Side Panel Content Here!<br />
+  57 Side Panel Content Here!<br />
+  58 Side Panel Content Here!<br />
+  59 Side Panel Content Here!<br />
+  60 Side Panel Content Here!<br />
+</SidePanel>
 
 <fieldset class="file-metrics">
   <legend>File Metrics</legend>
-  <FlexContainer --dir="column">
-    <label for="file_name">Path</label>
-    <span id="file_name" class="nowrap">{$fileMetrics.name}</span>
+  <FlexContainer --dir="row">
+    <span id="file_name" class="nowrap">{$fileMetrics.name}</span>&nbsp;
+  </FlexContainer>
+  <FlexContainer --dir="row" --align-items="center">
+    {#if displayOpts}
+      <Button fn={save} disabledBy={!$saveable}>
+        <span slot="left" class="btn-icon">&#x1F4BE;</span>
+        <span slot="default">&nbsp;Save</span>
+      </Button>
+      <Button fn={saveAs}>
+        <span slot="left" class="btn-icon">&#x1F4C1;</span>
+        <span slot="default">&nbsp;Save As</span>
+      </Button>
+    {:else}
+      <Button fn={toggleSaveDisplay}>
+        <span slot="left" class="btn-icon">&#10515;</span>
+        <span slot="default">Save ...</span>
+      </Button>
+    {/if}
   </FlexContainer>
   <hr />
   <FlexContainer --dir="row">
@@ -102,32 +201,39 @@ limitations under the License.
     </FlexContainer>
   </FlexContainer>
   <hr />
-
   <FlexContainer>
-    {#if displayOpts}
-      <Button fn={save} disabledBy={!$saveable}>
-        <span slot="left" class="btn-icon">&#8615;</span>
-        <span slot="default">Save</span>
+    <FlexContainer --dir="column" --align-items="center">
+      <FlexContainer --dir="row">
+        <Button disabledBy={!canRedo} fn={redo}>
+          <span slot="left" class="mirror btn-icon">&#9100;</span>
+          <span slot="default">&nbsp;Redo{redoText}</span>
+        </Button>
+        <Button disabledBy={!canUndo} fn={undo}>
+          <span slot="left" class="btn-icon">&#9100;</span>
+          <span slot="default">&nbsp;Undo{undoText}</span>
+        </Button>
+        <Button disabledBy={!canRevert} fn={clearChangeStack}>
+          <span slot="left" class="btn-icon">&#8635;</span>
+          <span slot="default">&nbsp;Revert All</span>
+        </Button>
+      </FlexContainer>
+    </FlexContainer>
+    <FlexContainer --dir="column" --align-items="center">
+      <Button fn={toggleMetrics}>
+        <span slot="left" class="btn-icon">&#x2211;</span>
+        <span slot="default">Metrics</span>
       </Button>
-      <Button fn={saveAs}>
-        <span slot="left" class="btn-icon">&#8615;</span>
-        <span slot="default">Save As</span>
-      </Button>
-    {:else}
-      <Button fn={toggleSaveDisplay}>
-        <span slot="default">Save ...</span>
-      </Button>
-    {/if}
+    </FlexContainer>
   </FlexContainer>
 </fieldset>
 
 <style lang="scss">
   fieldset {
     width: 100%;
-    min-width: 175pt;
+    min-width: 180pt;
   }
   fieldset label {
-    font-weight: 700;
+    font-weight: bold;
   }
   span.nowrap {
     white-space: nowrap;

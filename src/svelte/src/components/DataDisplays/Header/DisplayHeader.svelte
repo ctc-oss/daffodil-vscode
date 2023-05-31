@@ -16,10 +16,12 @@ limitations under the License.
 -->
 <script lang="ts">
   import {
-    gotoOffset,
-    gotoOffsetInput,
     addressRadix,
     displayRadix,
+    editMode,
+    seekOffset,
+    seekOffsetInput,
+    selectionData,
     selectionSize,
   } from '../../../stores'
   import {
@@ -32,9 +34,8 @@ limitations under the License.
     type ViewportReferences,
   } from '../../../utilities/display'
   import { createEventDispatcher } from 'svelte'
-  import { selectionData, editMode } from '../../Editors/DataEditor'
 
-  const EventDispatcher = createEventDispatcher()
+  const eventDispatcher = createEventDispatcher()
 
   let physicalOffsetText: string
   let logicalOffsetText: string
@@ -166,14 +167,13 @@ limitations under the License.
 
   function updateAddressValue(event: Event) {
     const addrSelect = event.target as HTMLSelectElement
-    const newGotoInput = $gotoOffset.toString(parseInt(addrSelect.value))
-    $gotoOffsetInput = newGotoInput === 'NaN' ? '0' : newGotoInput
-    $gotoOffset = parseInt($gotoOffsetInput, $addressRadix)
+    const newSeekInput = $seekOffset.toString(parseInt(addrSelect.value))
+    $seekOffsetInput = newSeekInput === 'NaN' ? '0' : newSeekInput
     $addressRadix = parseInt(addrSelect.value)
   }
 
   function clearDataDisplays() {
-    EventDispatcher('clearDataDisplays')
+    eventDispatcher('clearDataDisplays')
   }
 </script>
 
@@ -225,9 +225,8 @@ limitations under the License.
     <div>
       <sub
         ><i
-          >The pop-up, single byte, edit window is available upon byte
-          selection, press ESC to close.<br />The edit window below is
-          deactivated in single byte edit mode.</i
+          >To edit multiple bytes, highlight (by clicking and dragging) a
+          selection of bytes</i
         ></sub
       >
     </div>

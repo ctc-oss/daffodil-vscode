@@ -16,11 +16,14 @@ limitations under the License.
 -->
 <script lang="ts">
   import {
+    addressRadix,
     allowCaseInsensitiveSearch,
     editorEncoding,
     searchCaseInsensitive,
+    seekOffsetInput,
+    seekable,
   } from '../../../stores'
-  import { replaceErr, searchErr, searchable, replaceable } from '..'
+  import { replaceErr, searchErr, searchable, replaceable, seekErr } from '..'
   import { searchQuery, replaceQuery } from './SearchReplace'
   import { vscode } from '../../../utilities/vscode'
   import { MessageCommand } from '../../../utilities/message'
@@ -32,14 +35,14 @@ limitations under the License.
   import { createEventDispatcher } from 'svelte'
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
 
-  const EventDispatcher = createEventDispatcher()
+  const eventDispatcher = createEventDispatcher()
 
-  let searchErrDisplay = false
-  let replaceErrDisplay = false
+  let searchErrDisplay: boolean
+  let replaceErrDisplay: boolean
+  let caseInsensitiveToggled: boolean = false
   let containerClass: string
   let inlineClass: string
   let inputClass: string
-  let caseInsensitiveToggled: boolean = false
 
   $: {
     containerClass = CSSThemeClass('input-actions')
@@ -48,13 +51,14 @@ limitations under the License.
   }
   $: searchErrDisplay = $searchErr.length > 0 && !$searchable
   $: replaceErrDisplay = $replaceErr.length > 0 && !$replaceable
+  $: $seekErr = $seekable.seekErrMsg
 
   function case_sensitive_action(_: MouseEvent) {
     $searchCaseInsensitive = !$searchCaseInsensitive
     caseInsensitiveToggled = !caseInsensitiveToggled
   }
   function search() {
-    searchQuery.clear_results()
+    searchQuery.clear()
     $replaceQuery.count = -1
     vscode.postMessage({
       command: MessageCommand.search,
@@ -67,7 +71,7 @@ limitations under the License.
     $searchQuery.processing = true
   }
   function searchAndReplace() {
-    searchQuery.clear_results()
+    searchQuery.clear()
     $replaceQuery.count = -1
     vscode.postMessage({
       command: MessageCommand.searchAndReplace,
@@ -79,18 +83,31 @@ limitations under the License.
       },
     })
     $replaceQuery.processing = true
-    EventDispatcher('clearDataDisplays')
+    eventDispatcher('clearDataDisplays')
+  }
+  function handleInputEnter(event: CustomEvent) {
+    switch (event.detail.id) {
+      case 'search':
+        search()
+        break
+      case 'replace':
+        searchAndReplace()
+        break
+      case 'seek':
+        eventDispatcher('seek')
+        break
+    }
   }
   function CSSThemeClass(selectors?: string) {
     return selectors + ' ' + $UIThemeCSSClass
   }
   function scrollSearchNext() {
-    searchQuery.update_search_results(++$searchQuery.searchIndex)
-    EventDispatcher('goTo')
+    searchQuery.updateSearchResults(++$searchQuery.searchIndex)
+    eventDispatcher('seek')
   }
   function scrollSearchPrev() {
-    searchQuery.update_search_results(--$searchQuery.searchIndex)
-    EventDispatcher('goTo')
+    searchQuery.updateSearchResults(--$searchQuery.searchIndex)
+    eventDispatcher('seek')
   }
 
   window.addEventListener('message', (msg) => {
@@ -99,8 +116,8 @@ limitations under the License.
         $searchQuery.searchResults = msg.data.data.results
         $searchQuery.processing = false
         if ($searchQuery.searchResults.length > 0) {
-          searchQuery.update_search_results($searchQuery.searchIndex)
-          EventDispatcher('goTo')
+          searchQuery.updateSearchResults($searchQuery.searchIndex)
+          eventDispatcher('seek')
         }
         break
 
@@ -119,46 +136,73 @@ limitations under the License.
 <fieldset class="search-replace">
   <legend>Search</legend>
   <FlexContainer --dir="column" --align-items="center">
-    <FlexContainer --dir="row" --align-items="center" --height="25pt">
-      <label for="search">Search:</label>
-
+    <FlexContainer --dir="row">
+      <Input
+        id="seek"
+        placeholder="Seek To Offset (base {$addressRadix})"
+        bind:value={$seekOffsetInput}
+        on:inputEnter={handleInputEnter}
+      />
+      <Error
+        err={seekErr}
+        display={$seekOffsetInput.length > 0 && !$seekable.valid}
+      />
+      <Button
+        disabledBy={!$seekable.valid}
+        fn={() => {
+          eventDispatcher('seek')
+        }}
+      >
+        <span slot="left" class="btn-icon">&#10148</span>
+        <span slot="default">&nbsp;Seek</span>
+      </Button>
+    </FlexContainer>
+    <FlexContainer --dir="row" --align-items="center">
       {#if $allowCaseInsensitiveSearch}
         <span class={containerClass}>
           <span class={inlineClass}>
             <input
               id="search"
+              type="search"
               class={inputClass}
+              placeholder="Search"
               bind:value={$searchQuery.input}
             />
             <button
-              class={$UIThemeCSSClass + ' case-btn'}
+              class="{$UIThemeCSSClass} case-btn"
               on:click={case_sensitive_action}
-              class:active={caseInsensitiveToggled}
-              title="Toggle Case Sensitive Search"><u>aA</u></button
+              class:active={$searchCaseInsensitive}
+              title="Toggle Case Sensitive Search"><u>Aa</u></button
             >
           </span>
         </span>
       {:else}
-        <Input id="search" bind:value={$searchQuery.input} --width="75%" />
+        <Input
+          id="search"
+          placeholder="Search"
+          bind:value={$searchQuery.input}
+          on:inputEnter={handleInputEnter}
+        />
       {/if}
-
       <Error err={searchErr} display={searchErrDisplay} />
-    </FlexContainer>
-
-    <FlexContainer --dir="row" --align-items="center" --height="25pt">
-      <label for="replace">Replace:</label>
-      <Input id="replace" bind:value={$replaceQuery.input} --width="75%" />
-      <Error err={replaceErr} display={replaceErrDisplay} />
-    </FlexContainer>
-
-    <FlexContainer --dir="row">
       <Button disabledBy={!$searchable} fn={search}>
         <span slot="left" class="btn-icon rotate">&#9906;</span>
-        <span slot="default">Search</span></Button
+        <span slot="default">&nbsp;Search</span></Button
       >
+    </FlexContainer>
+
+    <FlexContainer --dir="row" --align-items="center">
+      <Input
+        id="replace"
+        placeholder="Replace"
+        bind:value={$replaceQuery.input}
+        allowDefaultInput="true"
+        on:inputEnter={handleInputEnter}
+      />
+      <Error err={replaceErr} display={replaceErrDisplay} />
       <Button disabledBy={!$replaceable} fn={searchAndReplace}>
         <span slot="left" class="btn-icon">&#8645;</span>
-        <span slot="default">Replace</span>
+        <span slot="default">&nbsp;Replace</span>
       </Button>
     </FlexContainer>
 
@@ -166,10 +210,10 @@ limitations under the License.
       <FlexContainer --dir="row">
         <Button fn={scrollSearchPrev}>
           <span slot="left" class="btn-icon">&#x23F4;</span>
-          <span slot="default">Prev</span></Button
+          <span slot="default">&nbsp;Prev</span></Button
         >
         <Button fn={scrollSearchNext}>
-          <span slot="default">Next</span>
+          <span slot="default">Next&nbsp;</span>
           <span slot="right" class="btn-icon">&#x23F5;</span></Button
         >
         <sub
@@ -179,7 +223,11 @@ limitations under the License.
     {/if}
     {#if $replaceQuery.count > -1}
       <FlexContainer --dir="row">
-        <sub>{$replaceQuery.count} Replacements</sub>
+        <sub
+          >{$replaceQuery.count} Replacement{$replaceQuery.count === 1
+            ? ''
+            : 's'}</sub
+        >
       </FlexContainer>
     {/if}
   </FlexContainer>
@@ -188,9 +236,6 @@ limitations under the License.
 <style lang="scss">
   fieldset {
     width: 100%;
-  }
-  fieldset label {
-    width: 80pt;
   }
   fieldset input {
     width: 75%;
@@ -204,5 +249,6 @@ limitations under the License.
   }
   button.case-btn {
     margin-right: 5px;
+    cursor: pointer;
   }
 </style>

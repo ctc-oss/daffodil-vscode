@@ -16,7 +16,7 @@
  */
 
 import { SimpleWritable } from '../../../stores/localStore'
-import { addressRadix, gotoOffset, gotoOffsetInput } from '../../../stores'
+import { addressRadix, seekOffsetInput } from '../../../stores'
 import { get } from 'svelte/store'
 
 interface QueryableData {
@@ -35,7 +35,7 @@ class SearchQuery extends SimpleWritable<SearchData> {
   protected init(): SearchData {
     return new SearchData()
   }
-  public clear_results() {
+  public clear() {
     this.update((query) => {
       query.processing = false
       query.searchIndex = 0
@@ -43,7 +43,7 @@ class SearchQuery extends SimpleWritable<SearchData> {
       return query
     })
   }
-  public update_search_results(offset?: number) {
+  public updateSearchResults(offset?: number) {
     this.update((query) => {
       query.searchIndex = !offset
         ? Math.abs(
@@ -54,15 +54,11 @@ class SearchQuery extends SimpleWritable<SearchData> {
             (query.searchResults.length + offset) % query.searchResults.length
           )
 
-      gotoOffsetInput.update((_) => {
+      seekOffsetInput.update((_) => {
         return query.searchResults[query.searchIndex].toString(
           get(addressRadix)
         )
       })
-      gotoOffset.update(() => {
-        return query.searchResults[query.searchIndex]
-      })
-
       return query
     })
   }

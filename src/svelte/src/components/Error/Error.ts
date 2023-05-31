@@ -22,7 +22,7 @@ import type { Unsubscriber } from 'svelte/store'
  * ---
  *
  * `SYMBOL` - Displays as an error symbol with hoverable tooltip
- * error discriptions.
+ * error descriptions.
  *
  * `STRING` - Displays as a simple error message string
  */
@@ -32,7 +32,7 @@ export const enum ErrorComponentType {
 }
 
 /**
- * Interface type for ErrorStore's _values data memeber.
+ * Interface type for ErrorStore's _values data member.
  *
  * ---
  *
@@ -46,7 +46,7 @@ export interface ErrorValues {
 }
 
 /**
- * Custom ErrorStore that satifies the Svelte Store contract to store
+ * Custom ErrorStore that satisfies the Svelte Store contract to store
  * an ErrorValues type.
  *
  * ---

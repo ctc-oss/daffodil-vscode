@@ -25,6 +25,8 @@ limitations under the License.
     commitErrMsg,
     editByte,
     bytesPerRow,
+    editMode,
+    selectionData,
   } from '../../stores'
   import {
     edit_byte_window_ref,
@@ -33,10 +35,9 @@ limitations under the License.
   } from '../../utilities/display'
   import { UIThemeCSSClass } from '../../utilities/colorScheme'
   import FlexContainer from '../layouts/FlexContainer.svelte'
-  import { editMode, selectionData } from '../Editors/DataEditor'
   import { EditByteModes } from '../../stores/configuration'
 
-  const EventDispatcher = createEventDispatcher()
+  const eventDispatcher = createEventDispatcher()
 
   export let disabled: boolean = false
   let containerClass: string
@@ -100,11 +101,11 @@ limitations under the License.
   }
   function commitChanges(event: Event) {
     if (disabled) return
-    EventDispatcher('commitChanges', event)
+    eventDispatcher('commitChanges', event)
   }
   function handleEditorEvent() {
     if (disabled) return
-    EventDispatcher('handleEditorEvent')
+    eventDispatcher('handleEditorEvent')
   }
 </script>
 
@@ -140,6 +141,7 @@ limitations under the License.
         </span>
       </span>
       {#if $committable}
+        <!--suppress XmlDuplicatedId -->
         <button
           title="insert byte before this location"
           id="insert-before"
@@ -152,12 +154,14 @@ limitations under the License.
           class="submit"
           on:click={commitChanges}>&#8645;</button
         >
+        <!--suppress XmlDuplicatedId -->
         <button
           title="insert byte after this location"
           id="insert-after"
           class="insert"
           on:click={commitChanges}>&#8677;</button
         >
+        <!--suppress XmlDuplicatedId -->
         <button
           title="delete this byte"
           id="insert-delete"
@@ -165,6 +169,7 @@ limitations under the License.
           on:click={commitChanges}>&#10006;</button
         >
       {:else if $editedByteIsOriginalByte}
+        <!--suppress XmlDuplicatedId -->
         <button
           title="insert byte before this location"
           id="insert-before"
@@ -172,12 +177,14 @@ limitations under the License.
           on:click={commitChanges}>&#8676;</button
         >
         <button class="submit" disabled>&#8645;</button>
+        <!--suppress XmlDuplicatedId -->
         <button
           title="insert byte after this location"
           id="insert-after"
           class="insert"
           on:click={commitChanges}>&#8677;</button
         >
+        <!--suppress XmlDuplicatedId -->
         <button
           title="delete this byte"
           id="insert-delete"
@@ -185,6 +192,7 @@ limitations under the License.
           on:click={commitChanges}>✖</button
         >
       {:else}
+        <!--suppress XmlDuplicatedId -->
         <button
           title="delete this byte"
           id="insert-delete"
@@ -206,7 +214,7 @@ limitations under the License.
 
 <style lang="scss">
   span.input-actions {
-    padding: 0px;
+    padding: 0;
     width: 50%;
   }
   span.input-actions input:focus {
@@ -288,7 +296,7 @@ limitations under the License.
   button.actionable {
     max-width: 10pt;
     width: auto;
-    padding: 0px;
+    padding: 0;
     opacity: 0.7;
     line-height: 1;
     font-size: large;

@@ -18,13 +18,12 @@
 import { searchQuery, replaceQuery } from './fieldsets/SearchReplace'
 import { validateEncodingStr } from '../../utilities/display'
 import { ErrorStore, ErrorComponentType } from '../Error/Error'
-import { editorEncoding } from '../../stores'
+import { editorEncoding, selectionData } from '../../stores'
 import { derived } from 'svelte/store'
-import { selectionData } from '../Editors/DataEditor'
 
 export const searchErr = new ErrorStore(ErrorComponentType.SYMBOL)
 export const replaceErr = new ErrorStore(ErrorComponentType.SYMBOL)
-export const goToErr = new ErrorStore(ErrorComponentType.SYMBOL)
+export const seekErr = new ErrorStore(ErrorComponentType.SYMBOL)
 
 export const searchable = derived(
   [searchQuery, editorEncoding],

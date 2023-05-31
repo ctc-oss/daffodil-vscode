@@ -19,98 +19,30 @@ limitations under the License.
     dataViewEndianness,
     displayRadix,
     dataView,
-    addressRadix,
+    dvInt16,
+    dvInt32,
+    dvInt64,
+    dvInt8,
+    dvLatin1,
+    dvOffset,
+    dvUint16,
+    dvUint32,
+    dvUint64,
+    dvUint8,
+    selectionData,
   } from '../../../stores'
   import { ENDIANNESS_OPTIONS } from '../../../stores/configuration'
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
-  import { selectionData } from '../../Editors/DataEditor'
   import { vscode } from '../../../utilities/vscode'
   import { MessageCommand } from '../../../utilities/message'
+  import Input from '../../Inputs/Input/Input.svelte'
 
   const ERROR_MESSAGE_TIMEOUT = 5000
+
   let errorMessage: string
+  let isEditing = ''
 
-  let dataViewOffset: string
-  let dataViewLatin1: string
-  let dataViewInt8: string
-  let dataViewUint8: string
-  let dataViewInt16: string
-  let dataViewUint16: string
-  let dataViewInt32: string
-  let dataViewUint32: string
-  let dataViewInt64: string
-  let dataViewUint64: string
-
-  $: {
-    dataViewOffset = $selectionData.active
-      ? $selectionData.startOffset.toString($addressRadix).toUpperCase()
-      : ''
-
-    dataViewLatin1 =
-      $selectionData.active && $dataView.byteLength >= 1
-        ? String.fromCharCode($dataView.getUint8(0))
-        : ''
-
-    dataViewInt8 =
-      $selectionData.active && $dataView.byteLength >= 1
-        ? $dataView.getInt8(0).toString($displayRadix).toUpperCase()
-        : ''
-
-    dataViewUint8 =
-      $selectionData.active && $dataView.byteLength >= 1
-        ? $dataView.getUint8(0).toString($displayRadix).toUpperCase()
-        : ''
-
-    dataViewInt16 =
-      $selectionData.active && $dataView.byteLength >= 2
-        ? $dataView
-            .getInt16(0, $dataViewEndianness === 'le')
-            .toString($displayRadix)
-            .toUpperCase()
-        : ''
-
-    dataViewUint16 =
-      $selectionData.active && $dataView.byteLength >= 2
-        ? $dataView
-            .getUint16(0, $dataViewEndianness === 'le')
-            .toString($displayRadix)
-            .toUpperCase()
-        : ''
-
-    dataViewInt32 =
-      $selectionData.active && $dataView.byteLength >= 4
-        ? $dataView
-            .getInt32(0, $dataViewEndianness === 'le')
-            .toString($displayRadix)
-            .toUpperCase()
-        : ''
-
-    dataViewUint32 =
-      $selectionData.active && $dataView.byteLength >= 4
-        ? $dataView
-            .getUint32(0, $dataViewEndianness === 'le')
-            .toString($displayRadix)
-            .toUpperCase()
-        : ''
-
-    dataViewInt64 =
-      $selectionData.active && $dataView.byteLength >= 8
-        ? $dataView
-            .getBigInt64(0, $dataViewEndianness === 'le')
-            .toString($displayRadix)
-            .toUpperCase()
-        : ''
-
-    dataViewUint64 =
-      $selectionData.active && $dataView.byteLength >= 8
-        ? $dataView
-            .getBigUint64(0, $dataViewEndianness === 'le')
-            .toString($displayRadix)
-            .toUpperCase()
-        : ''
-  }
-
-  function handleSubmit(e: SubmitEvent, intType) {
+  function handleSubmit(inputValue: string, intType: string): boolean {
     // determine the byteSize, minValue, and maxValue for the given intType
     const rangeChecks = {
       int8: [1, -128, 127],
@@ -122,17 +54,15 @@ limitations under the License.
       int64: [8, -9223372036854775808, 9223372036854775807],
       uint64: [8, 0, 18446744073709551615],
     }
-    const form = e.target as HTMLFormElement // Get the form from the event target
-    const inputValue = form.elements['val'].value // Retrieve the input value
     let value = NaN
+    isEditing = ''
     if (intType === 'latin1') {
       if (inputValue.length !== 1) {
         errorMessage = `Value out of range for ${intType} (${displayRadix}): ${inputValue}`
         setTimeout(() => {
           errorMessage = ''
         }, ERROR_MESSAGE_TIMEOUT)
-        form.reset()
-        return
+        return false
       }
       // latin1 is a special case, since it's a single character, not a number, so we use charCodeAt to get the value of
       // the character at index 0 in the string and store it in value as an integer and set intType to uint8
@@ -148,8 +78,7 @@ limitations under the License.
         setTimeout(() => {
           errorMessage = ''
         }, ERROR_MESSAGE_TIMEOUT)
-        form.reset()
-        return
+        return false
       }
 
       const dv = new DataView(new ArrayBuffer(byteSize))
@@ -182,8 +111,7 @@ limitations under the License.
           break
         default:
           console.error('Invalid integer type: ' + intType)
-          form.reset()
-          return
+          return false
       }
 
       // Send edit to the extension
@@ -201,19 +129,55 @@ limitations under the License.
         errorMessage = ''
       }, ERROR_MESSAGE_TIMEOUT)
     }
-    form.reset()
+    return true
+  }
+
+  function handleInputEnter(e: CustomEvent) {
+    switch (e.detail.id) {
+      case 'latin1_dv':
+        handleSubmit(e.detail.value, 'latin1')
+        break
+      case 'int8_dv':
+        handleSubmit(e.detail.value, 'int8')
+        break
+      case 'uint8_dv':
+        handleSubmit(e.detail.value, 'uint8')
+        break
+      case 'int16_dv':
+        handleSubmit(e.detail.value, 'int16')
+        break
+      case 'uint16_dv':
+        handleSubmit(e.detail.value, 'uint16')
+        break
+      case 'int32_dv':
+        handleSubmit(e.detail.value, 'int32')
+        break
+      case 'uint32_dv':
+        handleSubmit(e.detail.value, 'uint32')
+        break
+      case 'int64_dv':
+        handleSubmit(e.detail.value, 'int64')
+        break
+      case 'uint64_dv':
+        handleSubmit(e.detail.value, 'uint64')
+        break
+    }
+  }
+
+  function handleBlur() {
+    isEditing = ''
   }
 </script>
 
 <fieldset class="box margin-top">
   <legend
-    >Data View{#if dataViewOffset}&nbsp;@ Offset {dataViewOffset}{/if}</legend
+    >Data {#if $dvOffset}@ {$dvOffset}{/if}</legend
   >
   {#if errorMessage}
     <b>message: {errorMessage}</b><br />
   {/if}
-  <label for="endian"
-    >&nbsp;endian: <select
+  <div class="input-container">
+    <label for="endian" class="label">&nbsp;endian:</label><select
       id="endian"
       class={$UIThemeCSSClass}
       bind:value={$dataViewEndianness}
@@ -222,130 +186,262 @@ limitations under the License.
         <option {value}>{name}</option>
       {/each}
     </select>
-  </label>
-  {#if $selectionData.active && dataViewInt8}
-    <div id="data_vw">
-      <span id="b8_dv">
-        <form on:submit|preventDefault={(e) => handleSubmit(e, 'latin1')}>
-          <label for="latin1_dv"
-            >latin-1: <input
-              class={$UIThemeCSSClass}
-              name="val"
-              id="latin1_dv"
-              placeholder={dataViewLatin1}
-              maxlength="1"
-            /></label
-          >
-        </form>
-        <form on:submit|preventDefault={(e) => handleSubmit(e, 'int8')}>
-          <label for="int8_dv"
-            >&nbsp;&nbsp;&nbsp;int8: <input
-              class={$UIThemeCSSClass}
-              name="val"
-              id="int8_dv"
-              placeholder={dataViewInt8}
-            /></label
-          >
-        </form>
-        <form on:submit|preventDefault={(e) => handleSubmit(e, 'uint8')}>
-          <label for="uint8_dv"
-            >&nbsp;&nbsp;uint8: <input
-              class={$UIThemeCSSClass}
-              name="val"
-              id="uint8_dv"
-              placeholder={dataViewUint8}
-            /></label
-          >
-        </form>
-      </span>
-      {#if dataViewInt16}
-        <span id="b16_dv">
-          <form on:submit|preventDefault={(e) => handleSubmit(e, 'int16')}>
-            <label for="int16_dv"
-              >&nbsp;&nbsp;int16: <input
-                class={$UIThemeCSSClass}
-                name="val"
-                id="int16_dv"
-                placeholder={dataViewInt16}
-              /></label
-            >
-          </form>
-          <form on:submit|preventDefault={(e) => handleSubmit(e, 'uint16')}>
-            <label for="uint16_dv"
-              >&nbsp;uint16: <input
-                class={$UIThemeCSSClass}
-                name="val"
-                id="uint16_dv"
-                placeholder={dataViewUint16}
-              /></label
-            >
-          </form>
-        </span>
+  </div>
+  {#if $selectionData.active && $dvInt8}
+    {#if isEditing === 'latin1'}
+      <div class="input-container">
+        <label for="latin1_dv" class="label">latin-1:</label>
+        <Input
+          id="latin1_dv"
+          placeholder={$dvLatin1}
+          maxlength="1"
+          on:inputEnter={handleInputEnter}
+          on:inputFocusOut={handleBlur}
+          width="64ch"
+          autofocus="true"
+        />
+      </div>
+    {:else}
+      <div
+        class="input-container tooltip"
+        id="latin1"
+        on:click={() => {
+          isEditing = 'latin1'
+        }}
+      >
+        <span class="tooltip-text">click to edit latin-1</span>
+        <label for="latin1_dv_ro" class="label">latin-1:</label>
+        <span id="latin1_dv_ro" class="nowrap">{$dvLatin1}</span>
+      </div>
+    {/if}
+    {#if isEditing === 'int8'}
+      <div class="input-container">
+        <label for="int8_dv" class="label">&nbsp;&nbsp;&nbsp;int8:</label>
+        <Input
+          id="int8_dv"
+          placeholder={$dvInt8}
+          value={$dvInt8}
+          maxlength="8"
+          on:inputEnter={handleInputEnter}
+          on:inputFocusOut={handleBlur}
+          width="64ch"
+          autofocus="true"
+        />
+      </div>
+    {:else}
+      <div
+        class="input-container tooltip"
+        on:click={() => {
+          isEditing = 'int8'
+        }}
+      >
+        <span class="tooltip-text">click to edit int8</span>
+        <label for="int8_dv_ro" class="label">&nbsp;&nbsp;&nbsp;int8:</label>
+        <span id="int8_dv_ro" class="nowrap">{$dvInt8}</span>
+      </div>
+    {/if}
+    {#if isEditing === 'uint8'}
+      <div class="input-container">
+        <label for="uint8_dv" class="label">&nbsp;&nbsp;uint8:</label>
+        <Input
+          id="uint8_dv"
+          placeholder={$dvUint8}
+          value={$dvUint8}
+          maxlength="8"
+          on:inputEnter={handleInputEnter}
+          on:inputFocusOut={handleBlur}
+          width="64ch"
+          autofocus="true"
+        />
+      </div>
+    {:else}
+      <div
+        class="input-container tooltip"
+        on:click={() => {
+          isEditing = 'uint8'
+        }}
+      >
+        <span class="tooltip-text">click to edit uint8</span>
+        <label for="uint8_dv_ro" class="label">&nbsp;&nbsp;uint8:</label>
+        <span id="uint8_dv_ro" class="nowrap">{$dvUint8}</span>
+      </div>
+    {/if}
+    {#if $dvInt16}
+      {#if isEditing === 'int16'}
+        <div class="input-container">
+          <label for="int16_dv" class="label">&nbsp;&nbsp;int16:</label>
+          <Input
+            id="int16_dv"
+            placeholder={$dvInt16}
+            value={$dvInt16}
+            maxlength="16"
+            on:inputEnter={handleInputEnter}
+            on:inputFocusOut={handleBlur}
+            width="64ch"
+            autofocus="true"
+          />
+        </div>
+      {:else}
+        <div
+          class="input-container tooltip"
+          on:click={() => {
+            isEditing = 'int16'
+          }}
+        >
+          <span class="tooltip-text">click to edit int16</span>
+          <label for="int16_dv_ro" class="label">&nbsp;&nbsp;int16:</label>
+          <span id="int16_dv_ro" class="nowrap">{$dvInt16}</span>
+        </div>
       {/if}
-      {#if dataViewInt32}
-        <span id="b32_dv">
-          <form on:submit|preventDefault={(e) => handleSubmit(e, 'int32')}>
-            <label for="int32_dv"
-              >&nbsp;&nbsp;int32: <input
-                class={$UIThemeCSSClass}
-                name="val"
-                id="int32_dv"
-                placeholder={dataViewInt32}
-              /></label
-            >
-          </form>
-          <form on:submit|preventDefault={(e) => handleSubmit(e, 'uint32')}>
-            <label for="uint32_dv"
-              >&nbsp;uint32: <input
-                class={$UIThemeCSSClass}
-                name="val"
-                id="uint32_dv"
-                placeholder={dataViewUint32}
-              /></label
-            >
-          </form>
-        </span>
+      {#if isEditing === 'uint16'}
+        <div class="input-container">
+          <label for="uint16_dv" class="label">&nbsp;uint16:</label>
+          <Input
+            id="uint16_dv"
+            placeholder={$dvUint16}
+            value={$dvUint16}
+            maxlength="16"
+            on:inputEnter={handleInputEnter}
+            on:inputFocusOut={handleBlur}
+            width="64ch"
+            autofocus="true"
+          />
+        </div>
+      {:else}
+        <div
+          class="input-container tooltip"
+          on:click={() => {
+            isEditing = 'uint16'
+          }}
+        >
+          <span class="tooltip-text">click to edit uint16</span>
+          <label for="uint16_dv_ro" class="label">&nbsp;uint16:</label>
+          <span id="uint16_dv_ro" class="nowrap">{$dvUint16}</span>
+        </div>
       {/if}
-      {#if dataViewInt64}
-        <span id="b64_dv">
-          <form on:submit|preventDefault={(e) => handleSubmit(e, 'int64')}>
-            <label for="int64_dv"
-              >&nbsp;&nbsp;int64: <input
-                class={$UIThemeCSSClass}
-                name="val"
-                id="int64_dv"
-                placeholder={dataViewInt64}
-              /></label
-            >
-          </form>
-          <form on:submit|preventDefault={(e) => handleSubmit(e, 'uint64')}>
-            <label for="uint64_dv"
-              >&nbsp;uint64: <input
-                class={$UIThemeCSSClass}
-                name="val"
-                id="uint64_dv"
-                placeholder={dataViewUint64}
-              /></label
-            >
-          </form>
-        </span>
+    {/if}
+    {#if $dvInt32}
+      {#if isEditing === 'int32'}
+        <div class="input-container">
+          <label for="int32_dv" class="label">&nbsp;&nbsp;int32:</label>
+          <Input
+            id="int32_dv"
+            placeholder={$dvInt32}
+            value={$dvInt32}
+            maxlength="32"
+            on:inputEnter={handleInputEnter}
+            on:inputFocusOut={handleBlur}
+            width="64ch"
+            autofocus="true"
+          />
+        </div>
+      {:else}
+        <div
+          class="input-container tooltip"
+          on:click={() => {
+            isEditing = 'int32'
+          }}
+        >
+          <span class="tooltip-text">click to edit int32</span>
+          <label for="int32_dv_ro" class="label">&nbsp;&nbsp;int32:</label>
+          <span id="int32_dv_ro" class="nowrap">{$dvInt32}</span>
+        </div>
       {/if}
-    </div>
+      {#if isEditing === 'uint32'}
+        <div class="input-container">
+          <label for="uint32_dv" class="label">&nbsp;uint32:</label>
+          <Input
+            id="uint32_dv"
+            placeholder={$dvUint32}
+            value={$dvUint32}
+            maxlength="32"
+            on:inputEnter={handleInputEnter}
+            on:inputFocusOut={handleBlur}
+            width="64ch"
+            autofocus="true"
+          />
+        </div>
+      {:else}
+        <div
+          class="input-container tooltip"
+          on:click={() => {
+            isEditing = 'uint32'
+          }}
+        >
+          <span class="tooltip-text">click to edit uint32</span>
+          <label for="uint32_dv_ro" class="label">&nbsp;uint32:</label>
+          <span id="uint32_dv_ro" class="nowrap">{$dvUint32}</span>
+        </div>
+      {/if}
+    {/if}
+    {#if $dvInt64}
+      {#if isEditing === 'int64'}
+        <div class="input-container">
+          <label for="int64_dv" class="label">&nbsp;&nbsp;int64:</label>
+          <Input
+            id="int64_dv"
+            placeholder={$dvInt64}
+            value={$dvInt64}
+            maxlength="64"
+            on:inputEnter={handleInputEnter}
+            on:inputFocusOut={handleBlur}
+            width="64ch"
+            autofocus="true"
+          />
+        </div>
+      {:else}
+        <div
+          class="input-container tooltip"
+          on:click={() => {
+            isEditing = 'int64'
+          }}
+        >
+          <span class="tooltip-text">click to edit int64</span>
+          <label for="int64_dv_ro" class="label">&nbsp;&nbsp;int64:</label>
+          <span id="int64_dv_ro" class="nowrap">{$dvInt64}</span>
+        </div>
+      {/if}
+      {#if isEditing === 'uint64'}
+        <div class="input-container">
+          <label for="uint64_dv" class="label">&nbsp;uint64:</label>
+          <Input
+            id="uint64_dv"
+            placeholder={$dvUint64}
+            value={$dvUint64}
+            maxlength="64"
+            on:inputEnter={handleInputEnter}
+            on:inputFocusOut={handleBlur}
+            width="64ch"
+            autofocus="true"
+          />
+        </div>
+      {:else}
+        <div
+          class="input-container tooltip"
+          on:click={() => {
+            isEditing = 'uint64'
+          }}
+        >
+          <span class="tooltip-text">click to edit uint64</span>
+          <label for="uint64_dv_ro" class="label">&nbsp;uint64:</label>
+          <span id="uint64_dv_ro" class="nowrap">{$dvUint64}</span>
+        </div>
+      {/if}
+    {/if}
   {/if}
 </fieldset>
 
 <style lang="scss">
-  label {
-    min-width: fit-content;
-    display: inline-block;
-    text-align: right;
-  }
-  input,
   select {
-    width: 32ch;
+    width: 64ch;
   }
-  form {
-    padding: 0;
-    margin: 2px;
+  .input-container {
+    display: flex;
+    align-items: center;
+  }
+  .label {
+    margin-right: 8px;
+    white-space: nowrap;
+    overflow-wrap: break-word;
   }
 </style>

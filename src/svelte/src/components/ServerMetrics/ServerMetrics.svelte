@@ -82,7 +82,7 @@ limitations under the License.
 <FlexContainer --height="25pt" --align-items="center">
   {#if heartbeat.serverTimestamp !== 0}
     <div class="info">
-      Powered by Ωedit v{heartbeat.serverVersion} on port {heartbeat.omegaEditPort}
+      &#9889; Powered by Ωedit v{heartbeat.serverVersion} on port {heartbeat.omegaEditPort}
     </div>
     <FlexContainer>
       <svg
@@ -117,7 +117,7 @@ limitations under the License.
       </div>
     </FlexContainer>
   {:else}
-    <div class="info">Powered by Ωedit (heartbeat not received)</div>
+    <div class="info">&#9889; Powered by Ωedit (heartbeat not received)</div>
   {/if}
 </FlexContainer>
 

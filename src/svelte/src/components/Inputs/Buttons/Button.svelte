@@ -27,7 +27,11 @@ limitations under the License.
   disabled={disabledBy}
   on:click={!disabledBy ? fn : () => {}}
 >
-  <FlexContainer --align-items="center" --justify-content="space-evenly">
+  <FlexContainer
+    --dir="row"
+    --align-items="center"
+    --justify-content="space-evenly"
+  >
     <svelte:fragment>
       <slot name="left" />
       <slot />
@@ -35,6 +39,3 @@ limitations under the License.
     </svelte:fragment>
   </FlexContainer>
 </button>
-
-<style lang="scss">
-</style>

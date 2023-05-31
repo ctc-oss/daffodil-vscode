@@ -15,14 +15,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
-  import { selectionData } from '../../Editors/DataEditor'
   import type { ByteValue } from './BinaryData'
   import { selectedByte } from './BinaryData'
   import { createEventDispatcher } from 'svelte'
+  import { selectionData } from '../../../stores'
 
   const eventDispatcher = createEventDispatcher()
 
   export let byte: ByteValue
+
   let bgColor: string
   let selected: boolean
   let latin1Undefined: boolean

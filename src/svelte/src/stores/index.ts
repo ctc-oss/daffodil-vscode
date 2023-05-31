@@ -18,7 +18,6 @@
 import type { ValidationResponse } from '../utilities/display'
 import { EditByteModes } from './configuration'
 import { ThemeType } from '../utilities/colorScheme'
-import { editMode, selectionData } from '../components/Editors/DataEditor'
 import { fileMetrics } from '../components/Header/fieldsets/FileMetrics'
 import {
   radixBytePad,
@@ -26,25 +25,63 @@ import {
   validateEncodingStr,
 } from '../utilities/display'
 import { derived, writable } from 'svelte/store'
+import { SimpleWritable } from './localStore'
 
+class SelectionData {
+  startOffset = 0
+  endOffset = 0
+  originalEndOffset = 0
+  active = false
+}
+
+class SelectionDataStore extends SimpleWritable<SelectionData> {
+  protected init(): SelectionData {
+    return new SelectionData()
+  }
+}
+
+// noinspection JSUnusedGlobalSymbols
+
+// theme to use for the UI
 export const UITheme = writable(ThemeType.Dark)
+
+// address radix to use for the UI (2, 8, 10, 16)
 export const addressRadix = writable(16)
+
+// populated when there is a commit error
 export const commitErrMsg = writable('')
-export const dataViewEndianness = writable('le') // 'le' for little endian and 'be' for big endian
+
+// endianness to use for the data view ('le' or 'be' for little or big endian respectively)
+export const dataViewEndianness = writable('le')
+
+// radix to use for displaying raw bytes (2, 8, 10, 16)
 export const displayRadix = writable(16)
+
+// true if the edit byte window is hidden
 export const editByteWindowHidden = writable(true)
+
+// segment of data that is being edited in single or multiple byte modes
 export const editedDataSegment = writable(new Uint8Array(0))
-export const editedDataStore = writable(new Uint8Array(0))
+
+// encoding to use in the multibyte editor
 export const editorEncoding = writable('latin1')
 export const editorSelection = writable('')
 export const focusedViewportId = writable('')
-export const gotoOffset = writable(0)
-export const gotoOffsetInput = writable('')
+
+// writeable string input for the seek offset
+export const seekOffsetInput = writable('')
+
+// writeable boolean, true indicates that the header is hidden
 export const headerHidden = writable(false)
 export const rawEditorSelectionTxt = writable('')
+
+// writeable boolean, true indicates that the search is case insensitive for character sets that support it
 export const searchCaseInsensitive = writable(false)
+
+// data in the viewport
 export const viewportData = writable(new Uint8Array(0))
-export const viewportLogicalDisplayText = writable('')
+
+// Viewport properties
 export const viewportStartOffset = writable(0)
 export const viewportLength = writable(0)
 export const viewportFollowingByteCount = writable(0)
@@ -54,6 +91,21 @@ export const viewportClientHeight = writable(0)
 export const viewportCapacity = writable(0)
 export const viewportLineHeight = writable(0)
 
+// tracks the start and end offsets of the current selection
+export const selectionData = new SelectionDataStore()
+
+// derived readable enumeration that indicates the edit mode (single byte or multiple bytes)
+export const editMode = derived(
+  selectionData,
+  ($selectionData) => {
+    return $selectionData.originalEndOffset - $selectionData.startOffset <= 0
+      ? EditByteModes.Single
+      : EditByteModes.Multiple
+  },
+  EditByteModes.Single
+)
+
+// derived readable number whose value is the number of lines displayed in the viewport
 export const viewportNumLinesDisplayed = derived(
   [viewportClientHeight, viewportLineHeight],
   ([$viewportClientHeight, $viewportLineHeight]) => {
@@ -61,6 +113,7 @@ export const viewportNumLinesDisplayed = derived(
   }
 )
 
+// derived readable number whose value is the end offset of the current viewport
 export const viewportEndOffset = derived(
   [viewportStartOffset, viewportLength],
   ([$viewportStartOffset, $viewportLength]) => {
@@ -68,6 +121,7 @@ export const viewportEndOffset = derived(
   }
 )
 
+// derived readable boolean that indicates if the viewport is scrolled to the top
 export const viewportScrolledToTop = derived(
   [viewportScrollTop],
   ([$viewportScrollTop]) => {
@@ -75,13 +129,18 @@ export const viewportScrolledToTop = derived(
   }
 )
 
+// derived readable boolean that indicates if the viewport is scrolled to the end
 export const viewportScrolledToEnd = derived(
   [viewportScrollTop, viewportScrollHeight, viewportClientHeight],
   ([$viewportScrollTop, $viewportScrollHeight, $viewportClientHeight]) => {
-    return $viewportScrollTop + $viewportClientHeight >= $viewportScrollHeight
+    return (
+      Math.ceil($viewportScrollTop) + $viewportClientHeight >=
+      $viewportScrollHeight
+    )
   }
 )
 
+// derived readable number whose value is the computed number of bytes in the edited file
 export const offsetMax = derived(
   [viewportStartOffset, viewportLength, viewportFollowingByteCount],
   ([$viewportOffset, $viewportLength, $viewportFollowingByteCount]) => {
@@ -90,6 +149,7 @@ export const offsetMax = derived(
   }
 )
 
+// derived readable number whose value is the size of the current data selection
 export const selectionSize = derived(
   [selectionData, editorSelection],
   ([$selectionData, $editorSelection]) => {
@@ -99,9 +159,21 @@ export const selectionSize = derived(
   }
 )
 
+// derived from the seek offset input and the current address radix
+export const seekOffset = derived(
+  [seekOffsetInput, addressRadix],
+  ([$seekOffsetInput, $addressRadix]) => {
+    return $seekOffsetInput.length > 0
+      ? parseInt($seekOffsetInput, $addressRadix)
+      : 0
+  }
+)
+
+// derived readable string whose value is the selected encoded byte value with respect to the current focused viewport
 export const editByte = derived(
   [displayRadix, focusedViewportId, viewportData, selectionData],
   ([$displayRadix, $focusedViewportId, $viewportData, $selectionData]) => {
+    // TODO: I think there is a cleaner way to do this given that we already have the encoded data in the respective viewports
     if ($viewportData[$selectionData.startOffset] !== undefined) {
       return $focusedViewportId === 'logical'
         ? String.fromCharCode($viewportData[$selectionData.startOffset])
@@ -114,6 +186,7 @@ export const editByte = derived(
   }
 )
 
+// derived readable boolean that indicates if the edited byte is equivalent to the original byte
 export const editedByteIsOriginalByte = derived(
   [editorSelection, editByte, focusedViewportId],
   ([$editorSelection, $editByte, $focusedViewportId]) => {
@@ -123,10 +196,12 @@ export const editedByteIsOriginalByte = derived(
   }
 )
 
+// derived readable number that indicates the number of encoded bytes per row in each viewport
 export const bytesPerRow = derived(displayRadix, ($displayRadix) => {
   return $displayRadix === 2 ? 8 : 16
 })
 
+// derived readable boolean that indicates if the case-insensitive search is allowed
 export const allowCaseInsensitiveSearch = derived(
   editorEncoding,
   ($editorEncoding) => {
@@ -134,6 +209,7 @@ export const allowCaseInsensitiveSearch = derived(
   }
 )
 
+// derived readable boolean that indicates if the file is saveable (there are outstanding changes)
 export const saveable = derived([fileMetrics], ([$fileMetrics]) => {
   return $fileMetrics.changeCount > 0
 })
@@ -179,6 +255,7 @@ export const originalDataSegment = derived(
   }
 )
 
+// derived readable boolwan that indicates if the edited selection is committable
 export const committable = derived(
   [
     requestable,
@@ -219,15 +296,16 @@ export const committable = derived(
   }
 )
 
-export const gotoable = derived(
-  [gotoOffset, gotoOffsetInput, offsetMax, addressRadix],
-  ([$gotoOffset, $gotoOffsetInput, $gotoOffsetMax, $addressValue]) => {
-    if ($gotoOffsetInput.length <= 0) return { valid: false, gotoErrMsg: '' }
-    if ($gotoOffset > $gotoOffsetMax)
-      return { valid: false, gotoErrMsg: 'Exceeds filesize' }
-    if (!regexEditDataTest($gotoOffsetInput, $addressValue))
-      return { valid: false, gotoErrMsg: 'Invalid characters' }
-    return { valid: true, gotoErrMsg: '' }
+// derived readable boolean that indicates if the seek offset input is valid
+export const seekable = derived(
+  [seekOffset, seekOffsetInput, offsetMax, addressRadix],
+  ([$seekOffset, $seekOffsetInput, $offsetMax, $addressRadix]) => {
+    if ($seekOffsetInput.length <= 0) return { valid: false, seekErrMsg: '' }
+    if ($seekOffset > $offsetMax)
+      return { valid: false, seekErrMsg: 'Exceeds filesize' }
+    if (!regexEditDataTest($seekOffsetInput, $addressRadix))
+      return { valid: false, seekErrMsg: 'Invalid characters' }
+    return { valid: true, seekErrMsg: '' }
   }
 )
 
@@ -271,3 +349,164 @@ function validRequestableData(
       return { valid: false, errMsg: 'illegal edit mode' }
   }
 }
+
+export const dvOffset = derived(
+  [selectionData, addressRadix],
+  ([$selectionData, $addressRadix]) => {
+    return $selectionData.active
+      ? $selectionData.startOffset.toString($addressRadix).toUpperCase()
+      : ''
+  }
+)
+
+export const dvLatin1 = derived(
+  [selectionData, dataView],
+  ([$selectionData, $dataView]) => {
+    return $selectionData.active && $dataView.byteLength >= 1
+      ? String.fromCharCode($dataView.getUint8(0))
+      : ''
+  }
+)
+
+export const dvInt8 = derived(
+  [selectionData, dataView, displayRadix],
+  ([$selectionData, $dataView, $displayRadix]) => {
+    const value =
+      $selectionData.active && $dataView.byteLength >= 1
+        ? $dataView.getInt8(0).toString($displayRadix).toUpperCase()
+        : ''
+    return value && $displayRadix === 2 ? value.padStart(8, '0') : value
+  }
+)
+
+export const dvUint8 = derived(
+  [selectionData, dataView, displayRadix],
+  ([$selectionData, $dataView, $displayRadix]) => {
+    const value =
+      $selectionData.active && $dataView.byteLength >= 1
+        ? $dataView.getUint8(0).toString($displayRadix).toUpperCase()
+        : ''
+    return value && $displayRadix === 2 ? value.padStart(8, '0') : value
+  }
+)
+
+export const dvInt16 = derived(
+  [selectionData, dataView, displayRadix, dataViewEndianness],
+  ([$selectionData, $dataView, $displayRadix, $dataViewEndianness]) => {
+    const value =
+      $selectionData.active && $dataView.byteLength >= 2
+        ? $dataView
+            .getInt16(0, $dataViewEndianness === 'le')
+            .toString($displayRadix)
+            .toUpperCase()
+        : ''
+    return value && $displayRadix === 2 ? value.padStart(16, '0') : value
+  }
+)
+
+export const dvUint16 = derived(
+  [selectionData, dataView, displayRadix, dataViewEndianness],
+  ([$selectionData, $dataView, $displayRadix, $dataViewEndianness]) => {
+    const value =
+      $selectionData.active && $dataView.byteLength >= 2
+        ? $dataView
+            .getUint16(0, $dataViewEndianness === 'le')
+            .toString($displayRadix)
+            .toUpperCase()
+        : ''
+    return value && $displayRadix === 2 ? value.padStart(16, '0') : value
+  }
+)
+
+export const dvInt32 = derived(
+  [selectionData, dataView, displayRadix, dataViewEndianness],
+  ([$selectionData, $dataView, $displayRadix, $dataViewEndianness]) => {
+    const value =
+      $selectionData.active && $dataView.byteLength >= 4
+        ? $dataView
+            .getInt32(0, $dataViewEndianness === 'le')
+            .toString($displayRadix)
+            .toUpperCase()
+        : ''
+    return value && $displayRadix === 2 ? value.padStart(32, '0') : value
+  }
+)
+
+export const dvUint32 = derived(
+  [selectionData, dataView, displayRadix, dataViewEndianness],
+  ([$selectionData, $dataView, $displayRadix, $dataViewEndianness]) => {
+    const value =
+      $selectionData.active && $dataView.byteLength >= 4
+        ? $dataView
+            .getUint32(0, $dataViewEndianness === 'le')
+            .toString($displayRadix)
+            .toUpperCase()
+        : ''
+    return value && $displayRadix === 2 ? value.padStart(32, '0') : value
+  }
+)
+
+export const dvInt64 = derived(
+  [selectionData, dataView, displayRadix, dataViewEndianness],
+  ([$selectionData, $dataView, $displayRadix, $dataViewEndianness]) => {
+    const value =
+      $selectionData.active && $dataView.byteLength >= 8
+        ? $dataView
+            .getBigInt64(0, $dataViewEndianness === 'le')
+            .toString($displayRadix)
+            .toUpperCase()
+        : ''
+    return value && $displayRadix === 2 ? value.padStart(64, '0') : value
+  }
+)
+
+export const dvUint64 = derived(
+  [selectionData, dataView, displayRadix, dataViewEndianness],
+  ([$selectionData, $dataView, $displayRadix, $dataViewEndianness]) => {
+    const value =
+      $selectionData.active && $dataView.byteLength >= 8
+        ? $dataView
+            .getBigUint64(0, $dataViewEndianness === 'le')
+            .toString($displayRadix)
+            .toUpperCase()
+        : ''
+    return value && $displayRadix === 2 ? value.padStart(64, '0') : value
+  }
+)
+
+function latin1Undefined(charCode: number): boolean {
+  return charCode < 32 || (charCode > 126 && charCode < 160)
+}
+
+function logicalDisplay(bytes: Uint8Array, bytesPerRow: number): string {
+  const undefinedCharStandIn = String.fromCharCode(9617)
+  let result = ''
+
+  for (let i = 0, col = 0; i < bytes.length; ++i) {
+    if (latin1Undefined(bytes[i])) {
+      result += undefinedCharStandIn
+    } else {
+      const char = String.fromCharCode(bytes[i])
+      result += char === '\n' ? ' ' : char
+    }
+
+    if (++col === bytesPerRow) {
+      col = 0
+      if (i < bytes.length) {
+        result += '\n'
+      }
+    } else {
+      result += ' '
+    }
+  }
+
+  return result
+}
+
+// derived readable string whose value is the logical display of the current viewport
+export const viewportLogicalDisplayText = derived(
+  [viewportData, bytesPerRow],
+  ([$viewportData, $bytesPerRow]) => {
+    return logicalDisplay($viewportData, $bytesPerRow)
+  }
+)

@@ -35,7 +35,7 @@ export const ENCODING_GROUPS = [
   {
     group: 'Binary',
     encodings: [
-      { name: 'Hexidecimal', value: 'hex' },
+      { name: 'Hexadecimal', value: 'hex' },
       { name: 'Binary', value: 'binary' },
     ],
   },
@@ -67,7 +67,7 @@ export const BYTE_ORDER_OPTIONS = [
 export const BYTE_SIZE_OPTIONS = [{ value: 8 }, { value: 7 }, { value: 6 }]
 
 export const ADDRESS_RADIX_OPTIONS = [
-  { name: 'Hexidecimal', value: 16 },
+  { name: 'Hexadecimal', value: 16 },
   { name: 'Decimal', value: 10 },
   { name: 'Octal', value: 8 },
 ]

@@ -15,38 +15,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
-  import { commitErrMsg, committable } from '../../../stores'
+  import { commitErrMsg, committable, editMode } from '../../../stores'
   import { EditByteModes } from '../../../stores/configuration'
   import { createEventDispatcher } from 'svelte'
-  import { fileMetrics } from '../../Header/fieldsets/FileMetrics'
   import FlexContainer from '../../layouts/FlexContainer.svelte'
   import Button from '../../Inputs/Buttons/Button.svelte'
-  import { editMode } from '../../Editors/DataEditor'
-  const EventDispatcher = createEventDispatcher()
+  const eventDispatcher = createEventDispatcher()
 
-  let canUndo: boolean = false
-  let canRedo: boolean = false
-  let canRevert: boolean = false
-  let redoText: string = ''
-  let undoText: string = ''
-  $: {
-    canUndo = $fileMetrics.changeCount > 0
-    canRedo = $fileMetrics.undoCount > 0
-    canRevert = $fileMetrics.undoCount + $fileMetrics.changeCount > 0
-    redoText = canRedo ? '(' + $fileMetrics.undoCount + ')' : ''
-    undoText = canUndo ? '(' + $fileMetrics.changeCount + ')' : ''
-  }
   function commitChanges(event: Event) {
-    EventDispatcher('commitChanges', event)
-  }
-  function redo() {
-    EventDispatcher('redo')
-  }
-  function undo() {
-    EventDispatcher('undo')
-  }
-  function clearChangeStack() {
-    EventDispatcher('clearChangeStack')
+    eventDispatcher('commitChanges', event)
   }
 </script>
 
@@ -57,42 +34,12 @@ limitations under the License.
       <span class="errMsg">{$commitErrMsg}</span>
     {/if}
   </legend>
-  <FlexContainer>
-    <!-- Full Mode Content Controls -->
-    {#if $editMode === EditByteModes.Multiple}
+  {#if $editMode === EditByteModes.Multiple}
+    <FlexContainer>
       <Button disabledBy={!$committable} fn={commitChanges}>
         <span slot="left" class="btn-icon">&#10003;</span>
-        <span slot="default">Commit</span>
+        <span slot="default">&nbsp;Commit</span>
       </Button>
-      <Button disabledBy={!canRedo} fn={redo}>
-        <span slot="left" class="mirror btn-icon">&#9100;</span>
-        <span slot="default">Redo{redoText}</span>
-      </Button>
-      <Button disabledBy={!canUndo} fn={undo}>
-        <span slot="left" class="btn-icon">&#9100;</span>
-        <span slot="default">Undo{undoText}</span>
-      </Button>
-      <Button disabledBy={!canRevert} fn={clearChangeStack}>
-        <span slot="left" class="btn-icon">&#8635;</span>
-        <span slot="default">Revert All</span>
-      </Button>
-    {:else}
-      <!-- Simple Mode Content Controls -->
-      <Button disabledBy={!canRedo} fn={redo}>
-        <span slot="left" class="mirror btn-icon">&#9100;</span>
-        <span slot="default">Redo{redoText}</span>
-      </Button>
-      <Button disabledBy={!canUndo} fn={undo}>
-        <span slot="left" class="btn-icon">&#9100;</span>
-        <span slot="default">Undo{undoText}</span>
-      </Button>
-      <Button disabledBy={!canRevert} fn={clearChangeStack}>
-        <span slot="left" class="btn-icon">&#8635;</span>
-        <span slot="default">Revert All</span>
-      </Button>
-    {/if}
-  </FlexContainer>
+    </FlexContainer>
+  {/if}
 </fieldset>
-
-<style lang="scss">
-</style>

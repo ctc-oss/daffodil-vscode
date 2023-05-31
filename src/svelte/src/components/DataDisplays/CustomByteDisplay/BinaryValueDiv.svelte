@@ -15,9 +15,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
-  import { displayRadix } from '../../../stores'
-  import { EditByteModes, RADIX_OPTIONS } from '../../../stores/configuration'
-  import { editMode, selectionData } from '../../Editors/DataEditor'
+  import { displayRadix, selectionData } from '../../../stores'
+  import { RADIX_OPTIONS } from '../../../stores/configuration'
   import {
     mouseSelectionBytes,
     type ByteSelectionEvent,

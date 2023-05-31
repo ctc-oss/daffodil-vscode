@@ -10,13 +10,14 @@
   import { enterKeypressEvents } from '../../../utilities/enterKeypressEvents'
   import {
     addressRadix,
-    committable,
     commitErrMsg,
-    editByte,
-    editorSelection,
+    committable,
     displayRadix,
+    editByte,
+    editMode,
+    editorSelection,
+    selectionData,
   } from '../../../stores'
-  import { editMode, selectionData } from '../../Editors/DataEditor'
   import { radixBytePad, radixToString } from '../../../utilities/display'
   import { EditByteModes } from '../../../stores/configuration'
 
@@ -148,7 +149,7 @@
   @keyframes shake {
     0%,
     100% {
-      translate: 0px;
+      translate: 0;
     }
     25% {
       translate: -3px;

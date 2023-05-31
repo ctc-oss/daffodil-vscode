@@ -20,7 +20,7 @@ import { SimpleWritable } from '../../../stores/localStore'
 import type { EditByteModes, RadixValues } from '../../../stores/configuration'
 import { radixBytePad } from '../../../utilities/display'
 
-export const BYTE_VALUE_DIV_OFFSET = 24
+export const BYTE_VALUE_DIV_OFFSET: number = 24
 
 export type ByteValue = {
   offset: number

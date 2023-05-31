@@ -15,18 +15,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
-  import { editorSelection } from '../../stores'
+  import { editorSelection, editMode } from '../../stores'
   import { EditByteModes } from '../../stores/configuration'
   import { UIThemeCSSClass } from '../../utilities/colorScheme'
   import { createEventDispatcher } from 'svelte'
   import ContentControls from '../DataDisplays/Fieldsets/ContentControls.svelte'
   import FlexContainer from '../layouts/FlexContainer.svelte'
   import DataView from '../DataDisplays/Fieldsets/DataView.svelte'
-  import { editMode } from './DataEditor'
-  const EventDispatcher = createEventDispatcher()
+  const eventDispatcher = createEventDispatcher()
 
   function handleEditorEvent(event: Event) {
-    EventDispatcher('handleEditorEvent', event)
+    eventDispatcher('handleEditorEvent', event)
   }
 </script>
 
@@ -41,15 +40,13 @@ limitations under the License.
       on:click={handleEditorEvent}
       on:input={handleEditorEvent}
     />
+
+    <FlexContainer>
+      <ContentControls on:commitChanges />
+    </FlexContainer>
   {:else}
-    <textarea class={$UIThemeCSSClass} id="selectedContent" disabled />
+    <FlexContainer>
+      <DataView />
+    </FlexContainer>
   {/if}
-
-  <FlexContainer>
-    <ContentControls on:clearChangeStack on:commitChanges on:redo on:undo />
-  </FlexContainer>
-
-  <FlexContainer>
-    <DataView />
-  </FlexContainer>
 </div>

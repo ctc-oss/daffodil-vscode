@@ -2,14 +2,15 @@
   import {
     bytesPerRow,
     editedDataSegment,
+    editMode,
     editorEncoding,
     focusedViewportId,
+    selectionData,
     selectionSize,
   } from '../../../stores'
   import { EditByteModes } from '../../../stores/configuration'
   import { MessageCommand } from '../../../utilities/message'
   import { vscode } from '../../../utilities/vscode'
-  import { editMode, selectionData } from '../../Editors/DataEditor'
   import {
     BYTE_VALUE_DIV_OFFSET,
     _viewportData,
@@ -19,11 +20,10 @@
   } from './BinaryData'
   import LogicalDisplayDiv from './LogicalValueDiv.svelte'
 
-  let logicalByteArray: ByteValue[] = []
-  let selectionActive = false
+  let logicalByteArray: ByteValue[]
+  let selectionActive
 
   $: logicalByteArray = logical_bytes_from($_viewportData)
-
   $: selectionActive = $selectionData.active
 
   function latin1_undefined(charCode: number): boolean {

@@ -21,6 +21,7 @@ limitations under the License.
   <slot />
 </div>
 
+<!--suppress CssInvalidFunction -->
 <style lang="scss">
   div.container {
     width: var(--width, var(--container-width, '100%'));

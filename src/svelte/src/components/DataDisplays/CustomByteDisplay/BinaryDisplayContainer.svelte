@@ -20,11 +20,12 @@ limitations under the License.
     editorEncoding,
     focusedViewportId,
     selectionSize,
+    editMode,
+    selectionData,
   } from '../../../stores'
   import { EditByteModes } from '../../../stores/configuration'
   import { MessageCommand } from '../../../utilities/message'
   import { vscode } from '../../../utilities/vscode'
-  import { editMode, selectionData } from '../../Editors/DataEditor'
   import {
     BYTE_VALUE_DIV_OFFSET,
     update_byte_action_offsets,

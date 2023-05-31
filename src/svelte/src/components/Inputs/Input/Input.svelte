@@ -16,21 +16,134 @@ limitations under the License.
 -->
 <script lang="ts">
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
+  import { createEventDispatcher, onMount } from 'svelte'
+  const eventDispatcher = createEventDispatcher()
 
-  export let value
+  type InputTypes = 'search' | 'text' | 'checkbox'
+
+  export let allowDefaultInput: string = 'false'
+  export let autofocus: string = 'false'
   export let id: string = ''
+  export let maxlength: number = 100
+  export let placeholder: string = ''
+  export let type: InputTypes = 'search' // default to search for the clear button
+  export let value: string = ''
+  export let width: string = '100%'
 
-  type InputTypes = 'text' | 'checkbox'
-  export let type: InputTypes = 'text'
+  let containerClass: string
+  let inlineClass: string
+  let inputClass: string
+  let initialValue: string
+  let allowDefaultInputBool: boolean
+
+  // this is a reference to the input element
+  let thisElement: HTMLInputElement
+
+  function CSSThemeClass(selectors?: string) {
+    return selectors + ' ' + $UIThemeCSSClass
+  }
+
+  $: {
+    containerClass = CSSThemeClass('input-actions')
+    inlineClass = CSSThemeClass('inline-container')
+    inputClass = CSSThemeClass('actionable')
+  }
+
+  // need this to avoid 2-way type binding
+  const setType = (node: HTMLInputElement, _type: string) => {
+    node.type = _type
+    return {
+      update(_type: string) {
+        node.type = _type
+      },
+    }
+  }
+
+  function handleKeyPress(event: KeyboardEvent) {
+    // if the user presses enter, and the input is not empty, and the input has changed, then dispatch an event
+    if (
+      event.key === 'Enter' &&
+      (allowDefaultInputBool ||
+        (thisElement.value !== '' && thisElement.value !== initialValue))
+    ) {
+      eventDispatcher('inputEnter', {
+        id,
+        initialValue,
+        value: thisElement.value,
+      })
+    }
+  }
+
+  function handleFocus(event: FocusEvent) {
+    // if the input has changed focus, dispatch an event
+    switch (event.type) {
+      case 'focusin':
+        eventDispatcher('inputFocusIn', {
+          id,
+          initialValue,
+          value: thisElement.value,
+        })
+        break
+      case 'focusout':
+        eventDispatcher('inputFocusOut', {
+          id,
+          initialValue,
+          value: thisElement.value,
+        })
+        break
+    }
+  }
+
+  onMount(() => {
+    // save the initial value of the input element, so we can check if it has changed later
+    initialValue = value
+    // need a boolean value for this
+    allowDefaultInputBool = allowDefaultInput.toLowerCase() === 'true'
+    // focus the input element when the component is mounted
+    if (autofocus.toLowerCase() === 'true') {
+      thisElement.focus()
+    }
+  })
 </script>
 
-{#if type === 'text'}
-  <input type="text" class={$UIThemeCSSClass + ' text'} {id} bind:value />
+{#if type === 'text' || type === 'search'}
+  <span
+    class={containerClass}
+    {id}
+    on:focusin={handleFocus}
+    on:focusout={handleFocus}
+    style="width: {width};"
+  >
+    <span class={inlineClass}>
+      <input
+        use:setType={type}
+        class="{$UIThemeCSSClass} {type}"
+        bind:this={thisElement}
+        bind:value
+        {placeholder}
+        {maxlength}
+        on:blur
+        on:change
+        on:click
+        on:contextmenu
+        on:focus
+        on:input
+        on:keydown={handleKeyPress}
+        on:keypress
+        on:keyup
+        on:mouseenter
+        on:mouseleave
+        on:mouseover
+        on:paste
+      />
+    </span>
+  </span>
   <slot />
 {:else if type === 'checkbox'}
   <input
     type="checkbox"
-    class={$UIThemeCSSClass + ' checkbox'}
+    class="{$UIThemeCSSClass} {type}"
+    bind:this={thisElement}
     bind:checked={value}
   />
 {/if}
