@@ -72,17 +72,18 @@ limitations under the License.
         // address are in hex
         16: {
           // radix is hex
-          text: '0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 <br/>0 1 2 3 4 5 6 7 8 9 A B C D E F ',
+          text: '0000000000000000<br/>0123456789ABCDEF',
           spread: 2,
         },
         10: {
           // radix is decimal
-          text: '0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 <br/>0 1 2 3 4 5 6 7 8 9 A B C D E F ',
+          text: '0000000000000000<br/>0123456789ABCDEF',
           spread: 3,
         },
         8: {
           // radix is octal
-          text: '0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 <br/>0 1 2 3 4 5 6 7 8 9 A B C D E F ',
+          // text: '0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 <br/>0 1 2 3 4 5 6 7 8 9 A B C D E F ',
+          text: '0000000000000000<br/>0123456789ABCDEF',
           spread: 3,
         },
         2: {
@@ -148,12 +149,14 @@ limitations under the License.
         )
       spread = 1
     }
-    return (
-      offsetDisplays[address][radix].text.replaceAll(
-        ' ',
-        '&nbsp;'.repeat(spread)
-      ) + '&nbsp'
-    )
+    return offsetDisplays[address][radix].text
+    
+    // return (
+    //   offsetDisplays[address][radix].text.replaceAll(
+    //     ' ',
+    //     '&nbsp;'.repeat(spread)
+    //   ) + '&nbsp'
+    // )
   }
 
   export function setSelectionOffsetInfo(
@@ -193,13 +196,13 @@ limitations under the License.
   </select>
 </div>
 
-<div class={$UIThemeCSSClass + ' measure'}>
+<div class={$UIThemeCSSClass + ' measure viewports'}>
   <span id="physical_offsets">
     {@html physicalOffsetText}
   </span>
 </div>
 
-<div class={$UIThemeCSSClass + ' measure'}>
+<div class={$UIThemeCSSClass + ' measure viewports'}>
   <span id="logical_offsets">
     {@html logicalOffsetText}
   </span>
@@ -232,6 +235,3 @@ limitations under the License.
     </div>
   {/if}
 </div>
-
-<style lang="scss">
-</style>

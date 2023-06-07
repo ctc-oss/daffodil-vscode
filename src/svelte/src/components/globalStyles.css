@@ -247,9 +247,8 @@ span.input-actions.light {
 .dataEditor {
   display: grid;
   grid-template-columns: max-content max-content max-content auto;
-  grid-template-rows: max-content max-content auto;
-  min-height: 640px;
-  height: 100%;
+  grid-template-rows: max-content 25pt auto;
+  height: 400pt;
   /*noinspection CssUnresolvedCustomProperty*/
   font-family: var(--vscode-editor-font-family, 'monospace');
 }
@@ -274,6 +273,13 @@ span.input-actions.light {
 }
 .dataEditor div.measure {
   display: flex;
+  font-family: monospace;
+  height: 25pt;
+}
+.dataEditor div.measure.viewports {
+  font-size: 13.5px;
+  letter-spacing: 16px;
+  padding-left: 4px;
 }
 .dataEditor div.measure.dark {
   display: flex;
@@ -339,6 +345,8 @@ span.input-actions.light {
   max-width: 100px;
   padding-right: 10pt;
   font-weight: 700;
+  font-family: monospace;
+  line-height: 24px;
 }
 .dataEditor textarea.address_vw:focus {
   outline: none;
@@ -357,7 +365,8 @@ span.input-actions.light {
 .dataEditor div.editView {
   display: grid;
   grid-template-columns: 1fr;
-  grid-template-rows: 1fr max-content;
+  grid-template-rows: 75%;
+  gap: 10pt;
   overflow-x: hidden;
   word-break: break-all;
 }

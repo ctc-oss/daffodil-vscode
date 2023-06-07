@@ -445,7 +445,7 @@ limitations under the License.
 
   <hr />
   <ServerMetrics />
-  <hr />
+  <!-- <hr />
 
   <h2>Flexible Custom Div Box</h2>
   <FlexContainer --dir="row">
@@ -468,7 +468,7 @@ limitations under the License.
         value: {selectedByteDebug.value})
       </div>
     </FlexContainer>
-  </FlexContainer>
+  </FlexContainer> -->
 </body>
 
 <!-- svelte-ignore css-unused-selector -->

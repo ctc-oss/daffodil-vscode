@@ -166,16 +166,17 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    text-align: center;
     flex-direction: row;
     font-family: monospace;
     border-radius: 5px;
     border-style: solid;
     border-width: 2px;
+    border-color: var(--color-primary-dark);
     height: 20px;
     width: 20px;
-    text-align: center;
-    border-color: var(--color-primary-dark);
-    transition: all 0.25s;
+    transition: border-color 0.25s, top 0.15s, left 0.15s, right 0.15s;
+    outline: none;
   }
   div.insert-before,
   div.insert-after,

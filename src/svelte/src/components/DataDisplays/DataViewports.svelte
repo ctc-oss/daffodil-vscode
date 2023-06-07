@@ -47,6 +47,10 @@ limitations under the License.
   import { createEventDispatcher, onMount, tick } from 'svelte'
   import { vscode } from '../../utilities/vscode'
   import { EditByteModes, RADIX_OPTIONS } from '../../stores/configuration'
+  import FlexContainer from '../layouts/FlexContainer.svelte'
+  import BinaryValueActions from './CustomByteDisplay/BinaryValueActions.svelte'
+  import LogicalDisplayContainer from './CustomByteDisplay/LogicalDisplayContainer.svelte'
+  import BinaryDisplayContainer from './CustomByteDisplay/BinaryDisplayContainer.svelte'
 
   const eventDispatcher = createEventDispatcher()
   const viewportRefs = viewport_references() as ViewportReferences
@@ -313,6 +317,9 @@ limitations under the License.
     })
   }
 
+  const custom_commit_changes = () => { eventDispatcher('custom-commit-changes') }
+  const handleEditorEvent = () => { eventDispatcher('handleEditorEvent') } 
+  
   onMount(() => {
     populateViewportGeometry()
 
@@ -331,7 +338,7 @@ limitations under the License.
   bind:innerHTML={addressDisplayText}
   on:scroll={scrollHandle}
 />
-<textarea
+<!-- <textarea
   class={$UIThemeCSSClass + ' physical'}
   class:locked={$selectionData.active}
   class:hexWidth={$displayRadix === RADIX_OPTIONS.Hexadecimal}
@@ -360,7 +367,13 @@ limitations under the License.
   bind:innerHTML={$viewportLogicalDisplayText}
   on:mouseup={handleSelectionEvent}
   on:scroll={scrollHandle}
+/> -->
+<BinaryValueActions
+  on:commitChanges={custom_commit_changes}
+  on:handleEditorEvent={handleEditorEvent}
 />
+<BinaryDisplayContainer />
+<LogicalDisplayContainer />
 
 <style lang="scss">
   textarea {
