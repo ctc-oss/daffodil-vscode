@@ -61,7 +61,7 @@ export class ViewportData extends SimpleWritable<Uint8Array> {
     bytesPerRow: 16 | 8
   ): ByteValue[] {
     const byteValues =
-      this.phyiscal_display(radix, bytesPerRow).match(
+      this.physical_display(radix, bytesPerRow).match(
         RADIX_REGEX_MATCH_STR[radix]
       ) || []
 
@@ -73,7 +73,7 @@ export class ViewportData extends SimpleWritable<Uint8Array> {
       }
     })
   }
-  private phyiscal_display(radix: RadixValues, bytesPerRow: 16 | 8): string {
+  private physical_display(radix: RadixValues, bytesPerRow: 16 | 8): string {
     let result = ''
     let arr = get(this.store)
     if (arr.byteLength > 0) {
