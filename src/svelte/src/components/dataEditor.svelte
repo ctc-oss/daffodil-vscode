@@ -41,6 +41,7 @@ limitations under the License.
     viewportLineHeight,
     viewportNumLinesDisplayed,
     viewportStartOffset,
+    addressRadix,
   } from '../stores'
   import {
     CSSThemeClass,
@@ -446,7 +447,13 @@ limitations under the License.
   <hr />
 
   <FlexContainer --dir="row">
-    <ByteViewports />
+    <ByteViewports
+      addressRadix={$addressRadix}
+      displayRadix={$displayRadix}
+      bytesPerRow={$bytesPerRow}
+      startOffset={$viewportStartOffset}
+      byteData={$viewportData}
+    />
   </FlexContainer>
 
   <!-- <hr />

@@ -16,17 +16,16 @@ limitations under the License.
 -->
 <script lang="ts">
   import { onMount, tick, createEventDispatcher } from 'svelte'
-  import {
-    addressRadix,
-    bytesPerRow,
-    displayRadix,
-    viewportData,
-    viewportStartOffset,
-  } from '../../stores'
 
   // TODO: Instead of using the store directly, we should use properties that
   //  are bound in from the parent component. This will provide better
   //  encapsulation.
+
+  export let addressRadix = 16
+  export let displayRadix = 16
+  export let bytesPerRow = 16
+  export let startOffset = 0
+  export let byteData = new Uint8Array()
 
   let gutterContainer: HTMLDivElement
   let physicalContainer: HTMLDivElement
@@ -40,11 +39,9 @@ limitations under the License.
   // Address generation for the gutter
   $: addresses = Array.from(
     {
-      length: Math.ceil(
-        ($viewportStartOffset + $viewportData.length) / $bytesPerRow
-      ),
+      length: Math.ceil((startOffset + byteData.length) / bytesPerRow),
     },
-    (_, i) => (i * $bytesPerRow).toString($addressRadix).toUpperCase()
+    (_, i) => (i * bytesPerRow).toString(addressRadix).toUpperCase()
   )
 
   function syncScroll(element: HTMLDivElement) {
@@ -77,9 +74,7 @@ limitations under the License.
 
   function renderByte(byteArray: number[]): string {
     return byteArray
-      .map((byte) =>
-        byte.toString($displayRadix).toUpperCase().padStart(2, '0')
-      )
+      .map((byte) => byte.toString(displayRadix).toUpperCase().padStart(2, '0'))
       .join(' ')
   }
 
@@ -122,9 +117,9 @@ limitations under the License.
       id="physical"
       bind:this={physicalContainer}
     >
-      {#each Array.from( { length: Math.ceil($viewportData.length / $bytesPerRow) } ) as _, i}
+      {#each Array.from( { length: Math.ceil(byteData.length / bytesPerRow) } ) as _, i}
         <div>
-          {#each $viewportData.slice(i * $bytesPerRow, (i + 1) * $bytesPerRow) as byte}
+          {#each byteData.slice(i * bytesPerRow, (i + 1) * bytesPerRow) as byte}
             {renderByte([byte]) + ' '}
           {/each}
         </div>
@@ -139,9 +134,9 @@ limitations under the License.
       id="logical"
       bind:this={logicalContainer}
     >
-      {#each Array.from( { length: Math.ceil($viewportData.length / $bytesPerRow) } ) as _, i}
+      {#each Array.from( { length: Math.ceil(byteData.length / bytesPerRow) } ) as _, i}
         <div>
-          {#each $viewportData.slice(i * $bytesPerRow, (i + 1) * $bytesPerRow) as byte}
+          {#each byteData.slice(i * bytesPerRow, (i + 1) * bytesPerRow) as byte}
             {renderLatin1([byte]) + ' '}
           {/each}
         </div>
