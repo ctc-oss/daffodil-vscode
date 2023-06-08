@@ -460,7 +460,7 @@ limitations under the License.
   <ServerMetrics />
   <hr />
 
-  <ByteViewports
+  <!-- <ByteViewports
     addressRadix={$addressRadix}
     displayRadix={$displayRadix}
     bytesPerRow={$bytesPerRow}
@@ -468,7 +468,7 @@ limitations under the License.
     byteData={$viewportData}
     nonPrintableStandIn={UNPRINTABLE_CHAR_STAND_IN}
     on:scrollBoundary={scrollBoundaryEventHandler}
-  />
+  /> -->
 
   <!-- <hr />
 

@@ -243,6 +243,11 @@ span.input-actions.light {
   padding: 0 2px 0 2px;
 }
 
+/* Hide scrollbar by default on webkit-based browsers */
+div.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* Global Style Classes */
 .dataEditor {
   display: grid;

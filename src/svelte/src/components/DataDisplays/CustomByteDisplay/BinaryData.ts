@@ -117,26 +117,37 @@ export type ByteActionPxOffsets = {
 function latin1Undefined(charCode: number): boolean {
   return charCode < 32 || (charCode > 126 && charCode < 160)
 }
-export function update_byte_action_offsets(targetDiv: HTMLDivElement) {
+export function update_byte_action_offsets(targetDiv: HTMLDivElement, offsetTopBy: number = 0) {
   byteActionPxOffsets.update((currentOffsets) => {
     currentOffsets.delete = {
       left: targetDiv.offsetLeft,
-      top: targetDiv.offsetTop + BYTE_VALUE_DIV_OFFSET,
+      top: (targetDiv.offsetTop + BYTE_VALUE_DIV_OFFSET) - offsetTopBy,
     }
     currentOffsets.input = {
       left: targetDiv.offsetLeft,
-      top: targetDiv.offsetTop,
+      top: targetDiv.offsetTop - offsetTopBy,
     }
     currentOffsets.insertAfter = {
       left: targetDiv.offsetLeft + BYTE_VALUE_DIV_OFFSET,
-      top: targetDiv.offsetTop,
+      top: targetDiv.offsetTop - offsetTopBy,
     }
     currentOffsets.insertBefore = {
       left: targetDiv.offsetLeft - BYTE_VALUE_DIV_OFFSET,
-      top: targetDiv.offsetTop,
-    }
+      top: targetDiv.offsetTop - offsetTopBy,
+    }    
+    console.table({ 
+      'tops': {
+        'delete': currentOffsets.delete.top, 
+        'input': currentOffsets.delete.top, 
+        'insertAfter': currentOffsets.delete.top, 
+        'insertBefore': currentOffsets.delete.top, 
+      },
+      'scrolls': 
+        { 'height': targetDiv.scrollHeight, 'top': targetDiv.scrollTop }
+    })
     return currentOffsets
   })
+
 }
 
 export enum ByteValuePxWidths {

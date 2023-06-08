@@ -22,6 +22,7 @@ limitations under the License.
     selectionSize,
     editMode,
     selectionData,
+    viewportScrollTop,
   } from '../../../stores'
   import { EditByteModes } from '../../../stores/configuration'
   import { MessageCommand } from '../../../utilities/message'
@@ -51,7 +52,7 @@ limitations under the License.
       return data
     })
 
-    update_byte_action_offsets(event.detail.targetElement)
+    update_byte_action_offsets(event.detail.targetElement, $viewportScrollTop)
 
     editedDataSegment.update(() => {
       return Uint8Array.from(
@@ -82,7 +83,7 @@ limitations under the License.
 <div
   {id}
   bind:this={boundContainerId}
-  class="byte-container {id}"
+  class="byte-container hide-scrollbar {id}"
   class:locked={$selectionData.active}
   style="width: calc({$bytesPerRow} * {BYTE_VALUE_DIV_OFFSET}px);"
 >
@@ -103,10 +104,12 @@ limitations under the License.
     border-color: var(--color-primary-mid);
     background-color: var(--color-primary-dark);
     overflow: scroll;
-    height: 150px;
+    grid-row-start: 3;
+    grid-row-end: 5;
+    grid-column: 2;
   }
   div.byte-container::-webkit-scrollbar {
-    width: 0;
+    display: none;
   }
   div.byte-container.locked {
     overflow-y: hidden;

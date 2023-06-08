@@ -18,6 +18,8 @@ limitations under the License.
   import { onMount, createEventDispatcher } from 'svelte'
   import BinaryDisplayContainer from './CustomByteDisplay/BinaryDisplayContainer.svelte'
   import LogicalDisplayContainer from './CustomByteDisplay/LogicalDisplayContainer.svelte'
+  import BinaryValueActions from './CustomByteDisplay/BinaryValueActions.svelte'
+  import { viewportScrollTop,viewportScrollHeight,viewportClientHeight } from '../../stores'
 
   export let addressRadix = 16
   export let displayRadix = 16
@@ -48,38 +50,53 @@ limitations under the License.
   )
 
   function syncScroll(element: HTMLDivElement) {
-    scrollTop = element.scrollTop
-    scrollHeight = element.scrollHeight
-    clientHeight = element.clientHeight
+    // scrollTop = element.scrollTop
+    // scrollHeight = element.scrollHeight
+    // clientHeight = element.clientHeight
 
+    // switch (element.id) {
+    //   case 'gutter':
+    //     {
+    //       physicalContainer.scrollTop = scrollTop
+    //       logicalContainer.scrollTop = scrollTop
+
+    //       // check if scrolled to the top or bottom, we only do this for one of
+    //       // the viewports so the event is fired once rather than three times
+    //       scrolledTop = scrollTop === 0
+    //       scrolledEnd = Math.ceil(scrollTop) + clientHeight === scrollHeight
+    //       if ((scrolledTop && !scrolledEnd) || (scrolledEnd && !scrolledTop)) {
+    //         if (fireScrollBoundaryEvent) {
+    //           fireScrollBoundaryEvent = false
+    //           setTimeout(() => (fireScrollBoundaryEvent = true), 100)
+    //           // fire scrollBoundary event when scrolled to the top or bottom
+    //           eventDispatcher('scrollBoundary', { scrolledTop, scrolledEnd })
+    //         }
+    //       }
+    //     }
+    $viewportScrollTop = element.scrollTop
+    $viewportScrollHeight = element.scrollHeight
+    $viewportClientHeight = element.clientHeight
+    
     switch (element.id) {
       case 'gutter':
-        {
-          physicalContainer.scrollTop = scrollTop
-          logicalContainer.scrollTop = scrollTop
-
-          // check if scrolled to the top or bottom, we only do this for one of
-          // the viewports so the event is fired once rather than three times
-          scrolledTop = scrollTop === 0
-          scrolledEnd = Math.ceil(scrollTop) + clientHeight === scrollHeight
-          if ((scrolledTop && !scrolledEnd) || (scrolledEnd && !scrolledTop)) {
-            if (fireScrollBoundaryEvent) {
-              fireScrollBoundaryEvent = false
-              setTimeout(() => (fireScrollBoundaryEvent = true), 100)
-              // fire scrollBoundary event when scrolled to the top or bottom
-              eventDispatcher('scrollBoundary', { scrolledTop, scrolledEnd })
-            }
-          }
-        }
+        physicalContainer.scrollTop = $viewportScrollTop
+        logicalContainer.scrollTop = $viewportScrollTop
         break
       case 'physical':
-        gutterContainer.scrollTop = scrollTop
-        logicalContainer.scrollTop = scrollTop
+        gutterContainer.scrollTop = $viewportScrollTop
+        logicalContainer.scrollTop = $viewportScrollTop
         break
       case 'logical':
-        gutterContainer.scrollTop = scrollTop
-        physicalContainer.scrollTop = scrollTop
+        gutterContainer.scrollTop = $viewportScrollTop
+        physicalContainer.scrollTop = $viewportScrollTop
         break
+    }
+
+    const scrolledTop = $viewportScrollTop === 0
+    const scrolledEnd = $viewportScrollTop + $viewportClientHeight === $viewportScrollHeight
+    if ((scrolledTop && !scrolledEnd) || (scrolledEnd && !scrolledTop)) {
+      // fire scrollBoundary event when scrolled to the top or bottom
+      eventDispatcher('scrollBoundary', { scrolledTop, scrolledEnd })
     }
   }
 
@@ -99,6 +116,13 @@ limitations under the License.
       .join(' ')
   }
 
+  const custom_commit_changes = () => {
+    eventDispatcher('custom-commit-changes')
+  }
+  const handleEditorEvent = () => {
+    eventDispatcher('handleEditorEvent')
+  }
+
   onMount(() => {
     gutterContainer.addEventListener('scroll', () =>
       syncScroll(gutterContainer)
@@ -116,14 +140,12 @@ limitations under the License.
 </script>
 
 <div class="container">
-  <div class="content-container">
-    <div class="header">Address</div>
     <div class="gutter hide-scrollbar" id="gutter" bind:this={gutterContainer}>
       {#each addresses as address, i}
         <div class={i % 2 === 0 ? 'even' : 'odd'}>{address}</div>
       {/each}
     </div>
-  </div>
+  <!-- </div>
 
   <div class="content-container">
     <div class="header">Physical</div>
@@ -165,11 +187,13 @@ limitations under the License.
       {:else}
         <LogicalDisplayContainer id={"logical"} bind:boundContainerId={logicalContainer} />
       {/if}
-  </div>
+  </div> -->
+    <BinaryDisplayContainer id={"physical"} bind:boundContainerId={physicalContainer} />
+    <LogicalDisplayContainer id={"logical"} bind:boundContainerId={logicalContainer} />
 </div>
 
-<hr />
-<div>
+<!-- <hr /> -->
+<!-- <div>
   startOffset: {startOffset}<br />
   bytesPerRow: {bytesPerRow}<br />
   addressRadix: {addressRadix}<br />
@@ -182,12 +206,15 @@ limitations under the License.
   scrollHeight: {scrollHeight}<br />
   clientHeight: {clientHeight}<br />
   isDemo: {isDemo}<br />
-</div>
-<hr />
+</div> -->
+<!-- <hr /> -->
 
 <style>
   div.container {
     display: flex;
+    grid-column-start: 1;
+    grid-column-end: 4;
+    overflow-y: scroll;
   }
 
   div.header {
@@ -200,12 +227,14 @@ limitations under the License.
 
   div.gutter {
     width: 96px;
-    height: 150px;
     border: 1px solid #2849b9;
     overflow-y: scroll;
     overflow-x: hidden; /* Prevent horizontal scrolling */
     direction: rtl; /* Move line numbers to the right side */
     line-height: 14px; /* Match line height with content */
+    grid-row-start: 3;
+    grid-row-end: 5;
+    grid-column: 1;
   }
 
   div.even, div.odd {
@@ -240,10 +269,5 @@ limitations under the License.
     font-size: 12px; /* Match font size with line numbers */
     line-height: 14px; /* Match line height with line numbers */
     font-family: monospace /* Ensure fixed-width font for byte content */;
-  }
-
-  /* Hide scrollbar by default on webkit-based browsers */
-  div.hide-scrollbar::-webkit-scrollbar {
-    display: none;
   }
 </style>

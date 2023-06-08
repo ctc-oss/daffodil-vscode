@@ -49,6 +49,7 @@ limitations under the License.
   import BinaryValueActions from './CustomByteDisplay/BinaryValueActions.svelte'
   import LogicalDisplayContainer from './CustomByteDisplay/LogicalDisplayContainer.svelte'
   import BinaryDisplayContainer from './CustomByteDisplay/BinaryDisplayContainer.svelte'
+  import ByteViewports from './ByteViewports.svelte'
 
   const eventDispatcher = createEventDispatcher()
   const viewportRefs = viewport_references() as ViewportReferences
@@ -330,52 +331,18 @@ limitations under the License.
   })
 </script>
 
-<textarea
-  class={$UIThemeCSSClass + ' address_vw'}
-  class:locked={$selectionData.active}
-  id="address"
-  contenteditable="true"
-  readonly
-  bind:this={viewportRefs.address}
-  bind:innerHTML={addressDisplayText}
-  on:scroll={scrollHandle}
-/>
-<!-- <textarea
-  class={$UIThemeCSSClass + ' physical'}
-  class:locked={$selectionData.active}
-  class:hexWidth={$displayRadix === RADIX_OPTIONS.Hexadecimal}
-  class:decoctWidth={$displayRadix === RADIX_OPTIONS.Decimal ||
-    $displayRadix === RADIX_OPTIONS.Octal}
-  class:binWidth={$displayRadix === RADIX_OPTIONS.Binary}
-  id="physical"
-  contenteditable="true"
-  readonly
-  bind:this={viewportRefs.physical}
-  bind:innerHTML={physicalDisplayText}
-  on:mouseup={handleSelectionEvent}
-  on:scroll={scrollHandle}
-/>
-<textarea
-  class={$UIThemeCSSClass + ' logical'}
-  class:locked={$selectionData.active}
-  class:hexWidth={$displayRadix === RADIX_OPTIONS.Hexadecimal}
-  class:decoctWidth={$displayRadix === RADIX_OPTIONS.Decimal ||
-    $displayRadix === RADIX_OPTIONS.Octal}
-  class:binWidth={$displayRadix === RADIX_OPTIONS.Binary}
-  id="logical"
-  contenteditable="true"
-  readonly
-  bind:this={viewportRefs.logical}
-  bind:innerHTML={$viewportLogicalDisplayText}
-  on:mouseup={handleSelectionEvent}
-  on:scroll={scrollHandle}
-/> -->
-<BinaryValueActions
+<BinaryValueActions 
   on:commitChanges={custom_commit_changes}
   on:handleEditorEvent={handleEditorEvent}
 />
-<BinaryDisplayContainer />
-<LogicalDisplayContainer />
+
+<ByteViewports 
+  addressRadix={$addressRadix}
+  displayRadix={$displayRadix}
+  bytesPerRow={$bytesPerRow}
+  startOffset={$viewportStartOffset}
+  byteData={$viewportData}
+/>
 
 <style lang="scss">
   textarea {
