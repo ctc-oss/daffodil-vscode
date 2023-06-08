@@ -150,7 +150,7 @@ limitations under the License.
       spread = 1
     }
     return offsetDisplays[address][radix].text
-    
+
     // return (
     //   offsetDisplays[address][radix].text.replaceAll(
     //     ' ',

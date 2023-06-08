@@ -59,9 +59,7 @@ limitations under the License.
   }
 
   function renderHex(byteArray: number[]): string {
-    return byteArray
-      .map((byte) => byte.toString(16).padStart(2, '0'))
-      .join(' ')
+    return byteArray.map((byte) => byte.toString(16).padStart(2, '0')).join(' ')
   }
 
   function renderLatin1(byteArray: number[]): string {

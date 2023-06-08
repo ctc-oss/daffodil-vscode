@@ -29,7 +29,6 @@ limitations under the License.
     viewportData,
     viewportEndOffset,
     viewportLineHeight,
-    viewportLogicalDisplayText,
     viewportScrollHeight,
     viewportScrollTop,
     viewportScrolledToEnd,
@@ -46,8 +45,7 @@ limitations under the License.
   import { MessageCommand } from '../../utilities/message'
   import { createEventDispatcher, onMount, tick } from 'svelte'
   import { vscode } from '../../utilities/vscode'
-  import { EditByteModes, RADIX_OPTIONS } from '../../stores/configuration'
-  import FlexContainer from '../layouts/FlexContainer.svelte'
+  import { EditByteModes } from '../../stores/configuration'
   import BinaryValueActions from './CustomByteDisplay/BinaryValueActions.svelte'
   import LogicalDisplayContainer from './CustomByteDisplay/LogicalDisplayContainer.svelte'
   import BinaryDisplayContainer from './CustomByteDisplay/BinaryDisplayContainer.svelte'
@@ -317,9 +315,13 @@ limitations under the License.
     })
   }
 
-  const custom_commit_changes = () => { eventDispatcher('custom-commit-changes') }
-  const handleEditorEvent = () => { eventDispatcher('handleEditorEvent') } 
-  
+  const custom_commit_changes = () => {
+    eventDispatcher('custom-commit-changes')
+  }
+  const handleEditorEvent = () => {
+    eventDispatcher('handleEditorEvent')
+  }
+
   onMount(() => {
     populateViewportGeometry()
 
