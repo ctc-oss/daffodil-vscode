@@ -60,7 +60,10 @@ limitations under the License.
   import SearchReplace from './Header/fieldsets/SearchReplace.svelte'
   import Settings from './Header/fieldsets/Settings.svelte'
   import Main from './Main.svelte'
-  import { EditByteModes } from '../stores/configuration'
+  import {
+    EditByteModes,
+    UNPRINTABLE_CHAR_STAND_IN,
+  } from '../stores/configuration'
   import FlexContainer from './layouts/FlexContainer.svelte'
   import ServerMetrics from './ServerMetrics/ServerMetrics.svelte'
   import { writable } from 'svelte/store'
@@ -453,6 +456,7 @@ limitations under the License.
       bytesPerRow={$bytesPerRow}
       startOffset={$viewportStartOffset}
       byteData={$viewportData}
+      nonPrintableStandIn={UNPRINTABLE_CHAR_STAND_IN}
     />
   </FlexContainer>
 

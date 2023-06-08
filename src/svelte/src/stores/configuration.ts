@@ -71,3 +71,5 @@ export const ADDRESS_RADIX_OPTIONS = [
   { name: 'Decimal', value: 10 },
   { name: 'Octal', value: 8 },
 ]
+
+export const UNPRINTABLE_CHAR_STAND_IN = String.fromCharCode(9617)

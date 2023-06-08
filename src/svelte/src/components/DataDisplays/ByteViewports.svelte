@@ -15,24 +15,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
-  import { onMount, tick, createEventDispatcher } from 'svelte'
-
-  // TODO: Instead of using the store directly, we should use properties that
-  //  are bound in from the parent component. This will provide better
-  //  encapsulation.
+  import { onMount, createEventDispatcher } from 'svelte'
 
   export let addressRadix = 16
   export let displayRadix = 16
   export let bytesPerRow = 16
   export let startOffset = 0
   export let byteData = new Uint8Array()
+  export let nonPrintableStandIn = String.fromCharCode(9617)
 
   let gutterContainer: HTMLDivElement
   let physicalContainer: HTMLDivElement
   let logicalContainer: HTMLDivElement
-
-  // TODO: Should come in from configuration
-  const nonPrintableStandIn = 183 // bullet (•) for non-printable characters
 
   const eventDispatcher = createEventDispatcher()
 
@@ -81,8 +75,9 @@ limitations under the License.
   function renderLatin1(byteArray: number[]): string {
     return byteArray
       .map((byte) => {
-        const charCode = byte >= 32 && byte <= 126 ? byte : nonPrintableStandIn
-        return String.fromCharCode(charCode)
+        return byte >= 32 && byte <= 126
+          ? String.fromCharCode(byte)
+          : nonPrintableStandIn
       })
       .join(' ')
   }

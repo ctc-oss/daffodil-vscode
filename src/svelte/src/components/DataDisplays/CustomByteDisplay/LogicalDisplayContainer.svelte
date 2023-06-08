@@ -47,7 +47,6 @@ limitations under the License.
   }
 
   function logical_bytes_from(bytes: Uint8Array): ByteValue[] {
-    // const undefinedCharStandIn = String.fromCharCode(9617)
     let ret = new Array<ByteValue>(bytes.length)
 
     for (let i = 0; i < bytes.length; i++) {

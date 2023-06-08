@@ -16,7 +16,7 @@
  */
 
 import type { ValidationResponse } from '../utilities/display'
-import { EditByteModes } from './configuration'
+import { EditByteModes, UNPRINTABLE_CHAR_STAND_IN } from './configuration'
 import { ThemeType } from '../utilities/colorScheme'
 import { fileMetrics } from '../components/Header/fieldsets/FileMetrics'
 import {
@@ -479,12 +479,11 @@ function latin1Undefined(charCode: number): boolean {
 }
 
 function logicalDisplay(bytes: Uint8Array, bytesPerRow: number): string {
-  const undefinedCharStandIn = String.fromCharCode(9617)
   let result = ''
 
   for (let i = 0, col = 0; i < bytes.length; ++i) {
     if (latin1Undefined(bytes[i])) {
-      result += undefinedCharStandIn
+      result += UNPRINTABLE_CHAR_STAND_IN
     } else {
       const char = String.fromCharCode(bytes[i])
       result += char === '\n' ? ' ' : char
