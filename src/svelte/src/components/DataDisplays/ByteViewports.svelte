@@ -15,22 +15,39 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
-  import { onMount } from 'svelte'
-  import { createEventDispatcher } from 'svelte'
+  import { onMount, tick, createEventDispatcher } from 'svelte'
+  import {
+    addressRadix,
+    bytesPerRow,
+    displayRadix,
+    viewportData,
+    viewportStartOffset,
+  } from '../../stores'
 
-  export let byteContent
-  export let startLine
-  export let bytesPerLine
+  // TODO: Instead of using the store directly, we should use properties that
+  //  are bound in from the parent component. This will provide better
+  //  encapsulation.
 
-  let gutterContainer: HTMLElement
-  let physicalContainer: HTMLElement
-  let logicalContainer: HTMLElement
+  let gutterContainer: HTMLDivElement
+  let physicalContainer: HTMLDivElement
+  let logicalContainer: HTMLDivElement
+
+  // TODO: Should come in from configuration
+  const nonPrintableStandIn = 183 // bullet (•) for non-printable characters
 
   const eventDispatcher = createEventDispatcher()
 
-  $: endLine = startLine + Math.ceil(byteContent.length / bytesPerLine) - 1
+  // Address generation for the gutter
+  $: addresses = Array.from(
+    {
+      length: Math.ceil(
+        ($viewportStartOffset + $viewportData.length) / $bytesPerRow
+      ),
+    },
+    (_, i) => (i * $bytesPerRow).toString($addressRadix).toUpperCase()
+  )
 
-  function syncScroll(element: HTMLElement) {
+  function syncScroll(element: HTMLDivElement) {
     const scrollTop = element.scrollTop
     const scrollHeight = element.scrollHeight
     const clientHeight = element.clientHeight
@@ -58,24 +75,24 @@ limitations under the License.
     }
   }
 
-  function renderHex(byteArray: number[]): string {
-    return byteArray.map((byte) => byte.toString(16).padStart(2, '0')).join(' ')
+  function renderByte(byteArray: number[]): string {
+    return byteArray
+      .map((byte) =>
+        byte.toString($displayRadix).toUpperCase().padStart(2, '0')
+      )
+      .join(' ')
   }
 
   function renderLatin1(byteArray: number[]): string {
     return byteArray
       .map((byte) => {
-        const charCode = byte >= 32 && byte <= 126 ? byte : 183 // Use a bullet (•) for non-printable characters
+        const charCode = byte >= 32 && byte <= 126 ? byte : nonPrintableStandIn
         return String.fromCharCode(charCode)
       })
       .join(' ')
   }
 
   onMount(() => {
-    const gutterContainer = document.getElementById('gutter')
-    const physicalContainer = document.getElementById('physical')
-    const logicalContainer = document.getElementById('logical')
-
     gutterContainer.addEventListener('scroll', () =>
       syncScroll(gutterContainer)
     )
@@ -91,31 +108,25 @@ limitations under the License.
 <div class="container">
   <div class="content-container">
     <div class="header">Address</div>
-    <div
-      class="gutter hide-scrollbar"
-      id="gutter"
-      onscroll="syncScroll($event.target)"
-    >
-      {#each Array.from({ length: $endLine - $startLine + 1 }, (_, i) => $startLine + i) as line}
-        {#if line % 2 === 0}
-          <b>{line}</b>
-        {:else}
-          <a>{line}</a>
-        {/if}
+    <div class="gutter hide-scrollbar" id="gutter" bind:this={gutterContainer}>
+      {#each addresses as address, i}
+        <div class={i % 2 === 0 ? 'even' : 'odd'}>{address}</div>
       {/each}
     </div>
   </div>
 
   <div class="content-container">
     <div class="header">Physical</div>
-    <div class="content hide-scrollbar" id="physical">
-      {#each Array.from( { length: Math.ceil(byteContent.length / bytesPerLine) } ) as _, i}
+    <div
+      class="content hide-scrollbar"
+      id="physical"
+      bind:this={physicalContainer}
+    >
+      {#each Array.from( { length: Math.ceil($viewportData.length / $bytesPerRow) } ) as _, i}
         <div>
-          {#if i + $startLine <= $endLine}
-            {#each byteContent.slice(i * bytesPerLine, (i + 1) * bytesPerLine) as byte}
-              {renderHex([byte]) + ' '}
-            {/each}
-          {/if}
+          {#each $viewportData.slice(i * $bytesPerRow, (i + 1) * $bytesPerRow) as byte}
+            {renderByte([byte]) + ' '}
+          {/each}
         </div>
       {/each}
     </div>
@@ -123,14 +134,16 @@ limitations under the License.
 
   <div class="content-container">
     <div class="header">Logical</div>
-    <div class="content hide-scrollbar" id="logical">
-      {#each Array.from( { length: Math.ceil(byteContent.length / bytesPerLine) } ) as _, i}
+    <div
+      class="content hide-scrollbar"
+      id="logical"
+      bind:this={logicalContainer}
+    >
+      {#each Array.from( { length: Math.ceil($viewportData.length / $bytesPerRow) } ) as _, i}
         <div>
-          {#if i + $startLine <= $endLine}
-            {#each byteContent.slice(i * bytesPerLine, (i + 1) * bytesPerLine) as byte}
-              {renderLatin1([byte]) + ' '}
-            {/each}
-          {/if}
+          {#each $viewportData.slice(i * $bytesPerRow, (i + 1) * $bytesPerRow) as byte}
+            {renderLatin1([byte]) + ' '}
+          {/each}
         </div>
       {/each}
     </div>
@@ -138,11 +151,11 @@ limitations under the License.
 </div>
 
 <style>
-  .container {
+  div.container {
     display: flex;
   }
 
-  .header {
+  div.header {
     font-size: 14px;
     font-weight: bold;
     padding: 2px;
@@ -150,7 +163,7 @@ limitations under the License.
     text-align: center; /* Center the header text */
   }
 
-  .gutter {
+  div.gutter {
     width: 96px;
     height: 150px;
     border: 1px solid #2849b9;
@@ -160,7 +173,7 @@ limitations under the License.
     line-height: 14px; /* Match line height with content */
   }
 
-  a {
+  div.even {
     display: flex;
     align-items: center;
     color: #424242;
@@ -169,11 +182,10 @@ limitations under the License.
     justify-content: flex-start; /* Align numbers to the right */
     padding-right: 4px; /* Add right padding for spacing */
     font-size: 10px; /* Adjust font size */
-    font-weight: normal; /* Remove bold font weight */
     white-space: nowrap; /* Prevent wrapping of line numbers */
   }
 
-  b {
+  div.odd {
     display: flex;
     align-items: center;
     color: #424242;
@@ -182,18 +194,17 @@ limitations under the License.
     justify-content: flex-start; /* Align numbers to the right */
     padding-right: 4px; /* Add right padding for spacing */
     font-size: 10px; /* Adjust font size */
-    font-weight: normal; /* Remove bold font weight */
     white-space: nowrap; /* Prevent wrapping of line numbers */
   }
 
-  .content-container {
+  div.content-container {
     flex: initial;
     overflow: hidden;
   }
 
-  .content {
+  div.content {
     height: 150px;
-    width: 300px;
+    width: fit-content;
     padding-left: 4px;
     border: 1px solid #4caf50;
     overflow-y: scroll; /* Enable vertical scrolling */
@@ -203,7 +214,7 @@ limitations under the License.
   }
 
   /* Hide scrollbar by default on webkit-based browsers */
-  .hide-scrollbar::-webkit-scrollbar {
+  div.hide-scrollbar::-webkit-scrollbar {
     display: none;
   }
 </style>

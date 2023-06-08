@@ -62,7 +62,6 @@ limitations under the License.
   import { EditByteModes } from '../stores/configuration'
   import FlexContainer from './layouts/FlexContainer.svelte'
   import ServerMetrics from './ServerMetrics/ServerMetrics.svelte'
-  import BinaryDataContainer from './DataDisplays/CustomByteDisplay/BinaryDisplayContainer.svelte'
   import { writable } from 'svelte/store'
   import { enterKeypressEvents } from '../utilities/enterKeypressEvents'
   import {
@@ -71,8 +70,7 @@ limitations under the License.
     type EditByteAction,
     byteActionPxOffsets,
   } from './DataDisplays/CustomByteDisplay/BinaryData'
-  import LogicalDisplayContainer from './DataDisplays/CustomByteDisplay/LogicalDisplayContainer.svelte'
-  import BinaryValueActions from './DataDisplays/CustomByteDisplay/BinaryValueActions.svelte'
+  import ByteViewports from './DataDisplays/ByteViewports.svelte'
 
   $: $rawEditorSelectionTxt = $editorSelection
   $: $UIThemeCSSClass = $darkUITheme ? CSSThemeClass.Dark : CSSThemeClass.Light
@@ -445,6 +443,12 @@ limitations under the License.
 
   <hr />
   <ServerMetrics />
+  <hr />
+
+  <FlexContainer --dir="row">
+    <ByteViewports />
+  </FlexContainer>
+
   <!-- <hr />
 
   <h2>Flexible Custom Div Box</h2>
