@@ -89,8 +89,8 @@ const OMEGA_EDIT_MAX_PORT: number = 65535
 const OMEGA_EDIT_MIN_PORT: number = 1024
 
 // TODO: use a smaller capacity once scrolling becomes tolerable
-const VIEWPORT_CAPACITY_MAX: number = 1024 * 1000 // 10240, Ωedit maximum viewport size is 1048576 (1024 * 1024)
-//const VIEWPORT_CAPACITY_MAX: number = 16 * 64 // 10240, Ωedit maximum viewport size is 1048576 (1024 * 1024)
+//const VIEWPORT_CAPACITY_MAX: number = 1024 * 1000 // 10240, Ωedit maximum viewport size is 1048576 (1024 * 1024)
+const VIEWPORT_CAPACITY_MAX: number = 16 * 64 // 1024, Ωedit maximum viewport size is 1048576 (1024 * 1024)
 
 // *****************************************************************************
 // file-scoped types

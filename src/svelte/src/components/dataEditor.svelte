@@ -400,6 +400,17 @@ limitations under the License.
   }
   $: selectionDataDebug = $selectionData
   $: selectedByteDebug = $selectedByte
+
+  function scrollBoundaryEventHandler(e: CustomEvent) {
+    if (e.detail.scrolledTop) {
+      console.log('scrolled top')
+      scrolledToTop(e)
+    }
+    if (e.detail.scrolledEnd) {
+      console.log('scrolled end')
+      scrolledToEnd(e)
+    }
+  }
 </script>
 
 <svelte:window on:keydown|nonpassive={handleKeyBind} />
@@ -449,16 +460,15 @@ limitations under the License.
   <ServerMetrics />
   <hr />
 
-  <FlexContainer --dir="row">
-    <ByteViewports
-      addressRadix={$addressRadix}
-      displayRadix={$displayRadix}
-      bytesPerRow={$bytesPerRow}
-      startOffset={$viewportStartOffset}
-      byteData={$viewportData}
-      nonPrintableStandIn={UNPRINTABLE_CHAR_STAND_IN}
-    />
-  </FlexContainer>
+  <ByteViewports
+    addressRadix={$addressRadix}
+    displayRadix={$displayRadix}
+    bytesPerRow={$bytesPerRow}
+    startOffset={$viewportStartOffset}
+    byteData={$viewportData}
+    nonPrintableStandIn={UNPRINTABLE_CHAR_STAND_IN}
+    on:scrollBoundary={scrollBoundaryEventHandler}
+  />
 
   <!-- <hr />
 

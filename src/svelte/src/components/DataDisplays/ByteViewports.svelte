@@ -30,6 +30,12 @@ limitations under the License.
   let physicalContainer: HTMLDivElement
   let logicalContainer: HTMLDivElement
 
+  let scrollTop: number
+  let scrollHeight: number
+  let clientHeight: number
+  let scrolledTop: boolean
+  let scrolledEnd: boolean
+
   const eventDispatcher = createEventDispatcher()
 
   // Address generation for the gutter
@@ -41,14 +47,25 @@ limitations under the License.
   )
 
   function syncScroll(element: HTMLDivElement) {
-    const scrollTop = element.scrollTop
-    const scrollHeight = element.scrollHeight
-    const clientHeight = element.clientHeight
+    scrollTop = element.scrollTop
+    scrollHeight = element.scrollHeight
+    clientHeight = element.clientHeight
 
     switch (element.id) {
       case 'gutter':
-        physicalContainer.scrollTop = scrollTop
-        logicalContainer.scrollTop = scrollTop
+        {
+          physicalContainer.scrollTop = scrollTop
+          logicalContainer.scrollTop = scrollTop
+
+          // check if scrolled to the top or bottom, we only do this for one of
+          // the viewports so the event is fired once rather than three times
+          scrolledTop = scrollTop === 0
+          scrolledEnd = Math.ceil(scrollTop) + clientHeight === scrollHeight
+          if ((scrolledTop && !scrolledEnd) || (scrolledEnd && !scrolledTop)) {
+            // fire scrollBoundary event when scrolled to the top or bottom
+            eventDispatcher('scrollBoundary', { scrolledTop, scrolledEnd })
+          }
+        }
         break
       case 'physical':
         gutterContainer.scrollTop = scrollTop
@@ -58,13 +75,6 @@ limitations under the License.
         gutterContainer.scrollTop = scrollTop
         physicalContainer.scrollTop = scrollTop
         break
-    }
-
-    const scrolledTop = scrollTop === 0
-    const scrolledEnd = scrollTop + clientHeight === scrollHeight
-    if ((scrolledTop && !scrolledEnd) || (scrolledEnd && !scrolledTop)) {
-      // fire scrollBoundary event when scrolled to the top or bottom
-      eventDispatcher('scrollBoundary', { scrolledTop, scrolledEnd })
     }
   }
 
@@ -143,6 +153,22 @@ limitations under the License.
     </div> -->
   </div>
 </div>
+
+<hr />
+<div>
+  startOffset: {startOffset}<br />
+  bytesPerRow: {bytesPerRow}<br />
+  addressRadix: {addressRadix}<br />
+  displayRadix: {displayRadix}<br />
+  nonPrintableStandIn: {nonPrintableStandIn}<br />
+  byteData: {byteData}<br />
+  scrolledTop: {scrolledTop}<br />
+  scrolledEnd: {scrolledEnd}<br />
+  scrollTop: {scrollTop}<br />
+  scrollHeight: {scrollHeight}<br />
+  clientHeight: {clientHeight}<br />
+</div>
+<hr />
 
 <style>
   div.container {
