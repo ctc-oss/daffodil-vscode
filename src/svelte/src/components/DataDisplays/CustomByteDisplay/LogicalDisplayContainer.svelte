@@ -102,7 +102,8 @@ limitations under the License.
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
-<div {id}
+<div
+  {id}
   bind:this={boundContainerId}
   class="byte-container {id}"
   class:locked={$selectionData.active}

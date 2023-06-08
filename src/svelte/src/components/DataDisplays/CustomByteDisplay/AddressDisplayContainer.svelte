@@ -15,19 +15,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
-  import { selectionData } from "../../../stores"
-  
-  export const id: string = ''
+  import { selectionData } from '../../../stores'
 
+  export const id: string = ''
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
-<div 
-  class="byte-container"
-  class:locked={$selectionData.active}
->
-  
-</div>
+<div class="byte-container" class:locked={$selectionData.active} />
 
 <style>
   div.byte-container {

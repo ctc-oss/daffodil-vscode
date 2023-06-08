@@ -15,7 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
-  import { onMount, createEventDispatcher, tick } from 'svelte'
+  import { onMount, createEventDispatcher } from 'svelte'
   import BinaryDisplayContainer from './CustomByteDisplay/BinaryDisplayContainer.svelte'
   import LogicalDisplayContainer from './CustomByteDisplay/LogicalDisplayContainer.svelte'
 
@@ -35,6 +35,7 @@ limitations under the License.
   let clientHeight: number
   let scrolledTop: boolean
   let scrolledEnd: boolean
+  let fireScrollBoundaryEvent = true
 
   const eventDispatcher = createEventDispatcher()
 
@@ -62,8 +63,12 @@ limitations under the License.
           scrolledTop = scrollTop === 0
           scrolledEnd = Math.ceil(scrollTop) + clientHeight === scrollHeight
           if ((scrolledTop && !scrolledEnd) || (scrolledEnd && !scrolledTop)) {
-            // fire scrollBoundary event when scrolled to the top or bottom
-            eventDispatcher('scrollBoundary', { scrolledTop, scrolledEnd })
+            if (fireScrollBoundaryEvent) {
+              fireScrollBoundaryEvent = false
+              setTimeout(() => (fireScrollBoundaryEvent = true), 100)
+              // fire scrollBoundary event when scrolled to the top or bottom
+              eventDispatcher('scrollBoundary', { scrolledTop, scrolledEnd })
+            }
           }
         }
         break
@@ -103,8 +108,11 @@ limitations under the License.
     )
     logicalContainer.addEventListener('scroll', () =>
       syncScroll(logicalContainer)
-    )   
+    )
   })
+
+  const isDemo = false
+
 </script>
 
 <div class="container">
@@ -119,26 +127,29 @@ limitations under the License.
 
   <div class="content-container">
     <div class="header">Physical</div>
-    <BinaryDisplayContainer id={"physical"} bind:boundContainerId={physicalContainer} />
-    <!-- <div
-      class="content hide-scrollbar"
-      id="physical"
-      bind:this={physicalContainer}
-    >
-      {#each Array.from( { length: Math.ceil(byteData.length / bytesPerRow) } ) as _, i}
-        <div>
-          {#each byteData.slice(i * bytesPerRow, (i + 1) * bytesPerRow) as byte}
-            {renderByte([byte]) + ' '}
-          {/each}
-        </div>
-      {/each}
-    </div> -->
+    {#if isDemo}
+      <div
+        class="content hide-scrollbar"
+        id="physical"
+        bind:this={physicalContainer}
+      >
+        {#each Array.from( { length: Math.ceil(byteData.length / bytesPerRow) } ) as _, i}
+          <div>
+            {#each byteData.slice(i * bytesPerRow, (i + 1) * bytesPerRow) as byte}
+              {renderByte([byte]) + ' '}
+            {/each}
+          </div>
+        {/each}
+      </div>
+      {:else}
+        <BinaryDisplayContainer id={"physical"} bind:boundContainerId={physicalContainer} />
+      {/if}
   </div>
 
   <div class="content-container">
     <div class="header">Logical</div>
-    <LogicalDisplayContainer id={"logical"} bind:boundContainerId={logicalContainer} />
-    <!-- <div
+    {#if isDemo}
+    <div
       class="content hide-scrollbar"
       id="logical"
       bind:this={logicalContainer}
@@ -150,7 +161,10 @@ limitations under the License.
           {/each}
         </div>
       {/each}
-    </div> -->
+    </div>
+      {:else}
+        <LogicalDisplayContainer id={"logical"} bind:boundContainerId={logicalContainer} />
+      {/if}
   </div>
 </div>
 
@@ -167,6 +181,7 @@ limitations under the License.
   scrollTop: {scrollTop}<br />
   scrollHeight: {scrollHeight}<br />
   clientHeight: {clientHeight}<br />
+  isDemo: {isDemo}<br />
 </div>
 <hr />
 
