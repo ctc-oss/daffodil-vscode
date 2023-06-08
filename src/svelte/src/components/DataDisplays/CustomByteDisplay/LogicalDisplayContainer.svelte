@@ -36,6 +36,9 @@ limitations under the License.
   } from './BinaryData'
   import LogicalDisplayDiv from './LogicalValueDiv.svelte'
 
+  export const id: string = ''
+  export let boundContainerId: HTMLDivElement
+
   let logicalByteArray: ByteValue[]
   let selectionActive
 
@@ -99,8 +102,9 @@ limitations under the License.
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
-<div
-  class="byte-container"
+<div {id}
+  bind:this={boundContainerId}
+  class="byte-container {id}"
   class:locked={$selectionData.active}
   style="width: calc({$bytesPerRow} * {BYTE_VALUE_DIV_OFFSET}px);"
 >
@@ -120,7 +124,8 @@ limitations under the License.
     border-style: solid;
     border-color: var(--color-primary-mid);
     background-color: var(--color-primary-dark);
-    overflow-y: scroll;
+    overflow: scroll;
+    height: 150px;
   }
   div.byte-container::-webkit-scrollbar {
     width: 0;

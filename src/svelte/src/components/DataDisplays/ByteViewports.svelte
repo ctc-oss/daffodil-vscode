@@ -15,7 +15,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
-  import { onMount, createEventDispatcher } from 'svelte'
+  import { onMount, createEventDispatcher, tick } from 'svelte'
+  import BinaryDisplayContainer from './CustomByteDisplay/BinaryDisplayContainer.svelte'
+  import LogicalDisplayContainer from './CustomByteDisplay/LogicalDisplayContainer.svelte'
 
   export let addressRadix = 16
   export let displayRadix = 16
@@ -91,7 +93,7 @@ limitations under the License.
     )
     logicalContainer.addEventListener('scroll', () =>
       syncScroll(logicalContainer)
-    )
+    )   
   })
 </script>
 
@@ -107,7 +109,8 @@ limitations under the License.
 
   <div class="content-container">
     <div class="header">Physical</div>
-    <div
+    <BinaryDisplayContainer id={"physical"} bind:boundContainerId={physicalContainer} />
+    <!-- <div
       class="content hide-scrollbar"
       id="physical"
       bind:this={physicalContainer}
@@ -119,12 +122,13 @@ limitations under the License.
           {/each}
         </div>
       {/each}
-    </div>
+    </div> -->
   </div>
 
   <div class="content-container">
     <div class="header">Logical</div>
-    <div
+    <LogicalDisplayContainer id={"logical"} bind:boundContainerId={logicalContainer} />
+    <!-- <div
       class="content hide-scrollbar"
       id="logical"
       bind:this={logicalContainer}
@@ -136,7 +140,7 @@ limitations under the License.
           {/each}
         </div>
       {/each}
-    </div>
+    </div> -->
   </div>
 </div>
 
@@ -163,28 +167,22 @@ limitations under the License.
     line-height: 14px; /* Match line height with content */
   }
 
-  div.even {
+  div.even, div.odd {
     display: flex;
     align-items: center;
     color: #424242;
-    background-color: #f3f3f3;
     opacity: 0.8;
     justify-content: flex-start; /* Align numbers to the right */
     padding-right: 4px; /* Add right padding for spacing */
     font-size: 10px; /* Adjust font size */
+    height: 24px;
     white-space: nowrap; /* Prevent wrapping of line numbers */
   }
-
+  div.even {
+    background-color: #f3f3f3;
+  }
   div.odd {
-    display: flex;
-    align-items: center;
-    color: #424242;
     background-color: #e3e3e3;
-    opacity: 0.8;
-    justify-content: flex-start; /* Align numbers to the right */
-    padding-right: 4px; /* Add right padding for spacing */
-    font-size: 10px; /* Adjust font size */
-    white-space: nowrap; /* Prevent wrapping of line numbers */
   }
 
   div.content-container {

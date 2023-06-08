@@ -36,6 +36,9 @@ limitations under the License.
   import { bytesPerRow } from './BinaryData'
   import BinaryValue from './BinaryValueDiv.svelte'
 
+  export const id: string = ''
+  export let boundContainerId: HTMLDivElement
+
   function select_byte(event: CustomEvent<ByteSelectionEvent>) {
     $focusedViewportId = 'physical'
 
@@ -76,8 +79,9 @@ limitations under the License.
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
-<div
-  class="byte-container"
+<div {id}
+  bind:this={boundContainerId}
+  class="byte-container {id}"
   class:locked={$selectionData.active}
   style="width: calc({$bytesPerRow} * {BYTE_VALUE_DIV_OFFSET}px);"
 >
@@ -97,7 +101,8 @@ limitations under the License.
     border-style: solid;
     border-color: var(--color-primary-mid);
     background-color: var(--color-primary-dark);
-    overflow-y: scroll;
+    overflow: scroll;
+    height: 150px;
   }
   div.byte-container::-webkit-scrollbar {
     width: 0;
