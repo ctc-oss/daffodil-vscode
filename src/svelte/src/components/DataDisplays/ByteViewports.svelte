@@ -32,12 +32,12 @@ limitations under the License.
   let physicalContainer: HTMLDivElement
   let logicalContainer: HTMLDivElement
 
-  let scrollTop: number
-  let scrollHeight: number
-  let clientHeight: number
-  let scrolledTop: boolean
-  let scrolledEnd: boolean
-  let fireScrollBoundaryEvent = true
+  // let scrollTop: number
+  // let scrollHeight: number
+  // let clientHeight: number
+  // let scrolledTop: boolean
+  // let scrolledEnd: boolean
+  // let fireScrollBoundaryEvent = true
 
   const eventDispatcher = createEventDispatcher()
 
@@ -135,7 +135,7 @@ limitations under the License.
     )
   })
 
-  const isDemo = false
+  // const isDemo = false
 
 </script>
 
@@ -193,7 +193,7 @@ limitations under the License.
 </div>
 
 <!-- <hr /> -->
-<!-- <div>
+<!-- <div class="debug">
   startOffset: {startOffset}<br />
   bytesPerRow: {bytesPerRow}<br />
   addressRadix: {addressRadix}<br />

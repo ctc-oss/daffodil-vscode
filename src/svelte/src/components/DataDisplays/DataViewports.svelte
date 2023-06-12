@@ -316,13 +316,6 @@ limitations under the License.
     })
   }
 
-  const custom_commit_changes = () => {
-    eventDispatcher('custom-commit-changes')
-  }
-  const handleEditorEvent = () => {
-    eventDispatcher('handleEditorEvent')
-  }
-
   onMount(() => {
     populateViewportGeometry()
 
@@ -332,8 +325,8 @@ limitations under the License.
 </script>
 
 <BinaryValueActions 
-  on:commitChanges={custom_commit_changes}
-  on:handleEditorEvent={handleEditorEvent}
+  on:commitChanges
+  on:handleEditorEvent
 />
 
 <ByteViewports 

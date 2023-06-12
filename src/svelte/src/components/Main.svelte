@@ -22,6 +22,12 @@ limitations under the License.
 
 <main class="dataEditor">
   <DisplayHeader on:clearDataDisplays />
-  <DataViewports on:clearDataDisplays on:scrolledToTop on:scrolledToEnd />
+  <DataViewports 
+    on:clearDataDisplays 
+    on:scrolledToTop 
+    on:scrolledToEnd 
+    on:commitChanges
+    on:handleEditorEvent 
+  />
   <DataEditor on:commitChanges on:handleEditorEvent />
 </main>

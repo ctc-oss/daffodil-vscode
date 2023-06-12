@@ -73,6 +73,7 @@ limitations under the License.
     selectedByte,
     type EditByteAction,
     byteActionPxOffsets,
+    mouseSelectionBytes,
   } from './DataDisplays/CustomByteDisplay/BinaryData'
   import ByteViewports from './DataDisplays/ByteViewports.svelte'
 
@@ -308,6 +309,7 @@ limitations under the License.
     $selectionData.active = false
     $editorSelection = ''
     $editedDataSegment = new Uint8Array(0)
+    $mouseSelectionBytes = { mousedown: -1, mouseup: -1 }
   }
 
   function handleKeyBind(event: Event) {
@@ -450,7 +452,7 @@ limitations under the License.
 
   <Main
     on:clearDataDisplays={clearDataDisplays}
-    on:commitChanges={commitChanges}
+    on:commitChanges={custom_commit_changes}
     on:handleEditorEvent={handleEditorEvent}
     on:scrolledToTop={scrolledToTop}
     on:scrolledToEnd={scrolledToEnd}
@@ -458,42 +460,23 @@ limitations under the License.
 
   <hr />
   <ServerMetrics />
-  <hr />
 
-  <!-- <ByteViewports
-    addressRadix={$addressRadix}
-    displayRadix={$displayRadix}
-    bytesPerRow={$bytesPerRow}
-    startOffset={$viewportStartOffset}
-    byteData={$viewportData}
-    nonPrintableStandIn={UNPRINTABLE_CHAR_STAND_IN}
-    on:scrollBoundary={scrollBoundaryEventHandler}
-  /> -->
-
-  <!-- <hr />
-
-  <h2>Flexible Custom Div Box</h2>
-  <FlexContainer --dir="row">
-    <BinaryValueActions
-      on:commitChanges={custom_commit_changes}
-      on:handleEditorEvent={handleEditorEvent}
-    />
-    <BinaryDataContainer />
-    <LogicalDisplayContainer />
-
-    <FlexContainer --dir="column" --width="25%">
-      <h3>Debug Section</h3>
-      <div>
-        <b>$selectionData:</b> (startOffset: {selectionDataDebug.startOffset},
-        endOffset: {selectionDataDebug.endOffset}, originalEnd: {selectionDataDebug.originalEndOffset},
-        active: {selectionDataDebug.active})
-      </div>
-      <div>
-        <b>$selectedByte:</b> (text: {selectedByteDebug.text}, offset: {selectedByteDebug.offset},
-        value: {selectedByteDebug.value})
-      </div>
+  <FlexContainer --dir="column" --align-items="center">
+    <h2>Debug</h2>
+    <hr style="width: 50%;"/>
+    <FlexContainer --dir="row">
+      <FlexContainer --dir="column">
+        <!-- <div>test:</div> -->
+        <div>$selectedByte</div>
+        <div>$mouseSelectionBytes</div>
+      </FlexContainer>
+      <FlexContainer --dir="column">
+        <!-- <div>{#if true} {test} {:else} - {/if}</div> -->
+        <div>{#if $selectedByte} {$selectedByte.offset} {:else} - {/if}</div>
+        <div>{#if $mouseSelectionBytes} down: {$mouseSelectionBytes.mousedown}, up: {$mouseSelectionBytes.mouseup} {:else} - {/if}</div>
+      </FlexContainer>
     </FlexContainer>
-  </FlexContainer> -->
+  </FlexContainer>
 </body>
 
 <!-- svelte-ignore css-unused-selector -->
