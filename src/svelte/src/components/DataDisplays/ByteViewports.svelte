@@ -19,7 +19,11 @@ limitations under the License.
   import BinaryDisplayContainer from './CustomByteDisplay/BinaryDisplayContainer.svelte'
   import LogicalDisplayContainer from './CustomByteDisplay/LogicalDisplayContainer.svelte'
   import BinaryValueActions from './CustomByteDisplay/BinaryValueActions.svelte'
-  import { viewportScrollTop,viewportScrollHeight,viewportClientHeight } from '../../stores'
+  import {
+    viewportScrollTop,
+    viewportScrollHeight,
+    viewportClientHeight,
+  } from '../../stores'
 
   export let addressRadix = 16
   export let displayRadix = 16
@@ -76,7 +80,7 @@ limitations under the License.
     $viewportScrollTop = element.scrollTop
     $viewportScrollHeight = element.scrollHeight
     $viewportClientHeight = element.clientHeight
-    
+
     switch (element.id) {
       case 'gutter':
         physicalContainer.scrollTop = $viewportScrollTop
@@ -93,7 +97,8 @@ limitations under the License.
     }
 
     const scrolledTop = $viewportScrollTop === 0
-    const scrolledEnd = $viewportScrollTop + $viewportClientHeight === $viewportScrollHeight
+    const scrolledEnd =
+      $viewportScrollTop + $viewportClientHeight === $viewportScrollHeight
     if ((scrolledTop && !scrolledEnd) || (scrolledEnd && !scrolledTop)) {
       // fire scrollBoundary event when scrolled to the top or bottom
       eventDispatcher('scrollBoundary', { scrolledTop, scrolledEnd })
@@ -136,15 +141,14 @@ limitations under the License.
   })
 
   // const isDemo = false
-
 </script>
 
 <div class="container">
-    <div class="gutter hide-scrollbar" id="gutter" bind:this={gutterContainer}>
-      {#each addresses as address, i}
-        <div class={i % 2 === 0 ? 'even' : 'odd'}>{address}</div>
-      {/each}
-    </div>
+  <div class="gutter hide-scrollbar" id="gutter" bind:this={gutterContainer}>
+    {#each addresses as address, i}
+      <div class={i % 2 === 0 ? 'even' : 'odd'}>{address}</div>
+    {/each}
+  </div>
   <!-- </div>
 
   <div class="content-container">
@@ -188,8 +192,14 @@ limitations under the License.
         <LogicalDisplayContainer id={"logical"} bind:boundContainerId={logicalContainer} />
       {/if}
   </div> -->
-    <BinaryDisplayContainer id={"physical"} bind:boundContainerId={physicalContainer} />
-    <LogicalDisplayContainer id={"logical"} bind:boundContainerId={logicalContainer} />
+  <BinaryDisplayContainer
+    id={'physical'}
+    bind:boundContainerId={physicalContainer}
+  />
+  <LogicalDisplayContainer
+    id={'logical'}
+    bind:boundContainerId={logicalContainer}
+  />
 </div>
 
 <!-- <hr /> -->
@@ -207,8 +217,8 @@ limitations under the License.
   clientHeight: {clientHeight}<br />
   isDemo: {isDemo}<br />
 </div> -->
-<!-- <hr /> -->
 
+<!-- <hr /> -->
 <style>
   div.container {
     display: flex;
@@ -237,7 +247,8 @@ limitations under the License.
     grid-column: 1;
   }
 
-  div.even, div.odd {
+  div.even,
+  div.odd {
     display: flex;
     align-items: center;
     color: #424242;

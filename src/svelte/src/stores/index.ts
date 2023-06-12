@@ -63,8 +63,12 @@ export const editByteWindowHidden = writable(true)
 // segment of data that is being edited in single or multiple byte modes
 export const editedDataSegment = writable(new Uint8Array(0))
 
+// edit actions allowed (delete-insert-overwrite or overwrite-only)
+export const editorActionsAllowed = writable('delete-insert-overwrite')
+
 // encoding to use in the multibyte editor
 export const editorEncoding = writable('latin1')
+
 export const editorSelection = writable('')
 export const focusedViewportId = writable('')
 

@@ -20,7 +20,7 @@ limitations under the License.
   import { fileMetrics } from './FileMetrics'
   import { MessageCommand } from '../../../utilities/message'
   import { vscode } from '../../../utilities/vscode'
-  import { saveable } from '../../../stores'
+  import { offsetMax, saveable } from '../../../stores'
   import { createEventDispatcher } from 'svelte'
   import SidePanel from '../../layouts/SidePanel.svelte'
   import ByteFrequencyGraph from '../../DataMetrics/ByteFrequencyGraph.svelte'
@@ -33,9 +33,8 @@ limitations under the License.
   let canRevert: boolean
   let redoText: string
   let undoText: string
-  let profileStartOffset: number = 0
-  let profileEndOffset: number = 0
-  let byteProfile: number[] = []
+  let startOffset: number = 0
+  let endOffset: number
 
   function saveAs() {
     vscode.postMessage({
@@ -96,6 +95,7 @@ limitations under the License.
     canRevert = $fileMetrics.undoCount + $fileMetrics.changeCount > 0
     redoText = canRedo ? '(' + $fileMetrics.undoCount + ')' : ''
     undoText = canUndo ? '(' + $fileMetrics.changeCount + ')' : ''
+    endOffset = $offsetMax
   }
 
   function redo() {
@@ -112,35 +112,17 @@ limitations under the License.
 
   function toggleMetrics() {
     isSidebarOpen = !isSidebarOpen
-    if (isSidebarOpen) {
-      profileSession()
-    }
   }
-
-  function profileSession() {
-    vscode.postMessage({
-      command: MessageCommand.profile,
-      data: {
-        startOffset: profileStartOffset,
-        endOffset: profileEndOffset,
-      },
-    })
-  }
-
-  window.addEventListener('message', (msg) => {
-    switch (msg.data.command) {
-      case MessageCommand.profile:
-        console.log(`Received profile data: ${JSON.stringify(msg.data.data)}`)
-        byteProfile = msg.data.data.byteProfile
-        break
-      default:
-        break // do nothing
-    }
-  })
 </script>
 
 <SidePanel position="top-left" title="Metrics" bind:open={isSidebarOpen}>
-  <ByteFrequencyGraph title="Byte Frequency Profile" data={byteProfile} />
+  {#if isSidebarOpen}
+    <ByteFrequencyGraph
+      title="Byte Frequency Profile"
+      bind:startOffset
+      bind:endOffset
+    />
+  {/if}
 </SidePanel>
 
 <fieldset class="file-metrics">

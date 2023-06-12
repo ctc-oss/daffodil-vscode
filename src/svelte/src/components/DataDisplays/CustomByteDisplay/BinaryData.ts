@@ -117,11 +117,14 @@ export type ByteActionPxOffsets = {
 function latin1Undefined(charCode: number): boolean {
   return charCode < 32 || (charCode > 126 && charCode < 160)
 }
-export function update_byte_action_offsets(targetDiv: HTMLDivElement, offsetTopBy: number = 0) {
+export function update_byte_action_offsets(
+  targetDiv: HTMLDivElement,
+  offsetTopBy: number = 0
+) {
   byteActionPxOffsets.update((currentOffsets) => {
     currentOffsets.delete = {
       left: targetDiv.offsetLeft,
-      top: (targetDiv.offsetTop + BYTE_VALUE_DIV_OFFSET) - offsetTopBy,
+      top: targetDiv.offsetTop + BYTE_VALUE_DIV_OFFSET - offsetTopBy,
     }
     currentOffsets.input = {
       left: targetDiv.offsetLeft,
@@ -134,20 +137,18 @@ export function update_byte_action_offsets(targetDiv: HTMLDivElement, offsetTopB
     currentOffsets.insertBefore = {
       left: targetDiv.offsetLeft - BYTE_VALUE_DIV_OFFSET,
       top: targetDiv.offsetTop - offsetTopBy,
-    }    
-    console.table({ 
-      'tops': {
-        'delete': currentOffsets.delete.top, 
-        'input': currentOffsets.delete.top, 
-        'insertAfter': currentOffsets.delete.top, 
-        'insertBefore': currentOffsets.delete.top, 
+    }
+    console.table({
+      tops: {
+        delete: currentOffsets.delete.top,
+        input: currentOffsets.delete.top,
+        insertAfter: currentOffsets.delete.top,
+        insertBefore: currentOffsets.delete.top,
       },
-      'scrolls': 
-        { 'height': targetDiv.scrollHeight, 'top': targetDiv.scrollTop }
+      scrolls: { height: targetDiv.scrollHeight, top: targetDiv.scrollTop },
     })
     return currentOffsets
   })
-
 }
 
 export enum ByteValuePxWidths {

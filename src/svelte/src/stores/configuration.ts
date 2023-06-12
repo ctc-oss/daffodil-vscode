@@ -54,6 +54,12 @@ export const ENCODING_GROUPS = [
     ],
   },
 ]
+
+export const EDIT_ACTIONS = [
+  { name: 'Delete, Insert, and Overwrite', value: 'delete-insert-overwrite' },
+  { name: 'Overwrite Only', value: 'overwrite-only' },
+]
+
 export const ENDIANNESS_OPTIONS = [
   { name: 'Big', value: 'be' },
   { name: 'Little', value: 'le' },

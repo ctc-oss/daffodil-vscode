@@ -26,8 +26,8 @@ limitations under the License.
   import { createEventDispatcher } from 'svelte'
 
   const eventDispatcher = createEventDispatcher()
-  
- /* TODO:  All this needs to be moved to a parent component. Given that there are
+
+  /* TODO:  All this needs to be moved to a parent component. Given that there are
          1000 ByteValueDiv components, I feel like there are also 1000 of each
          of the variables that are declared in this .svelte file. */
 

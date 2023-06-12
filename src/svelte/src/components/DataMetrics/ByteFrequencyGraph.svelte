@@ -16,47 +16,39 @@ limitations under the License.
 -->
 <script lang="ts">
   import Button from '../Inputs/Buttons/Button.svelte'
-  export let data: number[] = []
+  import { offsetMax } from '../../stores'
+  import { vscode } from '../../utilities/vscode'
+  import { MessageCommand } from '../../utilities/message'
+  import { onMount } from 'svelte'
   export let title: string
+  export let startOffset: number
+  export let endOffset: number
+
+  let byteProfile: number[] = []
+
+  function profileSession(startOffset: number, endOffset: number) {
+    vscode.postMessage({
+      command: MessageCommand.profile,
+      data: {
+        startOffset: startOffset,
+        endOffset: endOffset,
+      },
+    })
+  }
 
   let currentTooltip: { index: number; value: number } | null = null
   let colorScaleData: string[] = []
   let scaledData: number[] = []
   let sum: number = 0
-  let maxValue: number = 0
+  let maxFrequency: number = 0
   let mean: number = 0
   let stdDev: number = 0
   let numAscii: number = 0
 
-  function calculateNumAscii(profile: number[]): number {
-    return profile.slice(0, 128).reduce((accumulator, current) => {
-      return accumulator + current
-    }, 0)
-  }
-
-  $: {
-    sum = data.reduce((a, b) => a + b, 0)
-    mean = sum / data.length
-    maxValue = Math.max(...data)
-
-    let squareDiffs = data.map((value) => Math.pow(value - mean, 2))
-    let avgSquareDiff =
-      squareDiffs.reduce((a, b) => a + b, 0) / squareDiffs.length
-    stdDev = Math.sqrt(avgSquareDiff)
-
-    colorScaleData = data.map((value) => {
-      if (value < mean - stdDev) return 'low'
-      if (value > mean + stdDev) return 'high'
-      return 'average'
-    })
-
-    scaledData = data.map((d) => Math.round((d / maxValue) * 300)) // 300 is the max height of the chart
-    numAscii = calculateNumAscii(data)
-  }
-
   function handleDownload(): void {
     const csvContent =
-      'Byte,Frequency\n' + data.map((val, idx) => `${idx},${val}`).join('\n')
+      'Byte,Frequency\n' +
+      byteProfile.map((val, idx) => `${idx},${val}`).join('\n')
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
@@ -64,6 +56,40 @@ limitations under the License.
     link.download = 'data.csv'
     link.click()
   }
+
+  $: {
+    sum = byteProfile.reduce((a, b) => a + b, 0)
+    mean = sum / byteProfile.length
+    maxFrequency = Math.max(...byteProfile)
+
+    let squareDiffs = byteProfile.map((value) => Math.pow(value - mean, 2))
+    let avgSquareDiff =
+      squareDiffs.reduce((a, b) => a + b, 0) / squareDiffs.length
+    stdDev = Math.sqrt(avgSquareDiff)
+
+    colorScaleData = byteProfile.map((value) => {
+      if (value < mean - stdDev) return 'low'
+      if (value > mean + stdDev) return 'high'
+      return 'average'
+    })
+
+    scaledData = byteProfile.map((d) => Math.round((d / maxFrequency) * 300)) // 300 is the max height of the chart
+  }
+
+  onMount(() => {
+    window.addEventListener('message', (msg) => {
+      switch (msg.data.command) {
+        case MessageCommand.profile:
+          byteProfile = msg.data.data.byteProfile
+          numAscii = msg.data.data.numAscii
+          break
+        default:
+          break // do nothing
+      }
+    })
+
+    profileSession(startOffset, endOffset)
+  })
 </script>
 
 <div class="container">
@@ -83,21 +109,44 @@ limitations under the License.
     {/each}
     {#if currentTooltip}
       <div class="tooltip" style="bottom: {currentTooltip.value}px;">
-        Byte: {currentTooltip.index}, Frequency: {data[currentTooltip.index]}
+        Byte: {currentTooltip.index}, Frequency: {byteProfile[
+          currentTooltip.index
+        ]}
       </div>
     {/if}
   </div>
   <div>
-    Max Value: {maxValue}<br />
-    Mean Frequency: {mean.toFixed(2)}<br />
-    Standard Deviation: {stdDev.toFixed(2)}<br />
-    Number Of Bytes: {sum}<br />
-    Number Of ASCII Bytes: {numAscii}<br />
-    Percentage Of ASCII Bytes: {((numAscii / sum) * 100).toFixed(2)}%
+    <label for="start-offset"
+      >Start Offset: <span id="start-offset">{startOffset}</span></label
+    ><br />
+    <label for="end-offset"
+      >End Offset: <span id="end-offset">{endOffset}</span></label
+    ><br />
+    <label for="max-frequency"
+      >Max Frequency: <span id="max-frequency">{maxFrequency}</span></label
+    ><br />
+    <label for="mean-frequency"
+      >Mean Frequency: <span id="mean-frequency">{mean.toFixed(2)}</span></label
+    ><br />
+    <label for="stddev"
+      >Standard Deviation: <span id="stddev">{stdDev.toFixed(2)}</span></label
+    ><br />
+    <label for="byte-count"
+      >Byte Count: <span id="byte-count">{sum}</span></label
+    ><br />
+    <label for="ascii-count"
+      >ASCII Byte Count: <span id="ascii-count">{numAscii}</span></label
+    ><br />
+    <label for="ascii-percent"
+      >Percentage ASCII: <span id="ascii-percent"
+        >{((numAscii / sum) * 100).toFixed(2)}%</span
+      ></label
+    ><br />
   </div>
   <Button fn={handleDownload}>
     <span slot="left" class="btn-icon">&#x25BC;</span>
-    <span slot="default">&nbsp;Download Profile as CSV</span></Button>
+    <span slot="default">&nbsp;Download Profile as CSV</span></Button
+  >
 </div>
 
 <style>

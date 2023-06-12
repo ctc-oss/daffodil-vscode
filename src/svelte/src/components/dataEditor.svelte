@@ -41,7 +41,6 @@ limitations under the License.
     viewportLineHeight,
     viewportNumLinesDisplayed,
     viewportStartOffset,
-    addressRadix,
   } from '../stores'
   import {
     CSSThemeClass,
@@ -60,10 +59,7 @@ limitations under the License.
   import SearchReplace from './Header/fieldsets/SearchReplace.svelte'
   import Settings from './Header/fieldsets/Settings.svelte'
   import Main from './Main.svelte'
-  import {
-    EditByteModes,
-    UNPRINTABLE_CHAR_STAND_IN,
-  } from '../stores/configuration'
+  import { EditByteModes } from '../stores/configuration'
   import FlexContainer from './layouts/FlexContainer.svelte'
   import ServerMetrics from './ServerMetrics/ServerMetrics.svelte'
   import { writable } from 'svelte/store'
@@ -75,7 +71,6 @@ limitations under the License.
     byteActionPxOffsets,
     mouseSelectionBytes,
   } from './DataDisplays/CustomByteDisplay/BinaryData'
-  import ByteViewports from './DataDisplays/ByteViewports.svelte'
 
   $: $rawEditorSelectionTxt = $editorSelection
   $: $UIThemeCSSClass = $darkUITheme ? CSSThemeClass.Dark : CSSThemeClass.Light
@@ -463,7 +458,7 @@ limitations under the License.
 
   <!-- <FlexContainer --dir="column" --align-items="center">
     <h2>Debug</h2>
-    <hr style="width: 50%;"/>
+    <hr style="width: 50%;" />
     <FlexContainer --dir="row">
       <FlexContainer --dir="column">
         <div>$selectedByte</div>

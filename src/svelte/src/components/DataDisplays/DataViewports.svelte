@@ -324,12 +324,9 @@ limitations under the License.
   })
 </script>
 
-<BinaryValueActions 
-  on:commitChanges
-  on:handleEditorEvent
-/>
+<BinaryValueActions on:commitChanges on:handleEditorEvent />
 
-<ByteViewports 
+<ByteViewports
   addressRadix={$addressRadix}
   displayRadix={$displayRadix}
   bytesPerRow={$bytesPerRow}

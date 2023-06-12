@@ -15,7 +15,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts" xmlns="http://www.w3.org/1999/html">
-  import { RADIX_OPTIONS, ENCODING_GROUPS } from '../../../stores/configuration'
+  import {
+    RADIX_OPTIONS,
+    ENCODING_GROUPS,
+    EDIT_ACTIONS,
+  } from '../../../stores/configuration'
   import {
     displayRadix,
     editorEncoding,
@@ -28,6 +32,7 @@ limitations under the License.
     viewportScrollHeight,
     viewportClientHeight,
     viewportNumLinesDisplayed,
+    editorActionsAllowed,
   } from '../../../stores'
   import FlexContainer from '../../layouts/FlexContainer.svelte'
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
@@ -59,6 +64,19 @@ limitations under the License.
               <option {value}>{name}</option>
             {/each}
           </optgroup>
+        {/each}
+      </select>
+    </FlexContainer>
+
+    <FlexContainer --dir="row" --align-items="center">
+      <label for="encoding">Editing:</label>
+      <select
+        id="allowed-editing-actions"
+        class={$UIThemeCSSClass}
+        bind:value={$editorActionsAllowed}
+      >
+        {#each EDIT_ACTIONS as { name, value }}
+          <option {value}>{name}</option>
         {/each}
       </select>
     </FlexContainer>
