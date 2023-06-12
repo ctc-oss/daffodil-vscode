@@ -17,14 +17,7 @@
 
 package org.apache.daffodil.tdml
 
-import java.io.File
 import java.nio.file._
-import javax.xml.bind.JAXBContext
-import javax.xml.bind.JAXBElement
-import javax.xml.bind.Marshaller
-import javax.xml.namespace.QName
-import javax.xml.bind.annotation.XmlType
-import scala.collection.JavaConverters._
 
 object TDML {
   // Create a ParserTestCaseType object that can be put into a TestSuite
@@ -48,7 +41,7 @@ object TDML {
   // tdmlDescription: Description for the DFDL operation
   //
   // Returns the ParserTestCase object created with the applied paths
-  def createTestCase(
+  /* def createTestCase(
       infosetPath: String,
       schemaPath: String,
       dataPath: String,
@@ -94,14 +87,14 @@ object TDML {
     testCase.getTutorialOrDocumentOrInfoset().add(infoset)
 
     testCase
-  }
+  } */
   // Convert an absolute path into a path relative to the current working directory
   //
   // path: Absolute path to convert into a relative path
   // tdmlPath: Absolute path to the TDML file to make
   //
   // Returns the relative path. Note that this path is given as a string.
-  def convertToRelativePath(path: Path, tdmlPath: String): String = {
+  /* def convertToRelativePath(path: Path, tdmlPath: String): String = {
     // Get the absolute path of the workspace directory
     // The path is the path to a file. To get the proper relative path, we need
     //   to start at the parent of the file.
@@ -123,7 +116,7 @@ object TDML {
       .relativize(new File(path.toString()).toURI())
       .getPath()
       .toString()
-  }
+  } */
 
   // Generate a new TDML file.
   // Paths given to this function should be absolute as they will be converted to relative paths
@@ -143,9 +136,12 @@ object TDML {
       tdmlPath: String
   ): Unit =
     TDML.generate(
-      convertToRelativePath(infosetPath, tdmlPath),
-      convertToRelativePath(schemaPath, tdmlPath),
-      convertToRelativePath(dataPath, tdmlPath),
+      // convertToRelativePath(infosetPath, tdmlPath),
+      // convertToRelativePath(schemaPath, tdmlPath),
+      // convertToRelativePath(dataPath, tdmlPath),
+      infosetPath,
+      schemaPath,
+      dataPath,
       tdmlName,
       tdmlDescription,
       tdmlPath
@@ -171,18 +167,12 @@ object TDML {
       tdmlDescription: String,
       tdmlPath: String
   ): Unit = {
-    val factory = new ObjectFactory()
-
-    val testSuite = factory.createTestSuite()
-    testSuite.setSuiteName(tdmlName)
-    testSuite.setDefaultRoundTrip(RoundTripType.ONE_PASS)
-    testSuite
-      .getTutorialOrParserTestCaseOrDefineSchema()
-      .add(createTestCase(infosetPath, schemaPath, dataPath, tdmlName, tdmlDescription))
-
-    val marshaller = JAXBContext.newInstance(classOf[TestSuite]).createMarshaller()
-    marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true)
-    marshaller.marshal(testSuite, new java.io.File(tdmlPath))
+    unused(infosetPath)
+    unused(schemaPath)
+    unused(dataPath)
+    unused(tdmlName)
+    unused(tdmlDescription)
+    unused(tdmlPath)
   }
 
   // Append a new test case to an existing TDML file.
@@ -203,9 +193,12 @@ object TDML {
       tdmlPath: String
   ): Unit =
     append(
-      convertToRelativePath(infosetPath, tdmlPath),
-      convertToRelativePath(schemaPath, tdmlPath),
-      convertToRelativePath(dataPath, tdmlPath),
+      // convertToRelativePath(infosetPath, tdmlPath),
+      // convertToRelativePath(schemaPath, tdmlPath),
+      // convertToRelativePath(dataPath, tdmlPath),
+      infosetPath,
+      schemaPath,
+      dataPath,
       tdmlName,
       tdmlDescription,
       tdmlPath
@@ -228,20 +221,12 @@ object TDML {
       tdmlDescription: String,
       tdmlPath: String
   ): Unit = {
-
-    val testSuite = JAXBContext
-      .newInstance(classOf[TestSuite])
-      .createUnmarshaller()
-      .unmarshal(new File(tdmlPath))
-      .asInstanceOf[TestSuite]
-
-    testSuite
-      .getTutorialOrParserTestCaseOrDefineSchema()
-      .add(createTestCase(infosetPath, schemaPath, dataPath, tdmlName, tdmlDescription))
-
-    val marshaller = JAXBContext.newInstance(classOf[TestSuite]).createMarshaller()
-    marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true)
-    marshaller.marshal(testSuite, new java.io.File(tdmlPath))
+    unused(infosetPath)
+    unused(schemaPath)
+    unused(dataPath)
+    unused(tdmlName)
+    unused(tdmlDescription)
+    unused(tdmlPath)
   }
 
   // Find the parameters needed to execute a DFDL parse based on the given TDML Parameters
@@ -253,35 +238,20 @@ object TDML {
   // Returns a tuple containing the following (Path to DFDL Schema, Path to Data File)
   // All paths returned could be either relative or absolute - it depends on what exists in the TDML file
   def execute(tdmlName: String, tdmlDescription: String, tdmlPath: String): Option[(Path, Path)] = {
-    val basePath = Paths.get(tdmlPath).toAbsolutePath().getParent()
+    unused(tdmlDescription)
 
-    val testCaseList = JAXBContext
-      .newInstance(classOf[TestSuite])
-      .createUnmarshaller()
-      .unmarshal(new File(tdmlPath))
-      .asInstanceOf[TestSuite]
-      .getTutorialOrParserTestCaseOrDefineSchema()
-      .asScala
-      .toList
-
-    testCaseList.collectFirst {
-      case (ptc: ParserTestCaseType) if ptc.getName() == tdmlName && ptc.getDescription() == tdmlDescription =>
-        ptc.getTutorialOrDocumentOrInfoset().asScala.collectFirst { case doc: DocumentType =>
-          // The right part of the tuple only takes the first DocumentPart inside the Document.
-          // In the case that there are more than one, any extras will be ignored.
-          val schemaPath = Paths.get(basePath + File.separator + ptc.getModel()).normalize()
-          val dataPath = Paths
-            .get(
-              basePath + File.separator + doc
-                .getContent()
-                .get(1)
-                .asInstanceOf[JAXBElement[DocumentPartType]]
-                .getValue()
-                .getValue()
-            )
-            .normalize()
-          (schemaPath, dataPath)
-        }
-    }.flatten
+    for {
+      ptc <- new Runner(tdmlPath).getTS.testCaseMap.get(tdmlName)
+      doc <- ptc.document
+      file <- doc.documentParts.collectFirst { case fp: FileDocumentPart => fp }
+    } yield {
+      val schemaPath = Paths.get(ptc.model).normalize()
+      val dataPath = Paths
+        .get(file.url.toURI())
+        .normalize()
+      (schemaPath, dataPath)
+    }
   }
+
+  def unused[T](arg: T): Unit = arg match { case _ => () }
 }

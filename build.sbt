@@ -84,7 +84,6 @@ lazy val core = project
   .in(file("server/core"))
   .enablePlugins(BuildInfoPlugin, JavaAppPackaging, UniversalPlugin, ClasspathJarPlugin, SbtXjcPlugin)
   .settings(commonSettings)
-  .settings(xjcSettings)
   .settings(
     name := "daffodil-debugger",
     libraryDependencies ++= Seq(
@@ -98,66 +97,11 @@ lazy val core = project
       // scala-steward:on
       "co.fs2" %% "fs2-io" % "3.2.14",
       "com.monovore" %% "decline-effect" % "2.3.1",
+      "org.apache.daffodil" %% "daffodil-tdml-lib" % daffodilVer,
       "org.typelevel" %% "log4cats-slf4j" % "2.5.0",
       "org.scalameta" %% "munit" % "0.7.29" % Test
     ),
     buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion, "daffodilVersion" -> daffodilVer),
     buildInfoPackage := "org.apache.daffodil.debugger.dap",
     packageName := s"${name.value}-$daffodilVer"
-  )
-
-lazy val xjcSettings =
-  Seq(
-    libraryDependencies ++= Seq(
-      "com.sun.xml.bind" % "jaxb-impl" % "2.2.11",
-      "javax.activation" % "activation" % "1.1.1",
-      "org.apache.daffodil" %% "daffodil-lib" % daffodilVer % Test,
-      "org.glassfish.jaxb" % "jaxb-xjc" % "2.2.11"
-    ),
-    xjcCommandLine += "-nv",
-    xjcCommandLine += "-p",
-    xjcCommandLine += "org.apache.daffodil.tdml",
-    xjcBindings += "server/core/src/main/resources/bindings.xjb",
-    xjcLibs := Seq(
-      "org.glassfish.jaxb" % "jaxb-xjc" % "2.2.11",
-      "com.sun.xml.bind" % "jaxb-impl" % "2.2.11",
-      "javax.activation" % "activation" % "1.1.1"
-    ),
-    Compile / xjc / sources := Seq(
-      file(
-        Seq(resourceManaged.value, "xsd")
-          .mkString(java.io.File.separator)
-      )
-    ),
-    Compile / doc / sources := Seq(file("")),
-    Compile / resourceGenerators += Def.task {
-      // This is going to be the directory that contains the DFDL schema files. We extract the files from the jar to this directory,
-      //   but the directory structure is maintained. The directory structure will be flattened so that the DFDL schema files are
-      //   directly contained by this directory.
-      //
-      // Note that baseDirectory is ${workspaceDir}/server/sbtXjc/
-      lazy val xsdDir = Seq(resourceManaged.value, "xsd").mkString(java.io.File.separator)
-
-      // Get the daffodil-lib jar from the dependencies.
-      val jarsToExtract: Seq[File] =
-        managedJars(Test, Set[String]("jar"), update.value) map { _.data } filter { _.getName.contains("daffodil-lib") }
-
-      // Extract the DFDL schema files from the daffodil-lib jar. We ignore the XMLSchema.xsd file because it contains a DTD, and
-      //   the JAXB process is not happy with DTDs without a particular setting being set. Consequently, this file is not strictly
-      //   necessary for the generation of Java classes.
-      jarsToExtract foreach { jar =>
-        IO.unzip(
-          jar,
-          new File(xsdDir),
-          NameFilter.fnToNameFilter(f =>
-            !f.endsWith("XMLSchema.xsd") && f.endsWith(".xsd") && f.startsWith(
-              Seq("org", "apache", "daffodil", "xsd").mkString("/")
-            )
-          )
-        )
-      }
-
-      // Get File objects for each DFDL schema file that was extracted.
-      new File(Seq(xsdDir, "org", "apache", "daffodil", "xsd").mkString("/")).listFiles().toSeq
-    }.taskValue
   )
