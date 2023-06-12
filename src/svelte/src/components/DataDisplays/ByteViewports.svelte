@@ -35,13 +35,7 @@ limitations under the License.
   let gutterContainer: HTMLDivElement
   let physicalContainer: HTMLDivElement
   let logicalContainer: HTMLDivElement
-
-  // let scrollTop: number
-  // let scrollHeight: number
-  // let clientHeight: number
-  // let scrolledTop: boolean
-  // let scrolledEnd: boolean
-  // let fireScrollBoundaryEvent = true
+  let fireScrollBoundaryEvent = true
 
   const eventDispatcher = createEventDispatcher()
 
@@ -54,37 +48,14 @@ limitations under the License.
   )
 
   function syncScroll(element: HTMLDivElement) {
-    // scrollTop = element.scrollTop
-    // scrollHeight = element.scrollHeight
-    // clientHeight = element.clientHeight
-
-    // switch (element.id) {
-    //   case 'gutter':
-    //     {
-    //       physicalContainer.scrollTop = scrollTop
-    //       logicalContainer.scrollTop = scrollTop
-
-    //       // check if scrolled to the top or bottom, we only do this for one of
-    //       // the viewports so the event is fired once rather than three times
-    //       scrolledTop = scrollTop === 0
-    //       scrolledEnd = Math.ceil(scrollTop) + clientHeight === scrollHeight
-    //       if ((scrolledTop && !scrolledEnd) || (scrolledEnd && !scrolledTop)) {
-    //         if (fireScrollBoundaryEvent) {
-    //           fireScrollBoundaryEvent = false
-    //           setTimeout(() => (fireScrollBoundaryEvent = true), 100)
-    //           // fire scrollBoundary event when scrolled to the top or bottom
-    //           eventDispatcher('scrollBoundary', { scrolledTop, scrolledEnd })
-    //         }
-    //       }
-    //     }
     $viewportScrollTop = element.scrollTop
     $viewportScrollHeight = element.scrollHeight
     $viewportClientHeight = element.clientHeight
-
+    
     switch (element.id) {
       case 'gutter':
-        physicalContainer.scrollTop = $viewportScrollTop
-        logicalContainer.scrollTop = $viewportScrollTop
+          physicalContainer.scrollTop = $viewportScrollTop
+          logicalContainer.scrollTop = $viewportScrollTop
         break
       case 'physical':
         gutterContainer.scrollTop = $viewportScrollTop
@@ -96,12 +67,17 @@ limitations under the License.
         break
     }
 
+    // check if scrolled to the top or bottom, we only do this for one of
+    // the viewports so the event is fired once rather than three times
     const scrolledTop = $viewportScrollTop === 0
-    const scrolledEnd =
-      $viewportScrollTop + $viewportClientHeight === $viewportScrollHeight
+    const scrolledEnd = Math.ceil($viewportScrollTop) + $viewportClientHeight === $viewportScrollHeight
     if ((scrolledTop && !scrolledEnd) || (scrolledEnd && !scrolledTop)) {
-      // fire scrollBoundary event when scrolled to the top or bottom
-      eventDispatcher('scrollBoundary', { scrolledTop, scrolledEnd })
+      if (fireScrollBoundaryEvent) {
+        fireScrollBoundaryEvent = false
+        setTimeout(() => (fireScrollBoundaryEvent = true), 100)
+        // fire scrollBoundary event when scrolled to the top or bottom
+        eventDispatcher('scrollBoundary', { scrolledTop, scrolledEnd })
+      }
     }
   }
 
