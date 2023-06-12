@@ -40,7 +40,9 @@ import {
   IServerHeartbeat,
   modifyViewport,
   notifyChangedViewports,
+  numAscii,
   pauseViewportEvents,
+  profileSession,
   redo,
   replaceSession,
   resumeViewportEvents,
@@ -408,6 +410,37 @@ export class DataEditorClient implements vscode.Disposable {
       case MessageCommand.redo:
         await redo(this.omegaSessionId)
         await this.sendChangesInfo()
+        break
+
+      case MessageCommand.profile:
+        {
+          const startOffset = message.data.startOffset
+          const endOffset = message.data.endOffset
+          vscode.window.showInformationMessage(
+            `Profiling session -- startOffset: ${startOffset}, endOffset: ${endOffset}`
+          )
+          const byteProfile = await profileSession(
+            this.omegaSessionId,
+            startOffset,
+            endOffset
+          )
+          console.log('byteProfile', byteProfile)
+          this.panel.webview
+            .postMessage({
+              command: MessageCommand.profile,
+              data: {
+                startOffset: startOffset,
+                endOffset: endOffset,
+                byteProfile: byteProfile,
+                numAscii: numAscii(byteProfile),
+              },
+            })
+            .then(() => {
+              vscode.window.showInformationMessage(
+                `Profiled session -- startOffset: ${startOffset}, endOffset: ${endOffset}`
+              )
+            })
+        }
         break
 
       case MessageCommand.clear:

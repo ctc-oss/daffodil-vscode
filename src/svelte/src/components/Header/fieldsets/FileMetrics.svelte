@@ -23,10 +23,19 @@ limitations under the License.
   import { saveable } from '../../../stores'
   import { createEventDispatcher } from 'svelte'
   import SidePanel from '../../layouts/SidePanel.svelte'
+  import ByteFrequencyGraph from '../../DataMetrics/ByteFrequencyGraph.svelte'
   const eventDispatcher = createEventDispatcher()
-  let displayOpts = false
 
+  let displayOpts = false
   let isSidebarOpen = false
+  let canUndo: boolean
+  let canRedo: boolean
+  let canRevert: boolean
+  let redoText: string
+  let undoText: string
+  let profileStartOffset: number = 0
+  let profileEndOffset: number = 0
+  let byteProfile: number[] = []
 
   function saveAs() {
     vscode.postMessage({
@@ -81,11 +90,6 @@ limitations under the License.
     }
   })
 
-  let canUndo: boolean
-  let canRedo: boolean
-  let canRevert: boolean
-  let redoText: string
-  let undoText: string
   $: {
     canUndo = $fileMetrics.changeCount > 0
     canRedo = $fileMetrics.undoCount > 0
@@ -93,72 +97,50 @@ limitations under the License.
     redoText = canRedo ? '(' + $fileMetrics.undoCount + ')' : ''
     undoText = canUndo ? '(' + $fileMetrics.changeCount + ')' : ''
   }
+
   function redo() {
     eventDispatcher('redo')
   }
+
   function undo() {
     eventDispatcher('undo')
   }
+
   function clearChangeStack() {
     eventDispatcher('clearChangeStack')
   }
 
   function toggleMetrics() {
     isSidebarOpen = !isSidebarOpen
+    if (isSidebarOpen) {
+      profileSession()
+    }
   }
+
+  function profileSession() {
+    vscode.postMessage({
+      command: MessageCommand.profile,
+      data: {
+        startOffset: profileStartOffset,
+        endOffset: profileEndOffset,
+      },
+    })
+  }
+
+  window.addEventListener('message', (msg) => {
+    switch (msg.data.command) {
+      case MessageCommand.profile:
+        console.log(`Received profile data: ${JSON.stringify(msg.data.data)}`)
+        byteProfile = msg.data.data.byteProfile
+        break
+      default:
+        break // do nothing
+    }
+  })
 </script>
 
 <SidePanel position="top-left" title="Metrics" bind:open={isSidebarOpen}>
-  01 Side Panel Content Here!<br />
-  02 Side Panel Content Here!<br />
-  03 Side Panel Content Here!<br />
-  04 Side Panel Content Here!<br />
-  05 Side Panel Content Here!<br />
-  06 Side Panel Content Here!<br />
-  07 Side Panel Content Here!<br />
-  08 Side Panel Content Here!<br />
-  09 Side Panel Content Here!<br />
-  10 Side Panel Content Here!<br />
-  11 Side Panel Content Here!<br />
-  12 Side Panel Content Here!<br />
-  13 Side Panel Content Here!<br />
-  14 Side Panel Content Here!<br />
-  15 Side Panel Content Here!<br />
-  16 Side Panel Content Here!<br />
-  17 Side Panel Content Here!<br />
-  18 Side Panel Content Here!<br />
-  19 Side Panel Content Here!<br />
-  20 Side Panel Content Here!<br />
-  21 Side Panel Content Here!<br />
-  22 Side Panel Content Here!<br />
-  23 Side Panel Content Here!<br />
-  24 Side Panel Content Here!<br />
-  25 Side Panel Content Here!<br />
-  26 Side Panel Content Here!<br />
-  27 Side Panel Content Here!<br />
-  28 Side Panel Content Here!<br />
-  29 Side Panel Content Here!<br />
-  30 Side Panel Content Here!<br />
-  31 Side Panel Content Here!<br />
-  32 Side Panel Content Here!<br />
-  33 Side Panel Content Here!<br />
-  34 Side Panel Content Here!<br />
-  35 Side Panel Content Here!<br />
-  36 Side Panel Content Here!<br />
-  37 Side Panel Content Here!<br />
-  38 Side Panel Content Here!<br />
-  39 Side Panel Content Here!<br />
-  40 Side Panel Content Here!<br />
-  51 Side Panel Content Here!<br />
-  52 Side Panel Content Here!<br />
-  53 Side Panel Content Here!<br />
-  54 Side Panel Content Here!<br />
-  55 Side Panel Content Here!<br />
-  56 Side Panel Content Here!<br />
-  57 Side Panel Content Here!<br />
-  58 Side Panel Content Here!<br />
-  59 Side Panel Content Here!<br />
-  60 Side Panel Content Here!<br />
+  <ByteFrequencyGraph title="Byte Frequency Profile" data={byteProfile} />
 </SidePanel>
 
 <fieldset class="file-metrics">
