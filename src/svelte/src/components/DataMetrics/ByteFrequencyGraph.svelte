@@ -115,6 +115,7 @@ limitations under the License.
       </div>
     {/if}
   </div>
+  <br />
   <div>
     <label for="start-offset"
       >Start Offset: <span id="start-offset">{startOffset}</span></label
@@ -143,6 +144,7 @@ limitations under the License.
       ></label
     ><br />
   </div>
+  <br />
   <Button fn={handleDownload}>
     <span slot="left" class="btn-icon">&#x25BC;</span>
     <span slot="default">&nbsp;Download Profile as CSV</span></Button
