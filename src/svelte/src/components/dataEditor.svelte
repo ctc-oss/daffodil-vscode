@@ -456,7 +456,7 @@ limitations under the License.
   <hr />
   <ServerMetrics />
 
-  <!-- <FlexContainer --dir="column" --align-items="center">
+  <FlexContainer --dir="column" --align-items="center">
     <h2>Debug</h2>
     <hr style="width: 50%;" />
     <FlexContainer --dir="row">
@@ -469,7 +469,7 @@ limitations under the License.
         <div>{#if $mouseSelectionBytes} down: {$mouseSelectionBytes.mousedown}, up: {$mouseSelectionBytes.mouseup} {:else} - {/if}</div>
       </FlexContainer>
     </FlexContainer>
-  </FlexContainer> -->
+  </FlexContainer>
 </body>
 
 <!-- svelte-ignore css-unused-selector -->
