@@ -416,10 +416,16 @@ export class DataEditorClient implements vscode.Disposable {
         {
           const startOffset = message.data.startOffset
           const endOffset = message.data.endOffset
+          await vscode.window.showInformationMessage(
+            `Profiling ${startOffset} to ${endOffset}...`
+          )
           const byteProfile = await profileSession(
             this.omegaSessionId,
             startOffset,
             endOffset
+          )
+          await vscode.window.showInformationMessage(
+            `Profiled ${startOffset} to ${endOffset}`
           )
           this.panel.webview.postMessage({
             command: MessageCommand.profile,

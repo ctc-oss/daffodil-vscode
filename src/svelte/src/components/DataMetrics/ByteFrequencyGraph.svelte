@@ -16,36 +16,65 @@ limitations under the License.
 -->
 <script lang="ts">
   import Button from '../Inputs/Buttons/Button.svelte'
-  import { offsetMax } from '../../stores'
   import { vscode } from '../../utilities/vscode'
   import { MessageCommand } from '../../utilities/message'
   import { onMount } from 'svelte'
+  import Input from '../Inputs/Input/Input.svelte'
+
+  // title for the byte profile graph
   export let title: string
+
+  // start offset for the byte profile graph
   export let startOffset: number
+
+  // end offset for the byte profile graph
   export let endOffset: number
 
   let byteProfile: number[] = []
-
-  function profileSession(startOffset: number, endOffset: number) {
-    vscode.postMessage({
-      command: MessageCommand.profile,
-      data: {
-        startOffset: startOffset,
-        endOffset: endOffset,
-      },
-    })
-  }
-
   let currentTooltip: { index: number; value: number } | null = null
   let colorScaleData: string[] = []
   let scaledData: number[] = []
   let sum: number = 0
+  let minFrequency: number = 0
   let maxFrequency: number = 0
   let mean: number = 0
+  let variance: number = 0
   let stdDev: number = 0
   let numAscii: number = 0
+  let isEditing = ''
+  let message = ''
+  let messageTimeout: number | null = null
 
-  function handleDownload(): void {
+  $: {
+    sum = byteProfile.reduce((a, b) => a + b, 0)
+    mean = sum / byteProfile.length
+    minFrequency = Math.min(...byteProfile)
+    maxFrequency = Math.max(...byteProfile)
+
+    let squareDiffs = byteProfile.map((value) => Math.pow(value - mean, 2))
+    variance = squareDiffs.reduce((a, b) => a + b, 0) / squareDiffs.length
+    stdDev = Math.sqrt(variance)
+
+    colorScaleData = byteProfile.map((value) => {
+      if (value < mean - stdDev) return 'low'
+      if (value > mean + stdDev) return 'high'
+      return 'average'
+    })
+
+    scaledData = byteProfile.map((d) => Math.round((d / maxFrequency) * 300)) // 300 is the max height of the chart
+  }
+
+  function setMessage(msg: string) {
+    message = msg
+    // Clear timeout if it exists
+    if (messageTimeout) clearTimeout(messageTimeout)
+    // Timeout message after 5 seconds
+    messageTimeout = setTimeout(() => {
+      message = ''
+    }, 5000)
+  }
+
+  function handleCsvProfileDownload(): void {
     const csvContent =
       'Byte,Frequency\n' +
       byteProfile.map((val, idx) => `${idx},${val}`).join('\n')
@@ -57,23 +86,34 @@ limitations under the License.
     link.click()
   }
 
-  $: {
-    sum = byteProfile.reduce((a, b) => a + b, 0)
-    mean = sum / byteProfile.length
-    maxFrequency = Math.max(...byteProfile)
-
-    let squareDiffs = byteProfile.map((value) => Math.pow(value - mean, 2))
-    let avgSquareDiff =
-      squareDiffs.reduce((a, b) => a + b, 0) / squareDiffs.length
-    stdDev = Math.sqrt(avgSquareDiff)
-
-    colorScaleData = byteProfile.map((value) => {
-      if (value < mean - stdDev) return 'low'
-      if (value > mean + stdDev) return 'high'
-      return 'average'
+  function requestSessionProfile(startOffset: number, endOffset: number) {
+    // TODO: sanity check startOffset and endOffset
+    setMessage(`Profiling bytes from ${startOffset} to ${endOffset}...`)
+    vscode.postMessage({
+      command: MessageCommand.profile,
+      data: {
+        startOffset: startOffset,
+        endOffset: endOffset,
+      },
     })
+  }
 
-    scaledData = byteProfile.map((d) => Math.round((d / maxFrequency) * 300)) // 300 is the max height of the chart
+  function handleInputEnter(e: CustomEvent) {
+    switch (e.detail.id) {
+      case 'start-offset-input':
+        startOffset = parseInt(e.detail.value)
+        break
+      case 'end-offset-input':
+        endOffset = parseInt(e.detail.value)
+        break
+      default:
+        break
+    }
+    isEditing = ''
+    requestSessionProfile(startOffset, endOffset)
+  }
+  function handleBlur() {
+    isEditing = ''
   }
 
   onMount(() => {
@@ -82,13 +122,17 @@ limitations under the License.
         case MessageCommand.profile:
           byteProfile = msg.data.data.byteProfile
           numAscii = msg.data.data.numAscii
+          console.assert(byteProfile.length === 256)
+          console.assert(startOffset === msg.data.data.startOffset)
+          console.assert(endOffset === msg.data.data.endOffset)
+          setMessage(`Profiled bytes from ${startOffset} to ${endOffset}`)
           break
         default:
           break // do nothing
       }
     })
 
-    profileSession(startOffset, endOffset)
+    requestSessionProfile(startOffset, endOffset)
   })
 </script>
 
@@ -115,19 +159,71 @@ limitations under the License.
       </div>
     {/if}
   </div>
-  <br />
+  <div class="message">&nbsp;{message}&nbsp;</div>
   <div>
-    <label for="start-offset"
-      >Start Offset: <span id="start-offset">{startOffset}</span></label
-    ><br />
-    <label for="end-offset"
-      >End Offset: <span id="end-offset">{endOffset}</span></label
+    {#if isEditing === 'startOffset'}
+      <div class="input-container">
+        <label for="start-offset-input" class="label"
+          >Start Offset:
+          <Input
+            id="start-offset-input"
+            placeholder={startOffset}
+            value={startOffset}
+            on:inputEnter={handleInputEnter}
+            on:inputFocusOut={handleBlur}
+            width="64ch"
+            autofocus="true"
+          />
+        </label>
+      </div>
+    {:else}
+      <div
+        on:click={() => {
+          isEditing = 'startOffset'
+        }}
+      >
+        <label for="start-offset"
+          >Start Offset: <span id="start-offset">{startOffset}</span></label
+        >
+      </div>
+    {/if}
+    {#if isEditing === 'endOffset'}
+      <div class="input-container">
+        <label for="end-offset-input" class="label"
+          >End Offset:
+          <Input
+            id="end-offset-input"
+            placeholder={endOffset}
+            value={endOffset}
+            on:inputEnter={handleInputEnter}
+            on:inputFocusOut={handleBlur}
+            width="64ch"
+            autofocus="true"
+          />
+        </label>
+      </div>
+    {:else}
+      <div
+        on:click={() => {
+          isEditing = 'endOffset'
+        }}
+      >
+        <label for="end-offset"
+          >End Offset: <span id="end-offset">{endOffset}</span></label
+        >
+      </div>
+    {/if}
+    <label for="min-frequency"
+      >Min Frequency: <span id="min-frequency">{minFrequency}</span></label
     ><br />
     <label for="max-frequency"
       >Max Frequency: <span id="max-frequency">{maxFrequency}</span></label
     ><br />
     <label for="mean-frequency"
       >Mean Frequency: <span id="mean-frequency">{mean.toFixed(2)}</span></label
+    ><br />
+    <label for="variance"
+      >Variance: <span id="variance">{variance.toFixed(2)}</span></label
     ><br />
     <label for="stddev"
       >Standard Deviation: <span id="stddev">{stdDev.toFixed(2)}</span></label
@@ -145,7 +241,7 @@ limitations under the License.
     ><br />
   </div>
   <br />
-  <Button fn={handleDownload}>
+  <Button fn={handleCsvProfileDownload}>
     <span slot="left" class="btn-icon">&#x25BC;</span>
     <span slot="default">&nbsp;Download Profile as CSV</span></Button
   >
@@ -199,5 +295,11 @@ limitations under the License.
     border: 1px solid blue;
     pointer-events: none;
     opacity: 0.75;
+  }
+
+  div.message {
+    text-align: center;
+    font-size: 0.75em;
+    color: green;
   }
 </style>
