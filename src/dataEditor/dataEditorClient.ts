@@ -216,7 +216,7 @@ export class DataEditorClient implements vscode.Disposable {
       }
     }
     // send and initial heartbeat, then send the heartbeat to the webview at regular intervals
-    this.sendHeartbeat()
+    await this.sendHeartbeat()
     this.sendHeartbeatIntervalId = setInterval(() => {
       this.sendHeartbeat()
     }, HEARTBEAT_INTERVAL_MS)
@@ -273,7 +273,7 @@ export class DataEditorClient implements vscode.Disposable {
     }
 
     // send the initial file info to the webview
-    this.panel.webview.postMessage({
+    await this.panel.webview.postMessage({
       command: MessageCommand.fileInfo,
       data: {
         changeCount: 0,
@@ -286,8 +286,8 @@ export class DataEditorClient implements vscode.Disposable {
     })
   }
 
-  private sendHeartbeat() {
-    this.panel.webview.postMessage({
+  private async sendHeartbeat() {
+    await this.panel.webview.postMessage({
       command: MessageCommand.heartbeat,
       data: {
         latency: heartbeatInfo.latency,
@@ -331,7 +331,7 @@ export class DataEditorClient implements vscode.Disposable {
     })
 
     // send the accumulated counts to the webview
-    this.panel.webview.postMessage({
+    await this.panel.webview.postMessage({
       command: MessageCommand.fileInfo,
       data: data,
     })
@@ -381,7 +381,7 @@ export class DataEditorClient implements vscode.Disposable {
             const bufSlice = Buffer.from(message.data.selectionData)
             const displayData = dataToEncodedStr(bufSlice, encodeDataAs)
 
-            this.panel.webview.postMessage({
+            await this.panel.webview.postMessage({
               command: MessageCommand.editorOnChange,
               display:
                 message.data.encoding === 'hex'
@@ -414,24 +414,18 @@ export class DataEditorClient implements vscode.Disposable {
 
       case MessageCommand.profile:
         {
-          const startOffset = message.data.startOffset
-          const endOffset = message.data.endOffset
-          await vscode.window.showInformationMessage(
-            `Profiling ${startOffset} to ${endOffset}...`
-          )
-          const byteProfile = await profileSession(
+          const startOffset: number = message.data.startOffset
+          const length: number = message.data.length
+          const byteProfile: number[] = await profileSession(
             this.omegaSessionId,
             startOffset,
-            endOffset
+            length
           )
-          await vscode.window.showInformationMessage(
-            `Profiled ${startOffset} to ${endOffset}`
-          )
-          this.panel.webview.postMessage({
+          await this.panel.webview.postMessage({
             command: MessageCommand.profile,
             data: {
               startOffset: startOffset,
-              endOffset: endOffset,
+              length: length,
               byteProfile: byteProfile,
               numAscii: numAscii(byteProfile),
             },
@@ -473,7 +467,7 @@ export class DataEditorClient implements vscode.Disposable {
         {
           const [selectionData, selectionDisplay] = fillRequestData(message)
 
-          this.panel.webview.postMessage({
+          await this.panel.webview.postMessage({
             command: MessageCommand.requestEditedData,
             data: {
               data: Uint8Array.from(selectionData),
@@ -498,7 +492,7 @@ export class DataEditorClient implements vscode.Disposable {
           )
           await resumeViewportEvents(this.omegaSessionId)
           await notifyChangedViewports(this.omegaSessionId)
-          this.panel.webview.postMessage({
+          await this.panel.webview.postMessage({
             command: MessageCommand.replaceResults,
             data: {
               replacementsCount: replacementsCount,
@@ -522,7 +516,7 @@ export class DataEditorClient implements vscode.Disposable {
             0,
             0
           )
-          this.panel.webview.postMessage({
+          await this.panel.webview.postMessage({
             command: MessageCommand.searchResults,
             data: {
               results: searchResults,
@@ -570,7 +564,7 @@ export class DataEditorClient implements vscode.Disposable {
     if (saved) {
       this.fileToEdit = fileToSave
       this.fileSize = await getComputedFileSize(this.omegaSessionId)
-      this.panel.webview.postMessage({
+      await this.panel.webview.postMessage({
         command: MessageCommand.fileInfo,
         data: {
           computedFileSize: this.fileSize,
@@ -758,7 +752,7 @@ function configureOmegaEditPort(): void {
   }
 }
 
-function setupLogging(): void {
+async function setupLogging(): Promise<void> {
   const config = vscode.workspace.getConfiguration('dataEditor')
   const logFile = config
     .get<string>(
@@ -775,11 +769,11 @@ function setupLogging(): void {
   vscode.window.showInformationMessage(`Logging (${logLevel}) to '${logFile}'`)
 }
 
-function sendViewportRefresh(
+async function sendViewportRefresh(
   panel: vscode.WebviewPanel,
   viewportDataResponse: ViewportDataResponse
-): void {
-  panel.webview.postMessage({
+): Promise<void> {
+  await panel.webview.postMessage({
     command: MessageCommand.viewportRefresh,
     data: {
       viewportId: viewportDataResponse.getViewportId(),
@@ -834,9 +828,9 @@ class DisplayState {
     this.colorThemeKind = vscode.window.activeColorTheme.kind
     this.panel = editorPanel
 
-    vscode.window.onDidChangeActiveColorTheme((event) => {
+    vscode.window.onDidChangeActiveColorTheme(async (event) => {
       this.colorThemeKind = event.kind
-      this.sendUIThemeUpdate()
+      await this.sendUIThemeUpdate()
     })
     this.sendUIThemeUpdate()
   }

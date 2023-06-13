@@ -27,9 +27,10 @@ limitations under the License.
   // start offset for the byte profile graph
   export let startOffset: number
 
-  // end offset for the byte profile graph
-  export let endOffset: number
+  // number of bytes to profile from the start offset
+  export let length: number
 
+  let endOffset: number = 0
   let byteProfile: number[] = []
   let currentTooltip: { index: number; value: number } | null = null
   let colorScaleData: string[] = []
@@ -64,14 +65,16 @@ limitations under the License.
     scaledData = byteProfile.map((d) => Math.round((d / maxFrequency) * 300)) // 300 is the max height of the chart
   }
 
-  function setMessage(msg: string) {
-    message = msg
+  function setMessage(msg: string, timeout: number = 5000) {
     // Clear timeout if it exists
     if (messageTimeout) clearTimeout(messageTimeout)
+    message = msg
     // Timeout message after 5 seconds
-    messageTimeout = setTimeout(() => {
-      message = ''
-    }, 5000)
+    if (timeout > 0) {
+      messageTimeout = setTimeout(() => {
+        message = ''
+      }, timeout)
+    }
   }
 
   function handleCsvProfileDownload(): void {
@@ -86,53 +89,66 @@ limitations under the License.
     link.click()
   }
 
-  function requestSessionProfile(startOffset: number, endOffset: number) {
-    // TODO: sanity check startOffset and endOffset
-    setMessage(`Profiling bytes from ${startOffset} to ${endOffset}...`)
+  function requestSessionProfile(startOffset: number, length: number) {
+    // TODO: sanity check startOffset and length
+    setMessage(
+      `Profiling bytes from ${startOffset} to ${startOffset + length}...`,
+      0
+    )
     vscode.postMessage({
       command: MessageCommand.profile,
       data: {
         startOffset: startOffset,
-        endOffset: endOffset,
+        length: length,
       },
     })
   }
 
   function handleInputEnter(e: CustomEvent) {
+    // TODO: error handling
     switch (e.detail.id) {
       case 'start-offset-input':
         startOffset = parseInt(e.detail.value)
+        length = endOffset - startOffset
         break
       case 'end-offset-input':
         endOffset = parseInt(e.detail.value)
+        length = endOffset - startOffset
+        break
+      case 'length-input':
+        length = parseInt(e.detail.value)
+        endOffset = startOffset + length
         break
       default:
         break
     }
     isEditing = ''
-    requestSessionProfile(startOffset, endOffset)
+    requestSessionProfile(startOffset, length)
   }
   function handleBlur() {
     isEditing = ''
   }
 
   onMount(() => {
+    // Handle messages sent from the extension to the webview
     window.addEventListener('message', (msg) => {
       switch (msg.data.command) {
         case MessageCommand.profile:
-          byteProfile = msg.data.data.byteProfile
-          numAscii = msg.data.data.numAscii
+          numAscii = msg.data.data.numAscii as number
+          byteProfile = msg.data.data.byteProfile as number[]
           console.assert(byteProfile.length === 256)
           console.assert(startOffset === msg.data.data.startOffset)
-          console.assert(endOffset === msg.data.data.endOffset)
-          setMessage(`Profiled bytes from ${startOffset} to ${endOffset}`)
+          console.assert(length === msg.data.data.length)
+          setMessage(
+            `Profiled bytes from ${startOffset} to ${startOffset + length}`
+          )
           break
         default:
           break // do nothing
       }
     })
-
-    requestSessionProfile(startOffset, endOffset)
+    endOffset = startOffset + length
+    requestSessionProfile(startOffset, length)
   })
 </script>
 
@@ -171,7 +187,7 @@ limitations under the License.
             value={startOffset}
             on:inputEnter={handleInputEnter}
             on:inputFocusOut={handleBlur}
-            width="64ch"
+            width="34ch"
             autofocus="true"
           />
         </label>
@@ -197,7 +213,7 @@ limitations under the License.
             value={endOffset}
             on:inputEnter={handleInputEnter}
             on:inputFocusOut={handleBlur}
-            width="64ch"
+            width="34ch"
             autofocus="true"
           />
         </label>
@@ -213,6 +229,36 @@ limitations under the License.
         >
       </div>
     {/if}
+    {#if isEditing === 'length'}
+      <div class="input-container">
+        <label for="length-input" class="label"
+          >Length:
+          <Input
+            id="length-input"
+            placeholder={length}
+            value={length}
+            on:inputEnter={handleInputEnter}
+            on:inputFocusOut={handleBlur}
+            width="34ch"
+            autofocus="true"
+          />
+        </label>
+      </div>
+    {:else}
+      <div
+        on:click={() => {
+          isEditing = 'length'
+        }}
+      >
+        <label for="length">Length: <span id="length">{length}</span></label>
+      </div>
+    {/if}
+    <Button fn={handleCsvProfileDownload}>
+      <span slot="left" class="btn-icon">&#x25BC;</span>
+      <span slot="default">&nbsp;Download Profile as CSV</span></Button
+    >
+  </div>
+  <div class="stats">
     <label for="min-frequency"
       >Min Frequency: <span id="min-frequency">{minFrequency}</span></label
     ><br />
@@ -240,11 +286,6 @@ limitations under the License.
       ></label
     ><br />
   </div>
-  <br />
-  <Button fn={handleCsvProfileDownload}>
-    <span slot="left" class="btn-icon">&#x25BC;</span>
-    <span slot="default">&nbsp;Download Profile as CSV</span></Button
-  >
 </div>
 
 <style>

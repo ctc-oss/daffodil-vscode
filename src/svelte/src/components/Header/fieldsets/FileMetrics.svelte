@@ -34,7 +34,7 @@ limitations under the License.
   let redoText: string
   let undoText: string
   let startOffset: number = 0
-  let endOffset: number = 0
+  let length: number = 0
 
   function saveAs() {
     vscode.postMessage({
@@ -95,7 +95,7 @@ limitations under the License.
     canRevert = $fileMetrics.undoCount + $fileMetrics.changeCount > 0
     redoText = canRedo ? '(' + $fileMetrics.undoCount + ')' : ''
     undoText = canUndo ? '(' + $fileMetrics.changeCount + ')' : ''
-    endOffset = endOffset === 0 ? $offsetMax : endOffset
+    length = length === 0 ? $offsetMax - startOffset : length
   }
 
   function redo() {
@@ -117,11 +117,7 @@ limitations under the License.
 
 <SidePanel position="top-left" title="Metrics" bind:open={isSidebarOpen}>
   {#if isSidebarOpen}
-    <ByteFrequencyGraph
-      title="Byte Frequency Profile"
-      {startOffset}
-      {endOffset}
-    />
+    <ByteFrequencyGraph title="Byte Frequency Profile" {startOffset} {length} />
   {/if}
 </SidePanel>
 
