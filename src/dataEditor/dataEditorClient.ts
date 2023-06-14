@@ -654,10 +654,6 @@ async function createDataEditorWebviewPanel(
 
         // stop the server
         await serverStop()
-        assert(
-          !(await checkServerListening(omegaEditPort, OMEGA_EDIT_HOST)),
-          'server is listening'
-        )
       }
     },
     undefined,
