@@ -20,6 +20,7 @@ limitations under the License.
   import { MessageCommand } from '../../utilities/message'
   import { onMount } from 'svelte'
   import Input from '../Inputs/Input/Input.svelte'
+  import { offsetMax } from '../../stores'
 
   // title for the byte profile graph
   export let title: string
@@ -85,12 +86,11 @@ limitations under the License.
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.download = 'data.csv'
+    link.download = 'profile-data.csv'
     link.click()
   }
 
   function requestSessionProfile(startOffset: number, length: number) {
-    // TODO: sanity check startOffset and length
     setMessage(
       `Profiling bytes from ${startOffset} to ${startOffset + length}...`,
       0
@@ -105,19 +105,56 @@ limitations under the License.
   }
 
   function handleInputEnter(e: CustomEvent) {
-    // TODO: error handling
     switch (e.detail.id) {
       case 'start-offset-input':
-        startOffset = parseInt(e.detail.value)
-        length = endOffset - startOffset
+        {
+          const temp = parseInt(e.detail.value)
+          if (isNaN(temp)) {
+            setMessage('Start offset must be a decimal number')
+          } else if (temp < 0) {
+            setMessage('Start offset must be greater than or equal to 0')
+            return
+          } else if (temp >= endOffset) {
+            setMessage('Start offset must be less than end offset')
+            return
+          }
+          startOffset = temp
+          length = endOffset - startOffset
+        }
         break
       case 'end-offset-input':
-        endOffset = parseInt(e.detail.value)
-        length = endOffset - startOffset
+        {
+          const temp = parseInt(e.detail.value)
+          if (isNaN(temp)) {
+            setMessage('End offset must be a decimal number')
+          } else if (temp <= startOffset) {
+            setMessage('End offset must be greater than start offset')
+            return
+          } else if (temp > $offsetMax) {
+            setMessage(`End offset must be less than or equal to ${$offsetMax}`)
+            return
+          }
+          endOffset = temp
+          length = endOffset - startOffset
+        }
         break
       case 'length-input':
-        length = parseInt(e.detail.value)
-        endOffset = startOffset + length
+        {
+          const temp = parseInt(e.detail.value)
+          if (isNaN(temp)) {
+            setMessage('Length must be a decimal number')
+          } else if (temp <= 0) {
+            setMessage('Length must be greater than 0')
+            return
+          } else if (temp > $offsetMax - startOffset) {
+            setMessage(
+              `Length must be less than or equal to ${$offsetMax - startOffset}`
+            )
+            return
+          }
+          length = temp
+          endOffset = startOffset + length
+        }
         break
       default:
         break
@@ -187,7 +224,7 @@ limitations under the License.
             value={startOffset}
             on:inputEnter={handleInputEnter}
             on:inputFocusOut={handleBlur}
-            width="34ch"
+            width="20ch"
             autofocus="true"
           />
         </label>
@@ -199,21 +236,23 @@ limitations under the License.
         }}
       >
         <label for="start-offset"
-          >Start Offset: <span id="start-offset">{startOffset}</span></label
+          >Start Offset: <span id="start-offset" class="editable"
+            >{startOffset}</span
+          ></label
         >
       </div>
     {/if}
     {#if isEditing === 'endOffset'}
       <div class="input-container">
         <label for="end-offset-input" class="label"
-          >End Offset:
+          >&nbsp;&nbsp;End Offset:
           <Input
             id="end-offset-input"
             placeholder={endOffset}
             value={endOffset}
             on:inputEnter={handleInputEnter}
             on:inputFocusOut={handleBlur}
-            width="34ch"
+            width="20ch"
             autofocus="true"
           />
         </label>
@@ -225,21 +264,23 @@ limitations under the License.
         }}
       >
         <label for="end-offset"
-          >End Offset: <span id="end-offset">{endOffset}</span></label
+          >&nbsp;&nbsp;End Offset: <span id="end-offset" class="editable"
+            >{endOffset}</span
+          ></label
         >
       </div>
     {/if}
     {#if isEditing === 'length'}
       <div class="input-container">
         <label for="length-input" class="label"
-          >Length:
+          >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Length:
           <Input
             id="length-input"
             placeholder={length}
             value={length}
             on:inputEnter={handleInputEnter}
             on:inputFocusOut={handleBlur}
-            width="34ch"
+            width="20ch"
             autofocus="true"
           />
         </label>
@@ -250,7 +291,12 @@ limitations under the License.
           isEditing = 'length'
         }}
       >
-        <label for="length">Length: <span id="length">{length}</span></label>
+        <label for="length"
+          >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Length: <span
+            id="length"
+            class="editable">{length}</span
+          ></label
+        >
       </div>
     {/if}
     <Button fn={handleCsvProfileDownload}>
@@ -258,34 +304,53 @@ limitations under the License.
       <span slot="default">&nbsp;Download Profile as CSV</span></Button
     >
   </div>
+  <hr />
   <div class="stats">
-    <label for="min-frequency"
-      >Min Frequency: <span id="min-frequency">{minFrequency}</span></label
-    ><br />
-    <label for="max-frequency"
-      >Max Frequency: <span id="max-frequency">{maxFrequency}</span></label
-    ><br />
-    <label for="mean-frequency"
-      >Mean Frequency: <span id="mean-frequency">{mean.toFixed(2)}</span></label
-    ><br />
-    <label for="variance"
-      >Variance: <span id="variance">{variance.toFixed(2)}</span></label
-    ><br />
-    <label for="stddev"
-      >Standard Deviation: <span id="stddev">{stdDev.toFixed(2)}</span></label
-    ><br />
-    <label for="byte-count"
-      >Byte Count: <span id="byte-count">{sum}</span></label
-    ><br />
-    <label for="ascii-count"
-      >ASCII Byte Count: <span id="ascii-count">{numAscii}</span></label
-    ><br />
-    <label for="ascii-percent"
-      >Percentage ASCII: <span id="ascii-percent"
-        >{((numAscii / sum) * 100).toFixed(2)}%</span
+    <label for="computed-size"
+      >&nbsp;Max Offset: <span id="computed-size" class="nowrap"
+        >{$offsetMax}</span
       ></label
-    ><br />
+    >
+    <label for="min-frequency"
+      >&nbsp;&nbsp;Min Freq.: <span id="min-frequency" class="nowrap"
+        >{minFrequency}</span
+      ></label
+    >
+    <label for="max-frequency"
+      >&nbsp;&nbsp;Max Freq.: <span id="max-frequency" class="nowrap"
+        >{maxFrequency}</span
+      ></label
+    >
+    <label for="mean-frequency"
+      >&nbsp;Mean Freq.: <span id="mean-frequency" class="nowrap"
+        >{mean.toFixed(2)}</span
+      ></label
+    >
+    <label for="variance"
+      >&nbsp;&nbsp;&nbsp;Variance: <span id="variance" class="nowrap"
+        >{variance.toFixed(2)}</span
+      ></label
+    >
+    <label for="stddev"
+      >&nbsp;&nbsp;Std. Dev.: <span id="stddev" class="nowrap"
+        >{stdDev.toFixed(2)}</span
+      ></label
+    >
+    <label for="byte-count"
+      >&nbsp;Byte Count: <span id="byte-count" class="nowrap">{sum}</span
+      ></label
+    >
+    <label for="ascii-count"
+      >ASCII Count: <span id="ascii-count" class="nowrap">{numAscii}</span
+      ></label
+    >
+    <label for="ascii-percent"
+      >&nbsp;&nbsp;&nbsp;&nbsp;% ASCII: <span id="ascii-percent" class="nowrap"
+        >{((numAscii / sum) * 100).toFixed(2)}</span
+      ></label
+    >
   </div>
+  <hr />
 </div>
 
 <style>

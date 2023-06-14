@@ -38,6 +38,7 @@ limitations under the License.
   import Input from '../../Inputs/Input/Input.svelte'
 
   const ERROR_MESSAGE_TIMEOUT = 5000
+  const INPUT_WIDTH = '64ch'
 
   let errorMessage: string
   let isEditing = ''
@@ -177,7 +178,7 @@ limitations under the License.
     <b>message: {errorMessage}</b><br />
   {/if}
   <div class="input-container">
-    <label for="endian" class="label">&nbsp;endian:</label><select
+    <label for="endian">&nbsp;endian:</label><select
       id="endian"
       class={$UIThemeCSSClass}
       bind:value={$dataViewEndianness}
@@ -190,33 +191,32 @@ limitations under the License.
   {#if $selectionData.active && $dvInt8}
     {#if isEditing === 'latin1'}
       <div class="input-container">
-        <label for="latin1_dv" class="label">latin-1:</label>
+        <label for="latin1_dv">latin-1: </label>
         <Input
           id="latin1_dv"
           placeholder={$dvLatin1}
           maxlength="1"
           on:inputEnter={handleInputEnter}
           on:inputFocusOut={handleBlur}
-          width="64ch"
+          width={INPUT_WIDTH}
           autofocus="true"
         />
       </div>
     {:else}
       <div
-        class="input-container tooltip"
+        class="input-container"
         id="latin1"
         on:click={() => {
           isEditing = 'latin1'
         }}
       >
-        <span class="tooltip-text">click to edit latin-1</span>
-        <label for="latin1_dv_ro" class="label">latin-1:</label>
-        <span id="latin1_dv_ro" class="nowrap">{$dvLatin1}</span>
+        <label for="latin1_dv_ro">latin-1: </label>
+        <span id="latin1_dv_ro" class="editable">{$dvLatin1}</span>
       </div>
     {/if}
     {#if isEditing === 'int8'}
       <div class="input-container">
-        <label for="int8_dv" class="label">&nbsp;&nbsp;&nbsp;int8:</label>
+        <label for="int8_dv">&nbsp;&nbsp;&nbsp;int8: </label>
         <Input
           id="int8_dv"
           placeholder={$dvInt8}
@@ -224,25 +224,24 @@ limitations under the License.
           maxlength="8"
           on:inputEnter={handleInputEnter}
           on:inputFocusOut={handleBlur}
-          width="64ch"
+          width={INPUT_WIDTH}
           autofocus="true"
         />
       </div>
     {:else}
       <div
-        class="input-container tooltip"
+        class="input-container"
         on:click={() => {
           isEditing = 'int8'
         }}
       >
-        <span class="tooltip-text">click to edit int8</span>
-        <label for="int8_dv_ro" class="label">&nbsp;&nbsp;&nbsp;int8:</label>
-        <span id="int8_dv_ro" class="nowrap">{$dvInt8}</span>
+        <label for="int8_dv_ro">&nbsp;&nbsp;&nbsp;int8: </label>
+        <span id="int8_dv_ro" class="editable">{$dvInt8}</span>
       </div>
     {/if}
     {#if isEditing === 'uint8'}
       <div class="input-container">
-        <label for="uint8_dv" class="label">&nbsp;&nbsp;uint8:</label>
+        <label for="uint8_dv">&nbsp;&nbsp;uint8: </label>
         <Input
           id="uint8_dv"
           placeholder={$dvUint8}
@@ -250,26 +249,25 @@ limitations under the License.
           maxlength="8"
           on:inputEnter={handleInputEnter}
           on:inputFocusOut={handleBlur}
-          width="64ch"
+          width={INPUT_WIDTH}
           autofocus="true"
         />
       </div>
     {:else}
       <div
-        class="input-container tooltip"
+        class="input-container"
         on:click={() => {
           isEditing = 'uint8'
         }}
       >
-        <span class="tooltip-text">click to edit uint8</span>
-        <label for="uint8_dv_ro" class="label">&nbsp;&nbsp;uint8:</label>
-        <span id="uint8_dv_ro" class="nowrap">{$dvUint8}</span>
+        <label for="uint8_dv_ro">&nbsp;&nbsp;uint8: </label>
+        <span id="uint8_dv_ro" class="editable">{$dvUint8}</span>
       </div>
     {/if}
     {#if $dvInt16}
       {#if isEditing === 'int16'}
         <div class="input-container">
-          <label for="int16_dv" class="label">&nbsp;&nbsp;int16:</label>
+          <label for="int16_dv">&nbsp;&nbsp;int16: </label>
           <Input
             id="int16_dv"
             placeholder={$dvInt16}
@@ -277,25 +275,24 @@ limitations under the License.
             maxlength="16"
             on:inputEnter={handleInputEnter}
             on:inputFocusOut={handleBlur}
-            width="64ch"
+            width={INPUT_WIDTH}
             autofocus="true"
           />
         </div>
       {:else}
         <div
-          class="input-container tooltip"
+          class="input-container"
           on:click={() => {
             isEditing = 'int16'
           }}
         >
-          <span class="tooltip-text">click to edit int16</span>
-          <label for="int16_dv_ro" class="label">&nbsp;&nbsp;int16:</label>
-          <span id="int16_dv_ro" class="nowrap">{$dvInt16}</span>
+          <label for="int16_dv_ro">&nbsp;&nbsp;int16: </label>
+          <span id="int16_dv_ro" class="editable">{$dvInt16}</span>
         </div>
       {/if}
       {#if isEditing === 'uint16'}
         <div class="input-container">
-          <label for="uint16_dv" class="label">&nbsp;uint16:</label>
+          <label for="uint16_dv">&nbsp;uint16: </label>
           <Input
             id="uint16_dv"
             placeholder={$dvUint16}
@@ -303,27 +300,26 @@ limitations under the License.
             maxlength="16"
             on:inputEnter={handleInputEnter}
             on:inputFocusOut={handleBlur}
-            width="64ch"
+            width={INPUT_WIDTH}
             autofocus="true"
           />
         </div>
       {:else}
         <div
-          class="input-container tooltip"
+          class="input-container"
           on:click={() => {
             isEditing = 'uint16'
           }}
         >
-          <span class="tooltip-text">click to edit uint16</span>
-          <label for="uint16_dv_ro" class="label">&nbsp;uint16:</label>
-          <span id="uint16_dv_ro" class="nowrap">{$dvUint16}</span>
+          <label for="uint16_dv_ro">&nbsp;uint16: </label>
+          <span id="uint16_dv_ro" class="editable">{$dvUint16}</span>
         </div>
       {/if}
     {/if}
     {#if $dvInt32}
       {#if isEditing === 'int32'}
         <div class="input-container">
-          <label for="int32_dv" class="label">&nbsp;&nbsp;int32:</label>
+          <label for="int32_dv">&nbsp;&nbsp;int32: </label>
           <Input
             id="int32_dv"
             placeholder={$dvInt32}
@@ -331,25 +327,24 @@ limitations under the License.
             maxlength="32"
             on:inputEnter={handleInputEnter}
             on:inputFocusOut={handleBlur}
-            width="64ch"
+            width={INPUT_WIDTH}
             autofocus="true"
           />
         </div>
       {:else}
         <div
-          class="input-container tooltip"
+          class="input-container"
           on:click={() => {
             isEditing = 'int32'
           }}
         >
-          <span class="tooltip-text">click to edit int32</span>
-          <label for="int32_dv_ro" class="label">&nbsp;&nbsp;int32:</label>
-          <span id="int32_dv_ro" class="nowrap">{$dvInt32}</span>
+          <label for="int32_dv_ro">&nbsp;&nbsp;int32: </label>
+          <span id="int32_dv_ro" class="editable">{$dvInt32}</span>
         </div>
       {/if}
       {#if isEditing === 'uint32'}
         <div class="input-container">
-          <label for="uint32_dv" class="label">&nbsp;uint32:</label>
+          <label for="uint32_dv">&nbsp;uint32: </label>
           <Input
             id="uint32_dv"
             placeholder={$dvUint32}
@@ -357,27 +352,26 @@ limitations under the License.
             maxlength="32"
             on:inputEnter={handleInputEnter}
             on:inputFocusOut={handleBlur}
-            width="64ch"
+            width={INPUT_WIDTH}
             autofocus="true"
           />
         </div>
       {:else}
         <div
-          class="input-container tooltip"
+          class="input-container"
           on:click={() => {
             isEditing = 'uint32'
           }}
         >
-          <span class="tooltip-text">click to edit uint32</span>
-          <label for="uint32_dv_ro" class="label">&nbsp;uint32:</label>
-          <span id="uint32_dv_ro" class="nowrap">{$dvUint32}</span>
+          <label for="uint32_dv_ro">&nbsp;uint32: </label>
+          <span id="uint32_dv_ro" class="editable">{$dvUint32}</span>
         </div>
       {/if}
     {/if}
     {#if $dvInt64}
       {#if isEditing === 'int64'}
         <div class="input-container">
-          <label for="int64_dv" class="label">&nbsp;&nbsp;int64:</label>
+          <label for="int64_dv">&nbsp;&nbsp;int64: </label>
           <Input
             id="int64_dv"
             placeholder={$dvInt64}
@@ -385,25 +379,24 @@ limitations under the License.
             maxlength="64"
             on:inputEnter={handleInputEnter}
             on:inputFocusOut={handleBlur}
-            width="64ch"
+            width={INPUT_WIDTH}
             autofocus="true"
           />
         </div>
       {:else}
         <div
-          class="input-container tooltip"
+          class="input-container"
           on:click={() => {
             isEditing = 'int64'
           }}
         >
-          <span class="tooltip-text">click to edit int64</span>
-          <label for="int64_dv_ro" class="label">&nbsp;&nbsp;int64:</label>
-          <span id="int64_dv_ro" class="nowrap">{$dvInt64}</span>
+          <label for="int64_dv_ro">&nbsp;&nbsp;int64: </label>
+          <span id="int64_dv_ro" class="editable">{$dvInt64}</span>
         </div>
       {/if}
       {#if isEditing === 'uint64'}
         <div class="input-container">
-          <label for="uint64_dv" class="label">&nbsp;uint64:</label>
+          <label for="uint64_dv">&nbsp;uint64: </label>
           <Input
             id="uint64_dv"
             placeholder={$dvUint64}
@@ -411,37 +404,21 @@ limitations under the License.
             maxlength="64"
             on:inputEnter={handleInputEnter}
             on:inputFocusOut={handleBlur}
-            width="64ch"
+            width={INPUT_WIDTH}
             autofocus="true"
           />
         </div>
       {:else}
         <div
-          class="input-container tooltip"
+          class="input-container"
           on:click={() => {
             isEditing = 'uint64'
           }}
         >
-          <span class="tooltip-text">click to edit uint64</span>
-          <label for="uint64_dv_ro" class="label">&nbsp;uint64:</label>
-          <span id="uint64_dv_ro" class="nowrap">{$dvUint64}</span>
+          <label for="uint64_dv_ro">&nbsp;uint64: </label>
+          <span id="uint64_dv_ro" class="editable">{$dvUint64}</span>
         </div>
       {/if}
     {/if}
   {/if}
 </fieldset>
-
-<style lang="scss">
-  select {
-    width: 64ch;
-  }
-  .input-container {
-    display: flex;
-    align-items: center;
-  }
-  .label {
-    margin-right: 8px;
-    white-space: nowrap;
-    overflow-wrap: break-word;
-  }
-</style>

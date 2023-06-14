@@ -27,7 +27,7 @@ limitations under the License.
   const eventDispatcher = createEventDispatcher()
 
   let displayOpts = false
-  let isSidebarOpen = false
+  let isProfilerOpen = false
   let canUndo: boolean
   let canRedo: boolean
   let canRevert: boolean
@@ -110,13 +110,18 @@ limitations under the License.
     eventDispatcher('clearChangeStack')
   }
 
-  function toggleMetrics() {
-    isSidebarOpen = !isSidebarOpen
+  function toggleDataProfiler() {
+    isProfilerOpen = !isProfilerOpen
   }
 </script>
 
-<SidePanel position="top-left" title="Metrics" bind:open={isSidebarOpen}>
-  {#if isSidebarOpen}
+<SidePanel
+  position="top-left"
+  title="Data Profiler"
+  panelWidth="270px"
+  bind:open={isProfilerOpen}
+>
+  {#if isProfilerOpen}
     <ByteFrequencyGraph title="Byte Frequency Profile" {startOffset} {length} />
   {/if}
 </SidePanel>
@@ -179,9 +184,9 @@ limitations under the License.
       </FlexContainer>
     </FlexContainer>
     <FlexContainer --dir="column" --align-items="center">
-      <Button fn={toggleMetrics}>
+      <Button fn={toggleDataProfiler}>
         <span slot="left" class="btn-icon">&#x2211;</span>
-        <span slot="default">Metrics</span>
+        <span slot="default">Profiler</span>
       </Button>
     </FlexContainer>
   </FlexContainer>

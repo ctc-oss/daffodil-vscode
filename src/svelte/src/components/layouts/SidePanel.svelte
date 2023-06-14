@@ -23,13 +23,18 @@ limitations under the License.
 
   // whether the side panel is open or not
   export let open = false
+
+  export let panelWidth = '300px' // Default width
 </script>
 
 {#if open}
   <div class="overlay" on:click={() => (open = false)} />
 {/if}
 
-<div class={`side-panel ${position} ${open ? 'open' : ''}`}>
+<div
+  class={`side-panel ${position} ${open ? 'open' : ''}`}
+  style="width: {panelWidth};"
+>
   <div class="tab" on:click={() => (open = false)}>
     <span>{title}</span>
   </div>
@@ -41,7 +46,6 @@ limitations under the License.
 <style>
   .side-panel {
     position: fixed;
-    width: 300px;
     height: 100vh;
     background-color: #21262a;
     transition: 0.4s ease-in-out;
