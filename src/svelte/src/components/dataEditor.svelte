@@ -412,9 +412,9 @@ limitations under the License.
 
 <svelte:window on:keydown|nonpassive={handleKeyBind} />
 <body class={$UIThemeCSSClass}>
-  <FlexContainer>
-    <header class="header-container">
-      <FlexContainer>
+  <FlexContainer --height="150pt">
+    <header>
+      <FlexContainer --height="fit-content">
         <FileMetrics
           on:clearChangeStack={clearChangeStack}
           on:redo={redo}
@@ -465,11 +465,20 @@ limitations under the License.
         <div>$mouseSelectionBytes</div>
       </FlexContainer>
       <FlexContainer --dir="column">
-        <div>{#if $selectedByte} {$selectedByte.offset} {:else} - {/if}</div>
-        <div>{#if $mouseSelectionBytes} down: {$mouseSelectionBytes.mousedown}, up: {$mouseSelectionBytes.mouseup} {:else} - {/if}</div>
+        <div>
+          {#if $selectedByte} {$selectedByte.offset} {:else} - {/if}
+        </div>
+        <div>
+          {#if $mouseSelectionBytes}
+            down: {$mouseSelectionBytes.mousedown}, up: {$mouseSelectionBytes.mouseup}
+          {:else}
+            -
+          {/if}
+        </div>
       </FlexContainer>
     </FlexContainer>
   </FlexContainer>
+  <span class="material-symbols-outlined">functions</span>
 </body>
 
 <!-- svelte-ignore css-unused-selector -->
@@ -485,14 +494,14 @@ limitations under the License.
   }
 
   div.filename-display {
-    font-family: var(--vscode-editor-font-family, 'monospace');
+    font-family: var(--monospace-font);
     font-size: 14px;
     font-weight: bold;
   }
 
   /* fonts */
   main {
-    font-family: monospace;
+    font-family: var(--sans-serif-font);
     min-height: 100%;
   }
 

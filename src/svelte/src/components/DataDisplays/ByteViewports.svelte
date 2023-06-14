@@ -51,11 +51,11 @@ limitations under the License.
     $viewportScrollTop = element.scrollTop
     $viewportScrollHeight = element.scrollHeight
     $viewportClientHeight = element.clientHeight
-    
+
     switch (element.id) {
       case 'gutter':
-          physicalContainer.scrollTop = $viewportScrollTop
-          logicalContainer.scrollTop = $viewportScrollTop
+        physicalContainer.scrollTop = $viewportScrollTop
+        logicalContainer.scrollTop = $viewportScrollTop
         break
       case 'physical':
         gutterContainer.scrollTop = $viewportScrollTop
@@ -70,7 +70,9 @@ limitations under the License.
     // check if scrolled to the top or bottom, we only do this for one of
     // the viewports so the event is fired once rather than three times
     const scrolledTop = $viewportScrollTop === 0
-    const scrolledEnd = Math.ceil($viewportScrollTop) + $viewportClientHeight === $viewportScrollHeight
+    const scrolledEnd =
+      Math.ceil($viewportScrollTop) + $viewportClientHeight ===
+      $viewportScrollHeight
     if ((scrolledTop && !scrolledEnd) || (scrolledEnd && !scrolledTop)) {
       if (fireScrollBoundaryEvent) {
         fireScrollBoundaryEvent = false
@@ -231,7 +233,7 @@ limitations under the License.
     opacity: 0.8;
     justify-content: flex-start; /* Align numbers to the right */
     padding-right: 4px; /* Add right padding for spacing */
-    font-size: 10px; /* Adjust font size */
+    font-size: 13px; /* Adjust font size */
     height: 24px;
     white-space: nowrap; /* Prevent wrapping of line numbers */
   }
@@ -240,21 +242,5 @@ limitations under the License.
   }
   div.odd {
     background-color: #e3e3e3;
-  }
-
-  div.content-container {
-    flex: initial;
-    overflow: hidden;
-  }
-
-  div.content {
-    height: 150px;
-    width: fit-content;
-    padding-left: 4px;
-    border: 1px solid #4caf50;
-    overflow-y: scroll; /* Enable vertical scrolling */
-    font-size: 12px; /* Match font size with line numbers */
-    line-height: 14px; /* Match line height with line numbers */
-    font-family: monospace /* Ensure fixed-width font for byte content */;
   }
 </style>

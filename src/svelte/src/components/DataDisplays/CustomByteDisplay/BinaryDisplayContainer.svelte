@@ -15,7 +15,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
-  import { setContext } from 'svelte'
   import {
     editedDataSegment,
     editorEncoding,
@@ -46,16 +45,16 @@ limitations under the License.
     $selectionData.startOffset = event.detail.offset
   }
   function mouseup(event: CustomEvent) {
-    $selectionData.endOffset = event.detail.offset    
+    $selectionData.endOffset = event.detail.offset
     $selectionData.active = true
     adjust_event_offsets()
   }
-  
+
   function adjust_event_offsets() {
     const start = $selectionData.startOffset
     const end = $selectionData.endOffset
     console.log(`start: ${start}, end: ${end}`)
-    if(start > end) {
+    if (start > end) {
       $selectionData.startOffset = end
       $selectionData.endOffset = start
     }
@@ -111,11 +110,11 @@ limitations under the License.
 >
   {#key $_viewportData}
     {#each _viewportData.physical_byte_values(16, 16) as byte}
-      <BinaryValue 
+      <BinaryValue
         {byte}
-        on:select_byte={ select_byte }
-        on:mouseup={ mouseup }
-        on:mousedown={ mousedown }
+        on:select_byte={select_byte}
+        on:mouseup={mouseup}
+        on:mousedown={mousedown}
       />
     {/each}
   {/key}

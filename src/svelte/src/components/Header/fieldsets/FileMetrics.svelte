@@ -134,16 +134,18 @@ limitations under the License.
   <FlexContainer --dir="row" --align-items="center">
     {#if displayOpts}
       <Button fn={save} disabledBy={!$saveable}>
-        <span slot="left" class="btn-icon">&#x1F4BE;</span>
+        <span slot="left" class="btn-icon material-symbols-outlined">save</span>
         <span slot="default">&nbsp;Save</span>
       </Button>
       <Button fn={saveAs}>
-        <span slot="left" class="btn-icon">&#x1F4C1;</span>
+        <span slot="left" class="btn-icon material-symbols-outlined"
+          >save_as</span
+        >
         <span slot="default">&nbsp;Save As</span>
       </Button>
     {:else}
       <Button fn={toggleSaveDisplay}>
-        <span slot="left" class="btn-icon">&#10515;</span>
+        <span slot="left" class="btn-icon material-symbols-outlined">save</span>
         <span slot="default">Save ...</span>
       </Button>
     {/if}
@@ -170,23 +172,31 @@ limitations under the License.
     <FlexContainer --dir="column" --align-items="center">
       <FlexContainer --dir="row">
         <Button disabledBy={!canRedo} fn={redo}>
-          <span slot="left" class="mirror btn-icon">&#9100;</span>
+          <span slot="left" class="btn-icon material-symbols-outlined"
+            >redo</span
+          >
           <span slot="default">&nbsp;Redo{redoText}</span>
         </Button>
         <Button disabledBy={!canUndo} fn={undo}>
-          <span slot="left" class="btn-icon">&#9100;</span>
+          <span slot="left" class="btn-icon material-symbols-outlined"
+            >undo</span
+          >
           <span slot="default">&nbsp;Undo{undoText}</span>
         </Button>
         <Button disabledBy={!canRevert} fn={clearChangeStack}>
-          <span slot="left" class="btn-icon">&#8635;</span>
+          <span slot="left" class="btn-icon material-symbols-outlined"
+            >restart_alt</span
+          >
           <span slot="default">&nbsp;Revert All</span>
         </Button>
       </FlexContainer>
     </FlexContainer>
     <FlexContainer --dir="column" --align-items="center">
       <Button fn={toggleDataProfiler}>
-        <span slot="left" class="btn-icon">&#x2211;</span>
-        <span slot="default">Profiler</span>
+        <span slot="left" class="btn-icon material-symbols-outlined"
+          >functions</span
+        >
+        <span slot="default">Metrics</span>
       </Button>
     </FlexContainer>
   </FlexContainer>

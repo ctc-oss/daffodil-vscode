@@ -52,7 +52,7 @@ limitations under the License.
     overflow-y: auto;
     overflow-x: hidden;
     z-index: 999;
-    font-family: monospace;
+    font-family: var(--monospace-font);
     color: #ffffff;
   }
 

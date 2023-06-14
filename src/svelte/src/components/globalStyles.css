@@ -12,10 +12,33 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License. */
-
+/* fallback */
+@font-face {
+  font-family: 'Material Symbols Outlined';
+  font-style: normal;
+  font-weight: normal bold;
+  src: url(resources/icons/material-icons.woff2) format('woff2');
+}
+@font-face {
+  font-family: 'Red Hat Mono';
+  font-style: normal;
+  font-weight: normal bold;
+  src: url(resources/fonts/RedHatMono-Regular.woff2) format('woff2');
+}
+@font-face {
+  font-family: 'Space Grotesk';
+  font-style: normal;
+  font-weight: normal bold;
+  src: url(resources/fonts/SpaceGrotesk-Variable.woff2) format('woff2');
+}
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+}
 /* Data Editor - Global CSS Styles */
 
 html {
+  --monospace-font: 'Red Hat Mono';
+  --sans-serif-font: 'Space Grotesk';
   --container-width: 100%;
   --container-height: auto;
   --color-primary-darkest: #02060b;
@@ -43,7 +66,6 @@ button {
   cursor: pointer;
   border-width: 1pt;
   border-style: solid;
-  line-height: 1;
   min-width: 90px;
   margin: 1pt 2pt 1pt 2px;
   padding: 2px;
@@ -97,7 +119,7 @@ hr {
 /* Global TEXTAREA Styles */
 textarea {
   /*noinspection CssUnresolvedCustomProperty*/
-  font-family: var(--vscode-editor-font-family, 'monospace');
+  font-family: 'Red Hat Mono';
   font-size: small;
   resize: none;
   position: relative;
@@ -115,6 +137,10 @@ textarea::-webkit-scrollbar-thumb {
 }
 
 /* Global Styled Elements */
+body {
+  font-family: var(--sans-serif-font);
+}
+
 body.light {
   color: #02060b;
 }
@@ -200,7 +226,7 @@ span.input-actions button {
   border-style: solid;
   min-width: 14pt;
   /*noinspection CssUnresolvedCustomProperty*/
-  font-family: var(--vscode-editor-font-family, 'monospace');
+  font-family: 'Red Hat Mono';
 }
 span.input-actions button.dark:hover {
   opacity: 1;
@@ -275,7 +301,7 @@ div.hide-scrollbar::-webkit-scrollbar {
   grid-template-rows: max-content 25pt auto;
   height: 400pt;
   /*noinspection CssUnresolvedCustomProperty*/
-  font-family: var(--vscode-editor-font-family, 'monospace');
+  font-family: 'Red Hat Mono';
 }
 /* display of binary encoded data takes more space in the physical view */
 .dataEditor.binary {
@@ -298,11 +324,11 @@ div.hide-scrollbar::-webkit-scrollbar {
 }
 .dataEditor div.measure {
   display: flex;
-  font-family: monospace;
+  font-family: 'Red Hat Mono';
   height: 25pt;
 }
 .dataEditor div.measure.viewports {
-  font-size: 13.5px;
+  font-size: 13px;
   letter-spacing: 16px;
   padding-left: 4px;
 }
@@ -370,7 +396,7 @@ div.hide-scrollbar::-webkit-scrollbar {
   max-width: 100px;
   padding-right: 10pt;
   font-weight: 700;
-  font-family: monospace;
+  font-family: 'Red Hat Mono';
   line-height: 24px;
 }
 .dataEditor textarea.address_vw:focus {
@@ -440,9 +466,4 @@ div.hide-scrollbar::-webkit-scrollbar {
   visibility: visible;
   font-size: 8pt;
   opacity: 1;
-}
-
-.input-container {
-  display: flex;
-  align-items: center;
 }

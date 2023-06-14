@@ -68,7 +68,7 @@ limitations under the License.
     justify-content: center;
     align-items: center;
     flex-direction: row;
-    font-family: monospace;
+    font-family: var(--monospace-font);
     border-radius: 5px;
     border-style: solid;
     border-width: 2px;

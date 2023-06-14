@@ -22,6 +22,7 @@ import scss from 'rollup-plugin-scss'
 import svelte from 'rollup-plugin-svelte'
 import { terser } from 'rollup-terser'
 import sveltePreprocess from 'svelte-preprocess'
+import copy from 'rollup-plugin-copy'
 
 const production = !process.env.ROLLUP_WATCH
 
@@ -69,7 +70,9 @@ export default {
         outDir: '../../dist',
       },
     }),
-
+    copy({
+      targets: [{ src: 'src/resources', dest: '../../dist', verbose: true }],
+    }),
     // // If we're building for production (npm run build
     // // instead of npm run dev), minify
     production && terser({ sourceMap: !production }),

@@ -30,10 +30,12 @@ limitations under the License.
   export let byte: ByteValue
 
   let bgColor: string
-  let singleSelected, withinSelectionRange = false
+  let singleSelected,
+    withinSelectionRange = false
 
   const temporarySelections = {
-    mousedown: -1, mouseup: -1
+    mousedown: -1,
+    mouseup: -1,
   }
 
   $: singleSelected = $selectionData.active
@@ -43,12 +45,11 @@ limitations under the License.
     withinSelectionRange = $selectionData.active
       ? byte_within_selection_range()
       : false
-    }
+  }
   $: {
-    if ((singleSelected || withinSelectionRange) && $selectionData.active) 
+    if ((singleSelected || withinSelectionRange) && $selectionData.active)
       bgColor = 'var(--color-secondary-mid)'
-    else 
-      bgColor = 'var(--color-primary-dark)'
+    else bgColor = 'var(--color-primary-dark)'
   }
 
   function select_byte(targetElement: HTMLDivElement) {
@@ -60,8 +61,10 @@ limitations under the License.
   }
 
   function byte_within_selection_range(): boolean {
-    return byte.offset >= $selectionData.startOffset &&
+    return (
+      byte.offset >= $selectionData.startOffset &&
       byte.offset <= $selectionData.endOffset
+    )
   }
   // function select_byte_range(event: Event) {
   //   temporarySelections.mouseup = byte.offset
@@ -104,8 +107,12 @@ limitations under the License.
   class="byte"
   style:background-color={bgColor}
   style:border-color={bgColor}
-  on:mouseup={()=>{ eventDispatcher('mouseup', {offset: byte.offset }) }}
-  on:mousedown={()=>{ eventDispatcher('mousedown', {offset: byte.offset }) }}
+  on:mouseup={() => {
+    eventDispatcher('mouseup', { offset: byte.offset })
+  }}
+  on:mousedown={() => {
+    eventDispatcher('mousedown', { offset: byte.offset })
+  }}
 >
   {#if $displayRadix === RADIX_OPTIONS.Hexadecimal}
     {byte.text.toUpperCase()}
@@ -120,7 +127,7 @@ limitations under the License.
     justify-content: center;
     align-items: center;
     flex-direction: row;
-    font-family: monospace;
+    font-family: var(--monospace-font);
     border-radius: 5px;
     border-style: solid;
     border-width: 2px;
