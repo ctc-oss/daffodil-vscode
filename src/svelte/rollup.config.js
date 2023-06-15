@@ -50,12 +50,6 @@ export default {
       failOnError: true,
       fileName: 'styles.css',
     }),
-
-    // If you have external dependencies installed from
-    // npm, you'll most likely need these plugins. In
-    // some cases you'll need additional configuration -
-    // consult the documentation for details:
-    // https://github.com/rollup/plugins/tree/master/packages/commonjs
     resolve({
       exportConditions: ['svelte'],
       extensions: ['.svelte'],
@@ -73,8 +67,6 @@ export default {
     copy({
       targets: [{ src: 'src/resources', dest: '../../dist', verbose: true }],
     }),
-    // // If we're building for production (npm run build
-    // // instead of npm run dev), minify
     production && terser({ sourceMap: !production }),
   ],
   watch: {
