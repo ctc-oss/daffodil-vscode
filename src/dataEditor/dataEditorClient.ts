@@ -488,7 +488,9 @@ export class DataEditorClient implements vscode.Disposable {
             message.data.caseInsensitive,
             0,
             0,
-            0
+            0,
+            true,
+            message.data.overwriteOnly
           )
           await resumeViewportEvents(this.omegaSessionId)
           await notifyChangedViewports(this.omegaSessionId)

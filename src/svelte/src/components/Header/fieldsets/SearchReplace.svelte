@@ -18,6 +18,7 @@ limitations under the License.
   import {
     addressRadix,
     allowCaseInsensitiveSearch,
+    editorActionsAllowed,
     editorEncoding,
     searchCaseInsensitive,
     seekOffsetInput,
@@ -80,6 +81,7 @@ limitations under the License.
         caseInsensitive: $searchCaseInsensitive,
         replaceData: $replaceQuery.input,
         encoding: $editorEncoding,
+        overwriteOnly: $editorActionsAllowed === 'overwrite-only',
       },
     })
     $replaceQuery.processing = true
