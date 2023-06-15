@@ -432,14 +432,14 @@ limitations under the License.
         <div class="filename-display">{$fileMetrics.name}</div>
         <button
           class={$UIThemeCSSClass + ' minmax-icon'}
-          on:click={elementMinMax}>&#65291;</button
+          on:click={elementMinMax}>&<span class="material-symbols-outlined">expand_all</span></button
         >
       </FlexContainer>
     {:else}
       <div class="display-icons">
         <button
           class={$UIThemeCSSClass + ' minmax-icon'}
-          on:click={elementMinMax}>&#8722;</button
+          on:click={elementMinMax}><span class="material-symbols-outlined">collapse_all</span></button
         >
       </div>
     {/if}
