@@ -46,6 +46,7 @@ limitations under the License.
   let isEditing = ''
   let message = ''
   let messageTimeout: number | null = null
+  let asciiOverlay = true
 
   $: {
     sum = byteProfile.reduce((a, b) => a + b, 0)
@@ -196,6 +197,15 @@ limitations under the License.
     </div>
   {/if}
   <div class="chart">
+    {#if asciiOverlay}
+      <div class="ascii-control-overlay">
+        <div class="overlay-title">ctrl</div>
+      </div>
+      <div class="printable-ascii-overlay">
+        <div class="overlay-title">printable</div>
+      </div>
+      <div class="ascii-control2-overlay" />
+    {/if}
     {#each scaledData as value, i (i)}
       <div
         class="bar {colorScaleData[i]}"
@@ -214,6 +224,18 @@ limitations under the License.
   </div>
   <div class="message">&nbsp;{message}&nbsp;</div>
   <div>
+    <div class="input-container">
+      <label for="ascii-overlay-toggle"
+        >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Overlay:
+        <span
+          id="ascii-overlay-toggle"
+          class="editable"
+          on:click={() => {
+            asciiOverlay = !asciiOverlay
+          }}>{asciiOverlay ? 'On' : 'Off'}</span
+        >
+      </label>
+    </div>
     {#if isEditing === 'startOffset'}
       <div class="input-container">
         <label for="start-offset-input" class="label"
@@ -349,13 +371,13 @@ limitations under the License.
     <label for="ascii-percent"
       >&nbsp;&nbsp;&nbsp;&nbsp;% ASCII: <span id="ascii-percent" class="nowrap"
         >{((numAscii / sum) * 100).toFixed(2)}</span
-      ></label
-    >
+      >
+    </label>
   </div>
   <hr />
 </div>
 
-<style>
+<style lang="scss">
   div.container {
     position: relative;
     justify-content: center;
@@ -376,6 +398,49 @@ limitations under the License.
     padding: 2px;
     box-sizing: border-box;
     border: 1px solid gray;
+    position: relative;
+    opacity: 0.9;
+  }
+
+  div.printable-ascii-overlay {
+    position: absolute;
+    bottom: 0;
+    /* Printable ASCII byte range is from 32 to 126 */
+    /* startByte / totalBytes * 100% */
+    left: calc(32 / 256 * 100%);
+    /* endByte / totalBytes * 100% - startByte / totalBytes * 100% */
+    width: calc((126 / 256 * 100%) - (32 / 256 * 100%));
+    height: 100%;
+    background-color: navy;
+    opacity: 0.5;
+    z-index: -1;
+  }
+  div.ascii-control-overlay {
+    position: absolute;
+    bottom: 0;
+    /* ASCII control byte range is from 0 to 31 */
+    left: 0;
+    width: calc(31 / 256 * 100%);
+    height: 100%;
+    background-color: midnightblue;
+    opacity: 0.5;
+    z-index: -1;
+  }
+  div.ascii-control2-overlay {
+    position: absolute;
+    bottom: 0;
+    left: calc(127 / 251 * 100%);
+    width: calc(1 / 256 * 100%);
+    height: 100%;
+    background-color: midnightblue;
+    opacity: 0.5;
+    z-index: -1;
+  }
+  div.overlay-title {
+    text-align: center;
+    font-size: 0.75em;
+    color: skyblue;
+    opacity: 0.75;
   }
 
   div.bar {
