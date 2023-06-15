@@ -137,15 +137,7 @@ export function update_byte_action_offsets(
       left: targetDiv.offsetLeft - BYTE_VALUE_DIV_OFFSET,
       top: targetDiv.offsetTop - offsetTopBy,
     }
-    console.table({
-      tops: {
-        delete: currentOffsets.delete.top,
-        input: currentOffsets.delete.top,
-        insertAfter: currentOffsets.delete.top,
-        insertBefore: currentOffsets.delete.top,
-      },
-      scrolls: { height: targetDiv.scrollHeight, top: targetDiv.scrollTop },
-    })
+    
     return currentOffsets
   })
 }

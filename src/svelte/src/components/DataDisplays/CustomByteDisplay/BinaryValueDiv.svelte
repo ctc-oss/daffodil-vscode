@@ -23,10 +23,6 @@ limitations under the License.
 
   const eventDispatcher = createEventDispatcher()
 
-  /* TODO:  All this needs to be moved to a parent component. Given that there are
-         1000 ByteValueDiv components, I feel like there are also 1000 of each
-         of the variables that are declared in this .svelte file. */
-
   export let byte: ByteValue
 
   let bgColor: string
@@ -52,7 +48,7 @@ limitations under the License.
   function mouse_event_handle(event: MouseEvent) {
     const type = event.type
     const targetElement = event.target
-    console.log(type, targetElement)
+    
     eventDispatcher(type, {
       targetElement: targetElement,
       targetByte: byte,

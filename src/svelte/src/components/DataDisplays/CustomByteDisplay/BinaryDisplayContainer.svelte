@@ -62,8 +62,8 @@ limitations under the License.
     if (start > end) {
       $selectionData.startOffset = end
       $selectionData.endOffset = start
+      console.log('selectionData: ', $selectionData)
     }
-    console.log('selectionData: ', $selectionData)
   }
 
   function select_byte(selectionEvent: ByteSelectionEvent) {

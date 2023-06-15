@@ -110,6 +110,7 @@ limitations under the License.
       action: action,
     })
   }
+  
   function handleEditorEvent() {
     eventDispatcher('handleEditorEvent')
   }
@@ -141,9 +142,6 @@ limitations under the License.
     type="text"
     class:invalid
     class:inProgress
-    title="byte position {$selectionData.startOffset.toString(
-      $addressRadix
-    )} {radixToString($addressRadix)}"
     bind:value={$editorSelection}
     on:input={handleEditorEvent}
     style="top: {styleOffsets.input.top}px; left: {styleOffsets.input.left}px;"
