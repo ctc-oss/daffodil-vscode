@@ -41,7 +41,6 @@ export type EditByteEvent = {
 export type ByteSelectionEvent = {
   targetElement: HTMLDivElement
   targetByte: ByteValue
-  type: keyof typeof EditByteModes
 }
 export const RADIX_REGEX_MATCH_STR = {
   16: /[0-9a-fA-F]{2}/g,

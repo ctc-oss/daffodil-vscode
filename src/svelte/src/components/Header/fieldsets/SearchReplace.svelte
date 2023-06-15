@@ -153,7 +153,8 @@ limitations under the License.
           eventDispatcher('seek')
         }}
       >
-        <span slot="left" class="btn-icon material-symbols-outlined">start</span>
+        <span slot="left" class="btn-icon material-symbols-outlined">start</span
+        >
         <span slot="default">&nbsp;Seek</span>
       </Button>
     </FlexContainer>
@@ -186,7 +187,9 @@ limitations under the License.
       {/if}
       <Error err={searchErr} display={searchErrDisplay} />
       <Button disabledBy={!$searchable} fn={search}>
-        <span slot="left" class="btn-icon material-symbols-outlined">search</span>
+        <span slot="left" class="btn-icon material-symbols-outlined"
+          >search</span
+        >
         <span slot="default">&nbsp;Search</span></Button
       >
     </FlexContainer>
@@ -201,7 +204,9 @@ limitations under the License.
       />
       <Error err={replaceErr} display={replaceErrDisplay} />
       <Button disabledBy={!$replaceable} fn={searchAndReplace}>
-        <span slot="left" class="btn-icon material-symbols-outlined">find_replace</span>
+        <span slot="left" class="btn-icon material-symbols-outlined"
+          >find_replace</span
+        >
         <span slot="default">&nbsp;Replace</span>
       </Button>
     </FlexContainer>
@@ -209,12 +214,16 @@ limitations under the License.
     {#if $searchQuery.searchResults.length > 0}
       <FlexContainer --dir="row">
         <Button fn={scrollSearchPrev}>
-          <span slot="left" class="btn-icon material-symbols-outlined">navigate_before</span>
+          <span slot="left" class="btn-icon material-symbols-outlined"
+            >navigate_before</span
+          >
           <span slot="default">&nbsp;Prev</span></Button
         >
         <Button fn={scrollSearchNext}>
           <span slot="default">Next&nbsp;</span>
-          <span slot="right" class="btn-icon material-symbols-outlined">navigate_next</span></Button
+          <span slot="right" class="btn-icon material-symbols-outlined"
+            >navigate_next</span
+          ></Button
         >
         <sub
           >{$searchQuery.searchIndex + 1} / {$searchQuery.searchResults.length} Results</sub

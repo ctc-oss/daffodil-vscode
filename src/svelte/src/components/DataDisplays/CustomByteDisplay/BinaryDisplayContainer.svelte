@@ -33,6 +33,7 @@ limitations under the License.
     _viewportData,
     selectedByte,
     type ByteSelectionEvent,
+    type ByteValue,
   } from './BinaryData'
   import { bytesPerRow } from './BinaryData'
   import BinaryValue from './BinaryValueDiv.svelte'
@@ -40,14 +41,18 @@ limitations under the License.
   export const id: string = ''
   export let boundContainerId: HTMLDivElement
 
-  function mousedown(event: CustomEvent) {
+  function mousedown(event: CustomEvent<ByteSelectionEvent>) {
     $selectionData.active = false
-    $selectionData.startOffset = event.detail.offset
+    $selectionData.startOffset = event.detail.targetByte.offset
   }
-  function mouseup(event: CustomEvent) {
-    $selectionData.endOffset = event.detail.offset
+  function mouseup(event: CustomEvent<ByteSelectionEvent>) {
+    $selectionData.endOffset = event.detail.targetByte.offset
+    $selectionData.originalEndOffset = event.detail.targetByte.offset
     $selectionData.active = true
     adjust_event_offsets()
+
+    if ($selectionData.endOffset - $selectionData.startOffset === 0)
+      select_byte(event.detail)
   }
 
   function adjust_event_offsets() {
@@ -61,19 +66,12 @@ limitations under the License.
     console.log('selectionData: ', $selectionData)
   }
 
-  function select_byte(event: CustomEvent<ByteSelectionEvent>) {
+  function select_byte(selectionEvent: ByteSelectionEvent) {
     $focusedViewportId = 'physical'
 
-    $selectedByte = event.detail.targetByte
-    selectionData.update((data) => {
-      data.active = true
-      data.startOffset = $selectedByte.offset
-      data.endOffset = data.startOffset
-      data.originalEndOffset = data.endOffset
-      return data
-    })
+    $selectedByte = selectionEvent.targetByte
 
-    update_byte_action_offsets(event.detail.targetElement, $viewportScrollTop)
+    update_byte_action_offsets(selectionEvent.targetElement, $viewportScrollTop)
 
     editedDataSegment.update(() => {
       return Uint8Array.from(
@@ -110,12 +108,7 @@ limitations under the License.
 >
   {#key $_viewportData}
     {#each _viewportData.physical_byte_values(16, 16) as byte}
-      <BinaryValue
-        {byte}
-        on:select_byte={select_byte}
-        on:mouseup={mouseup}
-        on:mousedown={mousedown}
-      />
+      <BinaryValue {byte} on:mouseup={mouseup} on:mousedown={mousedown} />
     {/each}
   {/key}
 </div>

@@ -18,23 +18,33 @@ limitations under the License.
   import type { ByteValue } from './BinaryData'
   import { selectedByte } from './BinaryData'
   import { createEventDispatcher } from 'svelte'
-  import { selectionData } from '../../../stores'
+  import { editMode, selectionData } from '../../../stores'
+  import { EditByteModes } from '../../../stores/configuration'
 
   const eventDispatcher = createEventDispatcher()
 
   export let byte: ByteValue
 
   let bgColor: string
-  let selected: boolean
   let latin1Undefined: boolean
+  let singleSelected,
+    withinSelectionRange = false
 
-  $: latin1Undefined = byte.text === ''
-  $: selected = $selectionData.active
-    ? $selectedByte.offset === byte.offset
-    : false
+  $: singleSelected =
+    $selectionData.active && $editMode === EditByteModes.Single
+      ? $selectedByte.offset === byte.offset
+      : false
   $: {
-    if (selected) bgColor = 'var(--color-secondary-mid)'
-    else if (!selected)
+    withinSelectionRange =
+      $selectionData.active && $editMode === EditByteModes.Multiple
+        ? byte_within_selection_range()
+        : false
+  }
+  $: {
+    latin1Undefined = byte.text === ''
+    if ((singleSelected || withinSelectionRange) && $selectionData.active)
+      bgColor = 'var(--color-secondary-mid)'
+    else
       bgColor = latin1Undefined
         ? 'var(--color-primary-darkest)'
         : 'var(--color-primary-dark)'
@@ -45,6 +55,12 @@ limitations under the License.
       targetDiv: event.target as HTMLDivElement,
       targetByte: byte,
     })
+  }
+  function byte_within_selection_range(): boolean {
+    return (
+      byte.offset >= $selectionData.startOffset &&
+      byte.offset <= $selectionData.endOffset
+    )
   }
 </script>
 
@@ -57,7 +73,6 @@ limitations under the License.
     ? 'var(--color-secondary-lightest)'
     : 'var(--color-primary-lightest)'}
   class:latin1Undefined
-  on:click={select_byte}
 >
   {byte.text}
 </div>

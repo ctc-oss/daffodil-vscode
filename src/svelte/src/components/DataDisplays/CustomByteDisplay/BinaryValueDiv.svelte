@@ -15,8 +15,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
-  import { displayRadix, selectionData } from '../../../stores'
-  import { RADIX_OPTIONS } from '../../../stores/configuration'
+  import { displayRadix, editMode, selectionData } from '../../../stores'
+  import { EditByteModes, RADIX_OPTIONS } from '../../../stores/configuration'
   import type { ByteSelectionEvent, ByteValue } from './BinaryData'
   import { selectedByte } from './BinaryData'
   import { createEventDispatcher } from 'svelte'
@@ -33,18 +33,15 @@ limitations under the License.
   let singleSelected,
     withinSelectionRange = false
 
-  const temporarySelections = {
-    mousedown: -1,
-    mouseup: -1,
-  }
-
-  $: singleSelected = $selectionData.active
-    ? $selectedByte.offset === byte.offset
-    : false
-  $: {
-    withinSelectionRange = $selectionData.active
-      ? byte_within_selection_range()
+  $: singleSelected =
+    $selectionData.active && $editMode === EditByteModes.Single
+      ? $selectedByte.offset === byte.offset
       : false
+  $: {
+    withinSelectionRange =
+      $selectionData.active && $editMode === EditByteModes.Multiple
+        ? byte_within_selection_range()
+        : false
   }
   $: {
     if ((singleSelected || withinSelectionRange) && $selectionData.active)
@@ -52,11 +49,13 @@ limitations under the License.
     else bgColor = 'var(--color-primary-dark)'
   }
 
-  function select_byte(targetElement: HTMLDivElement) {
-    eventDispatcher('select_byte', {
+  function mouse_event_handle(event: MouseEvent) {
+    const type = event.type
+    const targetElement = event.target
+    console.log(type, targetElement)
+    eventDispatcher(type, {
       targetElement: targetElement,
       targetByte: byte,
-      type: 'Single',
     } as ByteSelectionEvent)
   }
 
@@ -66,39 +65,6 @@ limitations under the License.
       byte.offset <= $selectionData.endOffset
     )
   }
-  // function select_byte_range(event: Event) {
-  //   temporarySelections.mouseup = byte.offset
-  //   $mouseSelectionBytes.mouseup = temporarySelections.mouseup
-
-  //   const target = event.target as HTMLDivElement
-
-  //   if ($mouseSelectionBytes.mousedown === $mouseSelectionBytes.mouseup) {
-  //     select_byte(target)
-  //     return
-  //   }
-  //   if (
-  //     $mouseSelectionBytes.mousedown >= 0 &&
-  //     $mouseSelectionBytes.mouseup >= 0
-  //   ) {
-  //     const startOffset =
-  //       $mouseSelectionBytes.mousedown < $mouseSelectionBytes.mouseup
-  //         ? $mouseSelectionBytes.mousedown
-  //         : $mouseSelectionBytes.mouseup
-  //     const endOffset =
-  //       $mouseSelectionBytes.mousedown > $mouseSelectionBytes.mouseup
-  //         ? $mouseSelectionBytes.mousedown
-  //         : $mouseSelectionBytes.mouseup
-
-  //     $selectedByte = { text: '', offset: -1, value: -1 }
-  //     selectionData.update((data) => {
-  //       data.active = true
-  //       data.startOffset = startOffset
-  //       data.endOffset = endOffset
-  //       data.originalEndOffset = endOffset
-  //       return data
-  //     })
-  //   }
-  // }
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -107,12 +73,8 @@ limitations under the License.
   class="byte"
   style:background-color={bgColor}
   style:border-color={bgColor}
-  on:mouseup={() => {
-    eventDispatcher('mouseup', { offset: byte.offset })
-  }}
-  on:mousedown={() => {
-    eventDispatcher('mousedown', { offset: byte.offset })
-  }}
+  on:mouseup={mouse_event_handle}
+  on:mousedown={mouse_event_handle}
 >
   {#if $displayRadix === RADIX_OPTIONS.Hexadecimal}
     {byte.text.toUpperCase()}

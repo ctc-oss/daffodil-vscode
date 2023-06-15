@@ -300,7 +300,9 @@ limitations under the License.
       </div>
     {/if}
     <Button fn={handleCsvProfileDownload}>
-      <span slot="left" class="btn-icon material-symbols-outlined">download</span>
+      <span slot="left" class="btn-icon material-symbols-outlined"
+        >download</span
+      >
       <span slot="default">Profile as CSV</span></Button
     >
   </div>

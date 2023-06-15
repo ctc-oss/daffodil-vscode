@@ -102,7 +102,7 @@ export const selectionData = new SelectionDataStore()
 export const editMode = derived(
   selectionData,
   ($selectionData) => {
-    return $selectionData.originalEndOffset - $selectionData.startOffset <= 0
+    return $selectionData.originalEndOffset - $selectionData.startOffset === 0
       ? EditByteModes.Single
       : EditByteModes.Multiple
   },
