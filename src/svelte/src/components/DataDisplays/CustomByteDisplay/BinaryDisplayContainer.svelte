@@ -34,6 +34,7 @@ limitations under the License.
     selectedByte,
     type ByteSelectionEvent,
     type ByteValue,
+    null_byte,
   } from './BinaryData'
   import { bytesPerRow } from './BinaryData'
   import BinaryValue from './BinaryValueDiv.svelte'
@@ -51,25 +52,26 @@ limitations under the License.
     $selectionData.active = true
     adjust_event_offsets()
 
-    if ($selectionData.endOffset - $selectionData.startOffset === 0)
-      select_byte(event.detail)
+    set_byte_selection(event.detail)
   }
 
   function adjust_event_offsets() {
     const start = $selectionData.startOffset
     const end = $selectionData.endOffset
-    console.log(`start: ${start}, end: ${end}`)
+    
     if (start > end) {
       $selectionData.startOffset = end
+      $selectionData.originalEndOffset = start
       $selectionData.endOffset = start
-      console.log('selectionData: ', $selectionData)
     }
   }
 
-  function select_byte(selectionEvent: ByteSelectionEvent) {
+  function set_byte_selection(selectionEvent: ByteSelectionEvent) {
     $focusedViewportId = 'physical'
 
-    $selectedByte = selectionEvent.targetByte
+    $selectedByte = $editMode === EditByteModes.Single
+      ? selectionEvent.targetByte
+      : null_byte()
 
     update_byte_action_offsets(selectionEvent.targetElement, $viewportScrollTop)
 
@@ -81,7 +83,10 @@ limitations under the License.
         )
       )
     })
-    if ($editMode === EditByteModes.Single) postEditorOnChangeMsg('hex')
+    
+    $editMode === EditByteModes.Single
+      ? postEditorOnChangeMsg('hex')
+      : postEditorOnChangeMsg()
   }
 
   function postEditorOnChangeMsg(forcedEncoding?: string) {

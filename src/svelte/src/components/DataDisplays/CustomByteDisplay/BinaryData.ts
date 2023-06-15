@@ -27,6 +27,13 @@ export type ByteValue = {
   text: string | undefined
   value: number
 }
+export const null_byte = () => {
+  return {
+    offset: -1,
+    text: '',
+    value: -1
+  } as ByteValue
+}
 
 export type EditByteAction =
   | 'insert-before'
@@ -154,8 +161,8 @@ export const bytesPerRow = writable(16)
 export const editingByte = writable(false)
 export const selectedByte = writable({
   text: '',
-  offset: 0,
-  value: 0,
+  offset: -1,
+  value: -1,
 } as ByteValue)
 export const byteActionPxOffsets = writable({
   insertBefore: {

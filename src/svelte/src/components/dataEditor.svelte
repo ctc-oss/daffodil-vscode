@@ -304,7 +304,6 @@ limitations under the License.
     $selectionData.active = false
     $editorSelection = ''
     $editedDataSegment = new Uint8Array(0)
-    $mouseSelectionBytes = { mousedown: -1, mouseup: -1 }
   }
 
   function handleKeyBind(event: Event) {
