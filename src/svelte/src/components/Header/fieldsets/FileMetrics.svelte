@@ -196,7 +196,7 @@ limitations under the License.
         <span slot="left" class="btn-icon material-symbols-outlined"
           >functions</span
         >
-        <span slot="default">Metrics</span>
+        <span slot="default">Profile</span>
       </Button>
     </FlexContainer>
   </FlexContainer>

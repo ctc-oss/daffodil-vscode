@@ -62,14 +62,15 @@ legend {
 button {
   display: inline-block;
   border-radius: 4pt;
-  font-weight: bold;
   cursor: pointer;
   border-width: 1pt;
   border-style: solid;
   min-width: 90px;
   margin: 1pt 2pt 1pt 2px;
   padding: 2px;
-  transition: all 0.5s;
+}
+button:not(:disabled):hover {
+  font-weight: bold;
 }
 button:disabled {
   opacity: 0.3;
