@@ -195,7 +195,7 @@ limitations under the License.
         <Input
           id="latin1_dv"
           placeholder={$dvLatin1}
-          maxlength="1"
+          maxlength="{1}"
           on:inputEnter={handleInputEnter}
           on:inputFocusOut={handleBlur}
           width={INPUT_WIDTH}
@@ -209,6 +209,7 @@ limitations under the License.
         on:click={() => {
           isEditing = 'latin1'
         }}
+          on:keydown={()=>{}}
       >
         <label for="latin1_dv_ro">latin-1: </label>
         <span id="latin1_dv_ro" class="editable">{$dvLatin1}</span>
@@ -221,7 +222,7 @@ limitations under the License.
           id="int8_dv"
           placeholder={$dvInt8}
           value={$dvInt8}
-          maxlength="8"
+          maxlength="{8}"
           on:inputEnter={handleInputEnter}
           on:inputFocusOut={handleBlur}
           width={INPUT_WIDTH}
@@ -234,6 +235,7 @@ limitations under the License.
         on:click={() => {
           isEditing = 'int8'
         }}
+          on:keydown={()=>{}}
       >
         <label for="int8_dv_ro">&nbsp;&nbsp;&nbsp;int8: </label>
         <span id="int8_dv_ro" class="editable">{$dvInt8}</span>
@@ -246,7 +248,7 @@ limitations under the License.
           id="uint8_dv"
           placeholder={$dvUint8}
           value={$dvUint8}
-          maxlength="8"
+          maxlength="{8}"
           on:inputEnter={handleInputEnter}
           on:inputFocusOut={handleBlur}
           width={INPUT_WIDTH}
@@ -259,6 +261,7 @@ limitations under the License.
         on:click={() => {
           isEditing = 'uint8'
         }}
+          on:keydown={()=>{}}
       >
         <label for="uint8_dv_ro">&nbsp;&nbsp;uint8: </label>
         <span id="uint8_dv_ro" class="editable">{$dvUint8}</span>
@@ -272,7 +275,7 @@ limitations under the License.
             id="int16_dv"
             placeholder={$dvInt16}
             value={$dvInt16}
-            maxlength="16"
+            maxlength="{16}"
             on:inputEnter={handleInputEnter}
             on:inputFocusOut={handleBlur}
             width={INPUT_WIDTH}
@@ -285,6 +288,7 @@ limitations under the License.
           on:click={() => {
             isEditing = 'int16'
           }}
+          on:keydown={()=>{}}
         >
           <label for="int16_dv_ro">&nbsp;&nbsp;int16: </label>
           <span id="int16_dv_ro" class="editable">{$dvInt16}</span>
@@ -297,7 +301,7 @@ limitations under the License.
             id="uint16_dv"
             placeholder={$dvUint16}
             value={$dvUint16}
-            maxlength="16"
+            maxlength="{16}"
             on:inputEnter={handleInputEnter}
             on:inputFocusOut={handleBlur}
             width={INPUT_WIDTH}
@@ -310,6 +314,7 @@ limitations under the License.
           on:click={() => {
             isEditing = 'uint16'
           }}
+          on:keydown={()=>{}}
         >
           <label for="uint16_dv_ro">&nbsp;uint16: </label>
           <span id="uint16_dv_ro" class="editable">{$dvUint16}</span>
@@ -324,7 +329,7 @@ limitations under the License.
             id="int32_dv"
             placeholder={$dvInt32}
             value={$dvInt32}
-            maxlength="32"
+            maxlength="{32}"
             on:inputEnter={handleInputEnter}
             on:inputFocusOut={handleBlur}
             width={INPUT_WIDTH}
@@ -337,6 +342,7 @@ limitations under the License.
           on:click={() => {
             isEditing = 'int32'
           }}
+          on:keydown={()=>{}}
         >
           <label for="int32_dv_ro">&nbsp;&nbsp;int32: </label>
           <span id="int32_dv_ro" class="editable">{$dvInt32}</span>
@@ -349,7 +355,7 @@ limitations under the License.
             id="uint32_dv"
             placeholder={$dvUint32}
             value={$dvUint32}
-            maxlength="32"
+            maxlength="{32}"
             on:inputEnter={handleInputEnter}
             on:inputFocusOut={handleBlur}
             width={INPUT_WIDTH}
@@ -362,6 +368,7 @@ limitations under the License.
           on:click={() => {
             isEditing = 'uint32'
           }}
+          on:keydown={()=>{}}
         >
           <label for="uint32_dv_ro">&nbsp;uint32: </label>
           <span id="uint32_dv_ro" class="editable">{$dvUint32}</span>
@@ -376,7 +383,7 @@ limitations under the License.
             id="int64_dv"
             placeholder={$dvInt64}
             value={$dvInt64}
-            maxlength="64"
+            maxlength="{64}"
             on:inputEnter={handleInputEnter}
             on:inputFocusOut={handleBlur}
             width={INPUT_WIDTH}
@@ -389,6 +396,7 @@ limitations under the License.
           on:click={() => {
             isEditing = 'int64'
           }}
+          on:keydown={()=>{}}
         >
           <label for="int64_dv_ro">&nbsp;&nbsp;int64: </label>
           <span id="int64_dv_ro" class="editable">{$dvInt64}</span>
@@ -401,7 +409,7 @@ limitations under the License.
             id="uint64_dv"
             placeholder={$dvUint64}
             value={$dvUint64}
-            maxlength="64"
+            maxlength="{64}"
             on:inputEnter={handleInputEnter}
             on:inputFocusOut={handleBlur}
             width={INPUT_WIDTH}
@@ -414,6 +422,7 @@ limitations under the License.
           on:click={() => {
             isEditing = 'uint64'
           }}
+          on:keydown={()=>{}}
         >
           <label for="uint64_dv_ro">&nbsp;uint64: </label>
           <span id="uint64_dv_ro" class="editable">{$dvUint64}</span>
@@ -422,3 +431,9 @@ limitations under the License.
     {/if}
   {/if}
 </fieldset>
+
+<style lang="scss">
+  div.input-container {
+    display: flex;
+  }
+</style>
