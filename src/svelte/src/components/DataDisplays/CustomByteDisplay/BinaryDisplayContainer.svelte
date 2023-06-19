@@ -58,7 +58,7 @@ limitations under the License.
   function adjust_event_offsets() {
     const start = $selectionData.startOffset
     const end = $selectionData.endOffset
-    
+
     if (start > end) {
       $selectionData.startOffset = end
       $selectionData.originalEndOffset = start
@@ -69,9 +69,10 @@ limitations under the License.
   function set_byte_selection(selectionEvent: ByteSelectionEvent) {
     $focusedViewportId = 'physical'
 
-    $selectedByte = $editMode === EditByteModes.Single
-      ? selectionEvent.targetByte
-      : null_byte()
+    $selectedByte =
+      $editMode === EditByteModes.Single
+        ? selectionEvent.targetByte
+        : null_byte()
 
     update_byte_action_offsets(selectionEvent.targetElement, $viewportScrollTop)
 
@@ -83,7 +84,7 @@ limitations under the License.
         )
       )
     })
-    
+
     $editMode === EditByteModes.Single
       ? postEditorOnChangeMsg('hex')
       : postEditorOnChangeMsg()

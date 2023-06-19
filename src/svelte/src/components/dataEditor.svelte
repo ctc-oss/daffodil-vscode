@@ -67,9 +67,11 @@ limitations under the License.
   import {
     _viewportData,
     selectedByte,
-    type EditByteAction,
     byteActionPxOffsets,
     mouseSelectionBytes,
+    type EditByteEvent,
+    type EditEvent,
+    BYTE_VALUE_DIV_OFFSET,
   } from './DataDisplays/CustomByteDisplay/BinaryData'
 
   $: $rawEditorSelectionTxt = $editorSelection
@@ -186,8 +188,8 @@ limitations under the License.
     requestEditedData()
   }
 
-  function custom_commit_changes(event: CustomEvent) {
-    const action = event.detail.action as EditByteAction
+  function custom_commit_changes(event: CustomEvent<EditEvent>) {
+    const action = event.detail.action
 
     let editedData: Uint8Array
     let editedOffset = $selectionData.startOffset
@@ -204,49 +206,14 @@ limitations under the License.
       case 'byte-input':
         editedData = $editedDataSegment.subarray(0, 1)
         break
+      case 'insert-replace':
+        editedData = $editedDataSegment
+        break
       case 'delete':
         editedData = new Uint8Array(0)
         break
     }
 
-    vscode.postMessage({
-      command: MessageCommand.commit,
-      data: {
-        offset: editedOffset,
-        originalSegment: originalData,
-        editedSegment: editedData,
-      },
-    })
-    closeEditByteWindow()
-    clearDataDisplays()
-  }
-
-  function commitChanges(event: CustomEvent) {
-    const commitEvent = event.detail as MouseEvent
-    const buttonPressed = commitEvent.target as HTMLButtonElement
-
-    let editedData: Uint8Array
-    let editedOffset = $selectionData.startOffset
-    let originalData = $originalDataSegment
-
-    if ($editMode === EditByteModes.Multiple) {
-      editedData = $editedDataSegment
-    } else {
-      switch (buttonPressed.id) {
-        case 'insert-after':
-          ++editedOffset // offset is 1 byte after this byte
-        // intentional fall through
-        case 'insert-before':
-          originalData = new Uint8Array(0) // there is no original data for insert
-        // intentional fall through
-        case 'insert-replace':
-          editedData = $editedDataSegment.subarray(0, 1) // 1 byte
-          break
-        case 'insert-delete':
-          editedData = new Uint8Array(0) // there is no edited data for delete
-          break
-      }
-    }
     vscode.postMessage({
       command: MessageCommand.commit,
       data: {
@@ -479,7 +446,6 @@ limitations under the License.
       </FlexContainer>
     </FlexContainer>
   </FlexContainer>
-  <span class="material-symbols-outlined">functions</span>
 </body>
 
 <!-- svelte-ignore css-unused-selector -->

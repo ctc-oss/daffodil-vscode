@@ -48,7 +48,7 @@ limitations under the License.
   function mouse_event_handle(event: MouseEvent) {
     const type = event.type
     const targetElement = event.target
-    
+
     eventDispatcher(type, {
       targetElement: targetElement,
       targetByte: byte,
@@ -58,7 +58,7 @@ limitations under the License.
   function byte_within_selection_range(): boolean {
     return (
       byte.offset >= $selectionData.startOffset &&
-      byte.offset <= $selectionData.endOffset
+      byte.offset <= $selectionData.originalEndOffset
     )
   }
 </script>

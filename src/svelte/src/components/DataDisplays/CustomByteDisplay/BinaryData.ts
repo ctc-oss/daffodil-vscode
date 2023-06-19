@@ -27,24 +27,30 @@ export type ByteValue = {
   text: string | undefined
   value: number
 }
+
 export const null_byte = () => {
   return {
     offset: -1,
     text: '',
-    value: -1
+    value: -1,
   } as ByteValue
 }
 
-export type EditByteAction =
+export type EditAction =
   | 'insert-before'
   | 'insert-after'
+  | 'insert-replace'
   | 'delete'
   | 'byte-input'
 
-export type EditByteEvent = {
-  targetByte: ByteValue
-  action: EditByteAction
+export interface EditEvent {
+  action: EditAction
 }
+
+export interface EditByteEvent extends EditEvent {
+  targetByte: ByteValue
+}
+
 export type ByteSelectionEvent = {
   targetElement: HTMLDivElement
   targetByte: ByteValue
@@ -144,7 +150,7 @@ export function update_byte_action_offsets(
       left: targetDiv.offsetLeft - BYTE_VALUE_DIV_OFFSET,
       top: targetDiv.offsetTop - offsetTopBy,
     }
-    
+
     return currentOffsets
   })
 }

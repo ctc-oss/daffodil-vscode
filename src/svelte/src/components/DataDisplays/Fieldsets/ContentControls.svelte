@@ -20,10 +20,13 @@ limitations under the License.
   import { createEventDispatcher } from 'svelte'
   import FlexContainer from '../../layouts/FlexContainer.svelte'
   import Button from '../../Inputs/Buttons/Button.svelte'
+  import { null_byte, type EditEvent } from '../CustomByteDisplay/BinaryData'
   const eventDispatcher = createEventDispatcher()
 
   function commitChanges(event: Event) {
-    eventDispatcher('commitChanges', event)
+    eventDispatcher('commitChanges', {
+      action: 'insert-replace',
+    } as EditEvent)
   }
 </script>
 

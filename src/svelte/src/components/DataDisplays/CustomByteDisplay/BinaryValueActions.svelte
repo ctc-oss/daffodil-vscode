@@ -19,7 +19,7 @@ limitations under the License.
   import {
     byteActionPxOffsets,
     type ByteValue,
-    type EditByteAction,
+    type EditAction,
     selectedByte,
     type ByteActionPxOffsets,
   } from './BinaryData'
@@ -53,7 +53,6 @@ limitations under the License.
         commitChanges('byte-input')
       },
     })
-    // document.getElementById('byte-input').focus() // Why does this always fail?
   })
 
   $: styleOffsets = $byteActionPxOffsets
@@ -93,10 +92,10 @@ limitations under the License.
 
   function send_insert(event: Event) {
     const target = event.target as HTMLElement
-    commitChanges(target.id as EditByteAction)
+    commitChanges(target.id as EditAction)
   }
 
-  function commitChanges(action: EditByteAction) {
+  function commitChanges(action: EditAction) {
     if (action === 'byte-input') {
       update_selectedByte({
         text: editedByteText,
@@ -110,7 +109,7 @@ limitations under the License.
       action: action,
     })
   }
-  
+
   function handleEditorEvent() {
     eventDispatcher('handleEditorEvent')
   }

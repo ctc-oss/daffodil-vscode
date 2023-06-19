@@ -40,7 +40,6 @@ limitations under the License.
   export let boundContainerId: HTMLDivElement
 
   let logicalByteArray: ByteValue[]
-  let selectionActive
 
   $: logicalByteArray = logical_bytes_from($_viewportData)
   $: selectionActive = $selectionData.active

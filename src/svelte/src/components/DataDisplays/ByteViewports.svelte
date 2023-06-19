@@ -117,8 +117,6 @@ limitations under the License.
       syncScroll(logicalContainer)
     )
   })
-
-  // const isDemo = false
 </script>
 
 <div class="container">
@@ -127,49 +125,6 @@ limitations under the License.
       <div class={i % 2 === 0 ? 'even' : 'odd'}>{address}</div>
     {/each}
   </div>
-  <!-- </div>
-
-  <div class="content-container">
-    <div class="header">Physical</div>
-    {#if isDemo}
-      <div
-        class="content hide-scrollbar"
-        id="physical"
-        bind:this={physicalContainer}
-      >
-        {#each Array.from( { length: Math.ceil(byteData.length / bytesPerRow) } ) as _, i}
-          <div>
-            {#each byteData.slice(i * bytesPerRow, (i + 1) * bytesPerRow) as byte}
-              {renderByte([byte]) + ' '}
-            {/each}
-          </div>
-        {/each}
-      </div>
-      {:else}
-        <BinaryDisplayContainer id={"physical"} bind:boundContainerId={physicalContainer} />
-      {/if}
-  </div>
-
-  <div class="content-container">
-    <div class="header">Logical</div>
-    {#if isDemo}
-    <div
-      class="content hide-scrollbar"
-      id="logical"
-      bind:this={logicalContainer}
-    >
-      {#each Array.from( { length: Math.ceil(byteData.length / bytesPerRow) } ) as _, i}
-        <div>
-          {#each byteData.slice(i * bytesPerRow, (i + 1) * bytesPerRow) as byte}
-            {renderLatin1([byte]) + ' '}
-          {/each}
-        </div>
-      {/each}
-    </div>
-      {:else}
-        <LogicalDisplayContainer id={"logical"} bind:boundContainerId={logicalContainer} />
-      {/if}
-  </div> -->
   <BinaryDisplayContainer
     id={'physical'}
     bind:boundContainerId={physicalContainer}
@@ -180,26 +135,9 @@ limitations under the License.
   />
 </div>
 
-<!-- <hr /> -->
-<!-- <div class="debug">
-  startOffset: {startOffset}<br />
-  bytesPerRow: {bytesPerRow}<br />
-  addressRadix: {addressRadix}<br />
-  displayRadix: {displayRadix}<br />
-  nonPrintableStandIn: {nonPrintableStandIn}<br />
-  byteData: {byteData}<br />
-  scrolledTop: {scrolledTop}<br />
-  scrolledEnd: {scrolledEnd}<br />
-  scrollTop: {scrollTop}<br />
-  scrollHeight: {scrollHeight}<br />
-  clientHeight: {clientHeight}<br />
-  isDemo: {isDemo}<br />
-</div> -->
-
-<!-- <hr /> -->
 <style>
   div.container {
-    display: flex;
+    display: contents;
     grid-column-start: 1;
     grid-column-end: 4;
     overflow-y: scroll;
@@ -214,7 +152,6 @@ limitations under the License.
   }
 
   div.gutter {
-    width: 96px;
     border: 1px solid #2849b9;
     overflow-y: scroll;
     overflow-x: hidden; /* Prevent horizontal scrolling */
