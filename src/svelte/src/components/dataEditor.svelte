@@ -71,8 +71,13 @@ limitations under the License.
     mouseSelectionBytes,
     type EditByteEvent,
     type EditEvent,
-    BYTE_VALUE_DIV_OFFSET,
+    viewportData_t,
+    VIEWPORT_SCROLL_INCREMENT,
+    ViewportData_t,
   } from './DataDisplays/CustomByteDisplay/BinaryData'
+
+  import BinaryValue from './DataDisplays/CustomByteDisplay/BinaryValueDiv.svelte'
+  import StoreDebug from './Debug/StoreDebug.svelte'
 
   $: $rawEditorSelectionTxt = $editorSelection
   $: $UIThemeCSSClass = $darkUITheme ? CSSThemeClass.Dark : CSSThemeClass.Light
@@ -132,7 +137,6 @@ limitations under the License.
       viewportRefs.address.scrollTop = scrollTop
     }
 
-    closeEditByteWindow()
     clearDataDisplays()
   }
 
@@ -143,6 +147,7 @@ limitations under the License.
         $viewportEndOffset +
         $bytesPerRow -
         $viewportNumLinesDisplayed * $bytesPerRow
+
       vscode.postMessage({
         command: MessageCommand.scrollViewport,
         data: {
@@ -222,7 +227,6 @@ limitations under the License.
         editedSegment: editedData,
       },
     })
-    closeEditByteWindow()
     clearDataDisplays()
   }
 
@@ -260,10 +264,6 @@ limitations under the License.
     }
   }
 
-  function closeEditByteWindow() {
-    $editByteWindowHidden = true
-  }
-
   function clearDataDisplays() {
     $selectionData.startOffset = 0
     $selectionData.endOffset = 0
@@ -282,7 +282,6 @@ limitations under the License.
     if ($editMode === EditByteModes.Multiple) return
     switch (kbdEvent.key) {
       case 'Escape':
-        closeEditByteWindow()
         clearDataDisplays()
         return
     }
@@ -292,12 +291,22 @@ limitations under the License.
     switch (msg.data.command) {
       case MessageCommand.viewportRefresh:
         // the viewport has been refreshed, so the editor views need to be updated
+        $viewportData_t = {
+          data: msg.data.data.viewportData,
+          fileOffset: msg.data.data.viewportOffset,
+          length: msg.data.data.viewportLength,
+          bytesLeft: msg.data.data.viewportFollowingByteCount,
+        } as ViewportData_t
+
+        console.table($viewportData_t)
+
         $_viewportData = msg.data.data.viewportData
         $viewportData = msg.data.data.viewportData
         $viewportStartOffset = msg.data.data.viewportOffset
         $viewportLength = msg.data.data.viewportLength
         $viewportFollowingByteCount = msg.data.data.viewportFollowingByteCount
         $viewportCapacity = msg.data.data.viewportCapacity
+
         break
 
       case MessageCommand.editorOnChange:
@@ -321,56 +330,33 @@ limitations under the License.
         break
     }
   })
-  let editByteWindowHide: boolean
-  $: editByteWindowHide =
-    $editMode === EditByteModes.Single ? $editByteWindowHidden : true
 
-  const binaryDataStr = writable('')
+  // let [head, tail] = $viewportBuffers.display_buffers()
 
-  $: $binaryDataStr = encodeForDisplay(
-    $viewportData,
-    $displayRadix,
-    $bytesPerRow
-  ).toUpperCase()
+  function test(event: Event) {
+    const target = event.target as HTMLElement
+    const direction = target.id
 
-  function encodeForDisplay(
-    arr: Uint8Array,
-    radix: number,
-    bytes_per_row: number
-  ): string {
-    let result = ''
-    if (arr.byteLength > 0) {
-      const pad = radixBytePad(radix)
-      let i = 0
-      while (true) {
-        for (let col = 0; i < arr.byteLength && col < bytes_per_row; ++col) {
-          result += arr[i++].toString(radix).padStart(pad, '0') + ' '
-        }
-        result = result.slice(0, result.length - 1)
-        if (i === arr.byteLength) {
-          break
-        }
-        result += '\n'
-      }
-    }
-    return result
+    let offset =
+      direction === 'scroll-reverse'
+        ? $viewportData_t.fileOffset - VIEWPORT_SCROLL_INCREMENT
+        : $viewportData_t.fileOffset + VIEWPORT_SCROLL_INCREMENT
+
+    // $viewportBuffers.swap_buffers(ViewportBoundaryTrigger.SCROLL_BOTTOM)
+    vscode.postMessage({
+      command: MessageCommand.scrollViewport,
+      data: {
+        scrollOffset: offset,
+        bytesPerRow: $bytesPerRow,
+      },
+    })
   }
-  let selectionDataDebug
-  let selectedByteDebug
-  let actionPxOffsetsDebug
-  $: {
-    actionPxOffsetsDebug = $byteActionPxOffsets
-  }
-  $: selectionDataDebug = $selectionData
-  $: selectedByteDebug = $selectedByte
 
   function scrollBoundaryEventHandler(e: CustomEvent) {
     if (e.detail.scrolledTop) {
-      console.log('scrolled top')
       scrolledToTop(e)
     }
     if (e.detail.scrolledEnd) {
-      console.log('scrolled end')
       scrolledToEnd(e)
     }
   }
@@ -419,37 +405,35 @@ limitations under the License.
     on:handleEditorEvent={handleEditorEvent}
     on:scrolledToTop={scrolledToTop}
     on:scrolledToEnd={scrolledToEnd}
+    on:scrollBoundary={scrollBoundaryEventHandler}
   />
 
   <hr />
   <ServerMetrics />
 
-  <FlexContainer --dir="column" --align-items="center">
-    <h2>Debug</h2>
-    <hr style="width: 50%;" />
-    <FlexContainer --dir="row">
-      <FlexContainer --dir="column">
-        <div>$selectedByte</div>
-        <div>$mouseSelectionBytes</div>
-      </FlexContainer>
-      <FlexContainer --dir="column">
-        <div>
-          {#if $selectedByte} {$selectedByte.offset} {:else} - {/if}
-        </div>
-        <div>
-          {#if $mouseSelectionBytes}
-            down: {$mouseSelectionBytes.mousedown}, up: {$mouseSelectionBytes.mouseup}
-          {:else}
-            -
-          {/if}
-        </div>
-      </FlexContainer>
+  <button id="scroll-reverse" on:click={test}>Reverse (512B)</button>
+  <button id="scroll-forward" on:click={test}>Forward (512B)</button>
+  <FlexContainer --dir="row">
+    <FlexContainer --dir="column" --width="50%">
+      <h2>Debug</h2>
+      <hr style="width: 50%;" />
+      <StoreDebug name={'selectionData'} store={selectionData} />
+      <StoreDebug name={'viewportData_t'} store={viewportData_t} />
     </FlexContainer>
   </FlexContainer>
+
+  <hr />
 </body>
 
 <!-- svelte-ignore css-unused-selector -->
 <style lang="scss">
+  div.test {
+    display: flex;
+    flex-wrap: wrap;
+    width: 384px;
+    height: 400pt;
+    overflow-y: scroll;
+  }
   /* CSS reset */
   *,
   *:before,

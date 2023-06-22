@@ -26,6 +26,7 @@ import {
 } from '../utilities/display'
 import { derived, writable } from 'svelte/store'
 import { SimpleWritable } from './localStore'
+import { BYTE_VALUE_DIV_OFFSET } from '../components/DataDisplays/CustomByteDisplay/BinaryData'
 
 class SelectionData {
   startOffset = 0
@@ -205,6 +206,9 @@ export const bytesPerRow = derived(displayRadix, ($displayRadix) => {
   return $displayRadix === 2 ? 8 : 16
 })
 
+export const viewportColumnWidth = derived(bytesPerRow, (bytesPerRow) => {
+  return bytesPerRow * BYTE_VALUE_DIV_OFFSET
+})
 // derived readable boolean that indicates if the case-insensitive search is allowed
 export const allowCaseInsensitiveSearch = derived(
   editorEncoding,

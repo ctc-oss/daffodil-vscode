@@ -47,9 +47,12 @@ limitations under the License.
   import { vscode } from '../../utilities/vscode'
   import { EditByteModes } from '../../stores/configuration'
   import BinaryValueActions from './CustomByteDisplay/BinaryValueActions.svelte'
-  import LogicalDisplayContainer from './CustomByteDisplay/LogicalDisplayContainer.svelte'
-  import BinaryDisplayContainer from './CustomByteDisplay/BinaryDisplayContainer.svelte'
   import ByteViewports from './ByteViewports.svelte'
+  import {
+    _viewportData,
+    processingViewportRefresh,
+    viewportData_t,
+  } from './CustomByteDisplay/BinaryData'
 
   const eventDispatcher = createEventDispatcher()
   const viewportRefs = viewport_references() as ViewportReferences
@@ -83,17 +86,22 @@ limitations under the License.
       : postEditorOnChangeMsg($editorEncoding)
 
     // when the viewport is scrolled to the end, dispatch a 'scrolledToEnd' event
-    if ($viewportScrolledToEnd && !$viewportScrolledToTop)
-      eventDispatcher('scrolledToEnd')
+    // if ($viewportScrolledToEnd && !$viewportScrolledToTop && !processingViewportRefresh)
+    //   eventDispatcher('scrolledToEnd')
 
-    // when the viewport is scrolled to the top, dispatch a 'scrolledToTop' event
-    if ($viewportScrolledToTop && !$viewportScrolledToEnd)
-      eventDispatcher('scrolledToTop')
+    // // when the viewport is scrolled to the top, dispatch a 'scrolledToTop' event
+    // if ($viewportScrolledToTop && !$viewportScrolledToEnd && !processingViewportRefresh){
+    //   eventDispatcher('scrolledToTop')
+    // }
 
     // when the viewport length changes, update the viewport geometry
     if ($viewportLength >= 0) {
       populateViewportGeometry()
     }
+  }
+
+  function boundary_trigger_handle(event: CustomEvent) {
+    console.log(event.detail)
   }
 
   function encodeForDisplay(
@@ -327,11 +335,13 @@ limitations under the License.
 <BinaryValueActions on:commitChanges on:handleEditorEvent />
 
 <ByteViewports
+  viewportData={$viewportData_t}
   addressRadix={$addressRadix}
   displayRadix={$displayRadix}
   bytesPerRow={$bytesPerRow}
-  startOffset={$viewportStartOffset}
-  byteData={$viewportData}
+  byteData={$_viewportData}
+  bind:startOffset={$viewportStartOffset}
+  on:scrollBoundary={boundary_trigger_handle}
 />
 
 <style lang="scss">

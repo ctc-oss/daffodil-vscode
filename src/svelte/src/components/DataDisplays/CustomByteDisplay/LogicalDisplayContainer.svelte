@@ -124,7 +124,7 @@ limitations under the License.
     border-style: solid;
     border-color: var(--color-primary-mid);
     background-color: var(--color-primary-dark);
-    overflow: scroll;
+    /* overflow: scroll; */
     grid-row-start: 3;
     grid-row-end: 5;
     grid-column: 3;

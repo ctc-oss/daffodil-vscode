@@ -36,6 +36,7 @@ limitations under the License.
     on:scrolledToEnd
     on:commitChanges
     on:handleEditorEvent
+    on:scrollBoundary
   />
   <DataEditor on:commitChanges on:handleEditorEvent />
 </main>

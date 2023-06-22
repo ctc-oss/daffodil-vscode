@@ -23,7 +23,13 @@ limitations under the License.
     viewportScrollTop,
     viewportScrollHeight,
     viewportClientHeight,
+    viewportColumnWidth,
   } from '../../stores'
+  import {
+    ViewportData_t,
+    _viewportData,
+    processingViewportRefresh,
+  } from './CustomByteDisplay/BinaryData'
 
   export let addressRadix = 16
   export let displayRadix = 16
@@ -31,41 +37,50 @@ limitations under the License.
   export let startOffset = 0
   export let byteData = new Uint8Array()
   export let nonPrintableStandIn = String.fromCharCode(9617)
+  export let viewportData: ViewportData_t
 
+  let addresses: Array<string>
   let gutterContainer: HTMLDivElement
   let physicalContainer: HTMLDivElement
   let logicalContainer: HTMLDivElement
+  let viewportElementContainer: HTMLDivElement
   let fireScrollBoundaryEvent = true
 
   const eventDispatcher = createEventDispatcher()
 
   // Address generation for the gutter
-  $: addresses = Array.from(
-    {
-      length: Math.ceil((startOffset + byteData.length) / bytesPerRow),
-    },
-    (_, i) => (i * bytesPerRow).toString(addressRadix).toUpperCase()
-  )
-
+  $: {
+    addresses = Array.from(
+      {
+        length: Math.ceil(
+          (viewportData.fileOffset + viewportData.length) / bytesPerRow
+        ),
+      },
+      (_, i) =>
+        (i * bytesPerRow + viewportData.fileOffset)
+          .toString(addressRadix)
+          .toUpperCase()
+    )
+  }
   function syncScroll(element: HTMLDivElement) {
     $viewportScrollTop = element.scrollTop
     $viewportScrollHeight = element.scrollHeight
     $viewportClientHeight = element.clientHeight
 
-    switch (element.id) {
-      case 'gutter':
-        physicalContainer.scrollTop = $viewportScrollTop
-        logicalContainer.scrollTop = $viewportScrollTop
-        break
-      case 'physical':
-        gutterContainer.scrollTop = $viewportScrollTop
-        logicalContainer.scrollTop = $viewportScrollTop
-        break
-      case 'logical':
-        gutterContainer.scrollTop = $viewportScrollTop
-        physicalContainer.scrollTop = $viewportScrollTop
-        break
-    }
+    // switch (element.id) {
+    //   case 'gutter':
+    //     physicalContainer.scrollTop = $viewportScrollTop
+    //     logicalContainer.scrollTop = $viewportScrollTop
+    //     break
+    //   case 'physical':
+    //     gutterContainer.scrollTop = $viewportScrollTop
+    //     logicalContainer.scrollTop = $viewportScrollTop
+    //     break
+    //   case 'logical':
+    //     gutterContainer.scrollTop = $viewportScrollTop
+    //     physicalContainer.scrollTop = $viewportScrollTop
+    //     break
+    // }
 
     // check if scrolled to the top or bottom, we only do this for one of
     // the viewports so the event is fired once rather than three times
@@ -107,19 +122,26 @@ limitations under the License.
   }
 
   onMount(() => {
-    gutterContainer.addEventListener('scroll', () =>
-      syncScroll(gutterContainer)
-    )
-    physicalContainer.addEventListener('scroll', () =>
-      syncScroll(physicalContainer)
-    )
-    logicalContainer.addEventListener('scroll', () =>
-      syncScroll(logicalContainer)
-    )
+    viewportElementContainer.addEventListener('scroll', () => {
+      syncScroll(viewportElementContainer)
+    })
+    // gutterContainer.addEventListener('scroll', () =>
+    //   syncScroll(gutterContainer)
+    // )
+    // physicalContainer.addEventListener('scroll', () =>
+    //   syncScroll(physicalContainer)
+    // )
+    // logicalContainer.addEventListener('scroll', () =>
+    //   syncScroll(logicalContainer)
+    // )
   })
 </script>
 
-<div class="container">
+<div
+  class="container hide-scrollbar"
+  style="grid-template-columns: 80pt calc({$viewportColumnWidth}px) calc({$viewportColumnWidth}px)"
+  bind:this={viewportElementContainer}
+>
   <div class="gutter hide-scrollbar" id="gutter" bind:this={gutterContainer}>
     {#each addresses as address, i}
       <div class={i % 2 === 0 ? 'even' : 'odd'}>{address}</div>
@@ -137,10 +159,13 @@ limitations under the License.
 
 <style>
   div.container {
-    display: contents;
+    display: grid;
     grid-column-start: 1;
     grid-column-end: 4;
+    grid-row-start: 3;
+    grid-row-end: 5;
     overflow-y: scroll;
+    overflow-x: hidden;
   }
 
   div.header {
@@ -153,7 +178,7 @@ limitations under the License.
 
   div.gutter {
     border: 1px solid #2849b9;
-    overflow-y: scroll;
+    /* overflow-y: scroll; */
     overflow-x: hidden; /* Prevent horizontal scrolling */
     direction: rtl; /* Move line numbers to the right side */
     line-height: 14px; /* Match line height with content */
