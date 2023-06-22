@@ -18,7 +18,6 @@ limitations under the License.
   import { onMount, createEventDispatcher } from 'svelte'
   import BinaryDisplayContainer from './CustomByteDisplay/BinaryDisplayContainer.svelte'
   import LogicalDisplayContainer from './CustomByteDisplay/LogicalDisplayContainer.svelte'
-  import BinaryValueActions from './CustomByteDisplay/BinaryValueActions.svelte'
   import {
     viewportScrollTop,
     viewportScrollHeight,
@@ -28,21 +27,14 @@ limitations under the License.
   import {
     ViewportData_t,
     _viewportData,
-    processingViewportRefresh,
+    scroll_boundary_event,
   } from './CustomByteDisplay/BinaryData'
 
   export let addressRadix = 16
-  export let displayRadix = 16
   export let bytesPerRow = 16
-  export let startOffset = 0
-  export let byteData = new Uint8Array()
-  export let nonPrintableStandIn = String.fromCharCode(9617)
   export let viewportData: ViewportData_t
 
   let addresses: Array<string>
-  let gutterContainer: HTMLDivElement
-  let physicalContainer: HTMLDivElement
-  let logicalContainer: HTMLDivElement
   let viewportElementContainer: HTMLDivElement
   let fireScrollBoundaryEvent = true
 
@@ -67,21 +59,6 @@ limitations under the License.
     $viewportScrollHeight = element.scrollHeight
     $viewportClientHeight = element.clientHeight
 
-    // switch (element.id) {
-    //   case 'gutter':
-    //     physicalContainer.scrollTop = $viewportScrollTop
-    //     logicalContainer.scrollTop = $viewportScrollTop
-    //     break
-    //   case 'physical':
-    //     gutterContainer.scrollTop = $viewportScrollTop
-    //     logicalContainer.scrollTop = $viewportScrollTop
-    //     break
-    //   case 'logical':
-    //     gutterContainer.scrollTop = $viewportScrollTop
-    //     physicalContainer.scrollTop = $viewportScrollTop
-    //     break
-    // }
-
     // check if scrolled to the top or bottom, we only do this for one of
     // the viewports so the event is fired once rather than three times
     const scrolledTop = $viewportScrollTop === 0
@@ -93,47 +70,17 @@ limitations under the License.
         fireScrollBoundaryEvent = false
         setTimeout(() => (fireScrollBoundaryEvent = true), 100)
         // fire scrollBoundary event when scrolled to the top or bottom
-        eventDispatcher('scrollBoundary', { scrolledTop, scrolledEnd })
+        eventDispatcher(
+          'scrollBoundary',
+          scroll_boundary_event(scrolledTop, scrolledEnd)
+        )
       }
     }
   }
-
-  function renderByte(byteArray: number[]): string {
-    return byteArray
-      .map((byte) => byte.toString(displayRadix).toUpperCase().padStart(2, '0'))
-      .join(' ')
-  }
-
-  function renderLatin1(byteArray: number[]): string {
-    return byteArray
-      .map((byte) => {
-        return byte >= 32 && byte <= 126
-          ? String.fromCharCode(byte)
-          : nonPrintableStandIn
-      })
-      .join(' ')
-  }
-
-  const custom_commit_changes = () => {
-    eventDispatcher('custom-commit-changes')
-  }
-  const handleEditorEvent = () => {
-    eventDispatcher('handleEditorEvent')
-  }
-
   onMount(() => {
     viewportElementContainer.addEventListener('scroll', () => {
       syncScroll(viewportElementContainer)
     })
-    // gutterContainer.addEventListener('scroll', () =>
-    //   syncScroll(gutterContainer)
-    // )
-    // physicalContainer.addEventListener('scroll', () =>
-    //   syncScroll(physicalContainer)
-    // )
-    // logicalContainer.addEventListener('scroll', () =>
-    //   syncScroll(logicalContainer)
-    // )
   })
 </script>
 
@@ -142,19 +89,13 @@ limitations under the License.
   style="grid-template-columns: 80pt calc({$viewportColumnWidth}px) calc({$viewportColumnWidth}px)"
   bind:this={viewportElementContainer}
 >
-  <div class="gutter hide-scrollbar" id="gutter" bind:this={gutterContainer}>
+  <div class="gutter hide-scrollbar" id="gutter">
     {#each addresses as address, i}
       <div class={i % 2 === 0 ? 'even' : 'odd'}>{address}</div>
     {/each}
   </div>
-  <BinaryDisplayContainer
-    id={'physical'}
-    bind:boundContainerId={physicalContainer}
-  />
-  <LogicalDisplayContainer
-    id={'logical'}
-    bind:boundContainerId={logicalContainer}
-  />
+  <BinaryDisplayContainer id={'physical'} />
+  <LogicalDisplayContainer id={'logical'} />
 </div>
 
 <style>

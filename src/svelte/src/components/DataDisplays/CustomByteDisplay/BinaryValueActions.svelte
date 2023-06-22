@@ -37,6 +37,8 @@ limitations under the License.
   import { radixBytePad, radixToString } from '../../../utilities/display'
   import { EditByteModes } from '../../../stores/configuration'
 
+  export let byte: ByteValue
+
   const byteInputId = 'byte-input'
   const eventDispatcher = createEventDispatcher()
   let editedByteText: string
@@ -57,9 +59,11 @@ limitations under the License.
 
   $: styleOffsets = $byteActionPxOffsets
   $: active = $selectionData.active
-  $: if ($editMode === EditByteModes.Single) {
-    $editorSelection = $editByte
-  }
+  // $: if ($editMode === EditByteModes.Single && $selectionData.active) {
+  //   $editorSelection = $editByte
+  // }
+  $: $editorSelection = byte.text
+  $: console.log($editMode, $editorSelection, $editByte, $selectedByte)
   $: {
     if (
       !$committable &&

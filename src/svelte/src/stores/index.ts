@@ -26,7 +26,10 @@ import {
 } from '../utilities/display'
 import { derived, writable } from 'svelte/store'
 import { SimpleWritable } from './localStore'
-import { BYTE_VALUE_DIV_OFFSET } from '../components/DataDisplays/CustomByteDisplay/BinaryData'
+import {
+  BYTE_VALUE_DIV_OFFSET,
+  viewportData_t,
+} from '../components/DataDisplays/CustomByteDisplay/BinaryData'
 
 class SelectionData {
   startOffset = 0
@@ -176,13 +179,13 @@ export const seekOffset = derived(
 
 // derived readable string whose value is the selected encoded byte value with respect to the current focused viewport
 export const editByte = derived(
-  [displayRadix, focusedViewportId, viewportData, selectionData],
-  ([$displayRadix, $focusedViewportId, $viewportData, $selectionData]) => {
+  [displayRadix, focusedViewportId, viewportData_t, selectionData],
+  ([$displayRadix, $focusedViewportId, $viewportData_t, $selectionData]) => {
     // TODO: I think there is a cleaner way to do this given that we already have the encoded data in the respective viewports
-    if ($viewportData[$selectionData.startOffset] !== undefined) {
+    if ($viewportData_t[$selectionData.startOffset] !== undefined) {
       return $focusedViewportId === 'logical'
-        ? String.fromCharCode($viewportData[$selectionData.startOffset])
-        : $viewportData[$selectionData.startOffset]
+        ? String.fromCharCode($viewportData_t[$selectionData.startOffset])
+        : $viewportData_t[$selectionData.startOffset]
             .toString($displayRadix)
             .padStart(radixBytePad($displayRadix), '0')
             .toUpperCase()

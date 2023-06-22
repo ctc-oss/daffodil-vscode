@@ -300,8 +300,8 @@ limitations under the License.
 
         console.table($viewportData_t)
 
-        $_viewportData = msg.data.data.viewportData
-        $viewportData = msg.data.data.viewportData
+        // $_viewportData = msg.data.data.viewportData
+        // $viewportData = msg.data.data.viewportData
         $viewportStartOffset = msg.data.data.viewportOffset
         $viewportLength = msg.data.data.viewportLength
         $viewportFollowingByteCount = msg.data.data.viewportFollowingByteCount
@@ -330,27 +330,6 @@ limitations under the License.
         break
     }
   })
-
-  // let [head, tail] = $viewportBuffers.display_buffers()
-
-  function test(event: Event) {
-    const target = event.target as HTMLElement
-    const direction = target.id
-
-    let offset =
-      direction === 'scroll-reverse'
-        ? $viewportData_t.fileOffset - VIEWPORT_SCROLL_INCREMENT
-        : $viewportData_t.fileOffset + VIEWPORT_SCROLL_INCREMENT
-
-    // $viewportBuffers.swap_buffers(ViewportBoundaryTrigger.SCROLL_BOTTOM)
-    vscode.postMessage({
-      command: MessageCommand.scrollViewport,
-      data: {
-        scrollOffset: offset,
-        bytesPerRow: $bytesPerRow,
-      },
-    })
-  }
 
   function scrollBoundaryEventHandler(e: CustomEvent) {
     if (e.detail.scrolledTop) {
@@ -410,9 +389,7 @@ limitations under the License.
 
   <hr />
   <ServerMetrics />
-
-  <button id="scroll-reverse" on:click={test}>Reverse (512B)</button>
-  <button id="scroll-forward" on:click={test}>Forward (512B)</button>
+  <!-- 
   <FlexContainer --dir="row">
     <FlexContainer --dir="column" --width="50%">
       <h2>Debug</h2>
@@ -420,9 +397,7 @@ limitations under the License.
       <StoreDebug name={'selectionData'} store={selectionData} />
       <StoreDebug name={'viewportData_t'} store={viewportData_t} />
     </FlexContainer>
-  </FlexContainer>
-
-  <hr />
+  </FlexContainer> -->
 </body>
 
 <!-- svelte-ignore css-unused-selector -->

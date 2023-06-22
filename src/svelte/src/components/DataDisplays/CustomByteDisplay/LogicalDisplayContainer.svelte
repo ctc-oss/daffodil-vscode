@@ -29,7 +29,7 @@ limitations under the License.
   import { vscode } from '../../../utilities/vscode'
   import {
     BYTE_VALUE_DIV_OFFSET,
-    _viewportData,
+    viewportData_t,
     selectedByte,
     type ByteValue,
     update_byte_action_offsets,
@@ -37,11 +37,10 @@ limitations under the License.
   import LogicalDisplayDiv from './LogicalValueDiv.svelte'
 
   export const id: string = ''
-  export let boundContainerId: HTMLDivElement
 
   let logicalByteArray: ByteValue[]
 
-  $: logicalByteArray = logical_bytes_from($_viewportData)
+  $: logicalByteArray = logical_bytes_from($viewportData_t.data)
   $: selectionActive = $selectionData.active
 
   function latin1_undefined(charCode: number): boolean {
@@ -77,7 +76,7 @@ limitations under the License.
 
     editedDataSegment.update(() => {
       return Uint8Array.from(
-        $_viewportData.subarray(
+        viewportData_t.subarray(
           $selectionData.startOffset,
           $selectionData.endOffset + 1
         )
@@ -103,7 +102,6 @@ limitations under the License.
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <div
   {id}
-  bind:this={boundContainerId}
   class="byte-container hide-scrollbar {id}"
   class:locked={$selectionData.active}
   style="width: calc({$bytesPerRow} * {BYTE_VALUE_DIV_OFFSET}px);"

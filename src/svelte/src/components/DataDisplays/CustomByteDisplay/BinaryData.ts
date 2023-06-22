@@ -17,8 +17,8 @@
 
 import { get, writable } from 'svelte/store'
 import { SimpleWritable } from '../../../stores/localStore'
-import type { EditByteModes, RadixValues } from '../../../stores/configuration'
-import { radixBytePad } from '../../../utilities/display'
+import type { RadixValues } from '../../../stores/configuration'
+import { radixBytePad, type Viewport } from '../../../utilities/display'
 
 export const BYTE_VALUE_DIV_OFFSET: number = 24
 export const VIEWPORT_SCROLL_INCREMENT: number = 512
@@ -50,6 +50,16 @@ export interface EditEvent {
 
 export interface EditByteEvent extends EditEvent {
   targetByte: ByteValue
+}
+export enum ViewportBoundaryTrigger {
+  SCROLL_TOP,
+  SCROLL_BOTTOM,
+}
+
+export const scroll_boundary_event = (top: boolean, end: boolean) => {
+  return top
+    ? ViewportBoundaryTrigger.SCROLL_TOP
+    : ViewportBoundaryTrigger.SCROLL_BOTTOM
 }
 
 export type ByteSelectionEvent = {
@@ -91,6 +101,11 @@ export class ViewportDataStore_t extends SimpleWritable<ViewportData_t> {
       }
     })
   }
+
+  public subarray(from: number, to: number): Uint8Array {
+    return this.storeData().data.subarray(from, to)
+  }
+
   private physical_display(radix: RadixValues, bytesPerRow: 16 | 8): string {
     let result = ''
     let arr = this.storeData().data
@@ -160,11 +175,6 @@ export class ViewportDataStore extends SimpleWritable<Uint8Array> {
   }
 }
 export const _viewportData = new ViewportDataStore()
-
-export enum ViewportBoundaryTrigger {
-  SCROLL_TOP,
-  SCROLL_BOTTOM,
-}
 
 // class ViewportDataSegments {
 //   public prefix = new ViewportDataStore()

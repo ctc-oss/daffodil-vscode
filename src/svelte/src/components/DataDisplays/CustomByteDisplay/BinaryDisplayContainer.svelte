@@ -30,27 +30,35 @@ limitations under the License.
   import {
     BYTE_VALUE_DIV_OFFSET,
     update_byte_action_offsets,
-    _viewportData,
+    viewportData_t,
     selectedByte,
     type ByteSelectionEvent,
-    type ByteValue,
     null_byte,
+    ViewportData_t,
   } from './BinaryData'
   import { bytesPerRow } from './BinaryData'
   import BinaryValue from './BinaryValueDiv.svelte'
 
   export const id: string = ''
-  export let boundContainerId: HTMLDivElement
+  // export let viewportData: ViewportData_t
 
   function mousedown(event: CustomEvent<ByteSelectionEvent>) {
-    $selectionData.active = false
-    $selectionData.startOffset = event.detail.targetByte.offset
+    selectionData.update((selections) => {
+      selections.active = false
+      selections.startOffset = event.detail.targetByte.offset
+      selections.endOffset = -1
+      selections.originalEndOffset = -1
+      return selections
+    })
   }
   function mouseup(event: CustomEvent<ByteSelectionEvent>) {
-    $selectionData.endOffset = event.detail.targetByte.offset
-    $selectionData.originalEndOffset = event.detail.targetByte.offset
-    $selectionData.active = true
-    adjust_event_offsets()
+    selectionData.update((selections) => {
+      selections.active = true
+      selections.endOffset = event.detail.targetByte.offset
+      selections.originalEndOffset = event.detail.targetByte.offset
+      adjust_event_offsets()
+      return selections
+    })
 
     set_byte_selection(event.detail)
   }
@@ -77,11 +85,9 @@ limitations under the License.
     update_byte_action_offsets(selectionEvent.targetElement, $viewportScrollTop)
 
     editedDataSegment.update(() => {
-      return Uint8Array.from(
-        $_viewportData.subarray(
-          $selectionData.startOffset,
-          $selectionData.endOffset + 1
-        )
+      return viewportData_t.subarray(
+        $selectionData.startOffset,
+        $selectionData.endOffset + 1
       )
     })
 
@@ -107,13 +113,12 @@ limitations under the License.
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <div
   {id}
-  bind:this={boundContainerId}
   class="byte-container hide-scrollbar {id}"
   class:locked={$selectionData.active}
   style="width: calc({$bytesPerRow} * {BYTE_VALUE_DIV_OFFSET}px);"
 >
-  {#key $_viewportData}
-    {#each _viewportData.physical_byte_values(16, 16) as byte}
+  {#key $viewportData_t.data}
+    {#each viewportData_t.physical_byte_values(16, 16) as byte}
       <BinaryValue {byte} on:mouseup={mouseup} on:mousedown={mousedown} />
     {/each}
   {/key}
