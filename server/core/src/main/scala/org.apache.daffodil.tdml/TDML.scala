@@ -240,8 +240,9 @@ object TDML {
   def execute(tdmlName: String, tdmlDescription: String, tdmlPath: String): Option[(Path, Path)] = {
     unused(tdmlDescription)
 
+    val f = new File(tdmlPath)
     for {
-      ptc <- new Runner(tdmlPath).getTS.testCaseMap.get(tdmlName)
+      ptc <- new Runner(f.toURI()).getTS.testCaseMap.get(tdmlName)
       doc <- ptc.document
       file <- doc.documentParts.collectFirst { case fp: FileDocumentPart => fp }
     } yield {
