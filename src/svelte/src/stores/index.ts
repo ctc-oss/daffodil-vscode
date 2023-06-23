@@ -28,7 +28,7 @@ import { derived, writable } from 'svelte/store'
 import { SimpleWritable } from './localStore'
 import {
   BYTE_VALUE_DIV_OFFSET,
-  viewportData_t,
+  viewport,
 } from '../components/DataDisplays/CustomByteDisplay/BinaryData'
 
 class SelectionData {
@@ -87,7 +87,7 @@ export const rawEditorSelectionTxt = writable('')
 export const searchCaseInsensitive = writable(false)
 
 // data in the viewport
-export const viewportData = writable(new Uint8Array(0))
+// export const viewportData = writable(new Uint8Array(0))
 
 // Viewport properties
 export const viewportStartOffset = writable(0)
@@ -179,13 +179,13 @@ export const seekOffset = derived(
 
 // derived readable string whose value is the selected encoded byte value with respect to the current focused viewport
 export const editByte = derived(
-  [displayRadix, focusedViewportId, viewportData_t, selectionData],
-  ([$displayRadix, $focusedViewportId, $viewportData_t, $selectionData]) => {
+  [displayRadix, focusedViewportId, viewport, selectionData],
+  ([$displayRadix, $focusedViewportId, $viewportData, $selectionData]) => {
     // TODO: I think there is a cleaner way to do this given that we already have the encoded data in the respective viewports
-    if ($viewportData_t[$selectionData.startOffset] !== undefined) {
+    if ($viewportData[$selectionData.startOffset] !== undefined) {
       return $focusedViewportId === 'logical'
-        ? String.fromCharCode($viewportData_t[$selectionData.startOffset])
-        : $viewportData_t[$selectionData.startOffset]
+        ? String.fromCharCode($viewportData[$selectionData.startOffset])
+        : $viewportData[$selectionData.startOffset]
             .toString($displayRadix)
             .padStart(radixBytePad($displayRadix), '0')
             .toUpperCase()
@@ -255,11 +255,11 @@ export const requestable = derived(
 )
 
 export const originalDataSegment = derived(
-  [viewportData, selectionData],
+  [viewport, selectionData],
   ([$viewportData, $selectionData]) => {
     return !$viewportData
       ? []
-      : $viewportData.slice(
+      : $viewportData.data.slice(
           $selectionData.startOffset,
           $selectionData.originalEndOffset + 1
         )
@@ -270,7 +270,7 @@ export const originalDataSegment = derived(
 export const committable = derived(
   [
     requestable,
-    viewportData,
+    viewport,
     editedDataSegment,
     selectionData,
     selectionSize,
@@ -298,7 +298,8 @@ export const committable = derived(
     if (originalLength !== editedLength) return true
     for (let i = 0; i < $selectionSize; i++) {
       if (
-        $viewportData[i + $selectionData.startOffset] !== $selectedFileData[i]
+        $viewportData.data[i + $selectionData.startOffset] !==
+        $selectedFileData[i]
       )
         return true
     }
@@ -333,10 +334,10 @@ function typedArrayToBuffer(
 }
 
 export const dataView = derived(
-  [selectionData, viewportData],
+  [selectionData, viewport],
   ([$selectionData, $viewportData]) => {
     return new DataView(
-      typedArrayToBuffer($viewportData, $selectionData.startOffset, 8)
+      typedArrayToBuffer($viewportData.data, $selectionData.startOffset, 8)
     )
   }
 )
@@ -515,8 +516,8 @@ function logicalDisplay(bytes: Uint8Array, bytesPerRow: number): string {
 
 // derived readable string whose value is the logical display of the current viewport
 export const viewportLogicalDisplayText = derived(
-  [viewportData, bytesPerRow],
+  [viewport, bytesPerRow],
   ([$viewportData, $bytesPerRow]) => {
-    return logicalDisplay($viewportData, $bytesPerRow)
+    return logicalDisplay($viewportData.data, $bytesPerRow)
   }
 )

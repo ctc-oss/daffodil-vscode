@@ -45,7 +45,7 @@ limitations under the License.
     ViewportBoundaryTrigger,
     _viewportData,
     selectedByte,
-    viewportData_t,
+    viewport,
   } from './CustomByteDisplay/BinaryData'
 
   const viewportRefs = viewport_references() as ViewportReferences
@@ -61,26 +61,8 @@ limitations under the License.
 
     // when the viewport length changes, update the viewport geometry
     if ($viewportLength >= 0) {
-      populateViewportGeometry()
+      // populateViewportGeometry()
     }
-  }
-
-  function boundary_trigger_handle(
-    event: CustomEvent<ViewportBoundaryTrigger>
-  ) {
-    const trigger = event.detail
-    let offset =
-      trigger === ViewportBoundaryTrigger.SCROLL_TOP
-        ? $viewportData_t.fileOffset - VIEWPORT_SCROLL_INCREMENT
-        : $viewportData_t.fileOffset + VIEWPORT_SCROLL_INCREMENT
-
-    vscode.postMessage({
-      command: MessageCommand.scrollViewport,
-      data: {
-        scrollOffset: offset,
-        bytesPerRow: $bytesPerRow,
-      },
-    })
   }
 
   function populateViewportGeometry() {
@@ -89,7 +71,7 @@ limitations under the License.
       if (viewportRefs.physical) {
         // wait for the DOM to be updated before getting the viewport geometry
         await tick()
-        $viewportScrollTop = viewportRefs.physical.scrollTop
+        // $viewportScrollTop = viewportRefs.physical.scrollTop
         $viewportScrollHeight = viewportRefs.physical.scrollHeight
         $viewportClientHeight = viewportRefs.physical.clientHeight
         $viewportLineHeight = parseFloat(
@@ -115,10 +97,9 @@ limitations under the License.
   }
 
   onMount(() => {
-    populateViewportGeometry()
-
+    // populateViewportGeometry()
     // recalculate the viewport geometry when the window is resized
-    window.addEventListener('resize', populateViewportGeometry)
+    // window.addEventListener('resize', populateViewportGeometry)
   })
 </script>
 
@@ -129,35 +110,10 @@ limitations under the License.
 />
 
 <ByteViewports
-  viewportData={$viewportData_t}
+  bind:viewportData={$viewport}
   addressRadix={$addressRadix}
   bytesPerRow={$bytesPerRow}
-  on:scrollBoundary={boundary_trigger_handle}
 />
 
 <style lang="scss">
-  textarea {
-    line-height: 1.2;
-  }
-  textarea.locked {
-    overflow-y: hidden;
-  }
-  textarea.physical.hexWidth {
-    min-width: 300pt;
-  }
-  textarea.logical.hexWidth {
-    min-width: 200pt;
-  }
-  textarea.physical.decoctWidth {
-    min-width: 385pt;
-  }
-  textarea.logical.decoctWidth {
-    min-width: 200pt;
-  }
-  textarea.physical.binWidth {
-    min-width: 435pt;
-  }
-  textarea.logical.binWidth {
-    min-width: 100pt;
-  }
 </style>

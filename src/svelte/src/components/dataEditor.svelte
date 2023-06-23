@@ -34,10 +34,8 @@ limitations under the License.
     selectionData,
     selectionSize,
     viewportCapacity,
-    viewportData,
     viewportEndOffset,
     viewportFollowingByteCount,
-    viewportLength,
     viewportLineHeight,
     viewportNumLinesDisplayed,
     viewportStartOffset,
@@ -71,7 +69,7 @@ limitations under the License.
     mouseSelectionBytes,
     type EditByteEvent,
     type EditEvent,
-    viewportData_t,
+    viewport,
     VIEWPORT_SCROLL_INCREMENT,
     ViewportData_t,
   } from './DataDisplays/CustomByteDisplay/BinaryData'
@@ -289,26 +287,6 @@ limitations under the License.
 
   window.addEventListener('message', (msg) => {
     switch (msg.data.command) {
-      case MessageCommand.viewportRefresh:
-        // the viewport has been refreshed, so the editor views need to be updated
-        $viewportData_t = {
-          data: msg.data.data.viewportData,
-          fileOffset: msg.data.data.viewportOffset,
-          length: msg.data.data.viewportLength,
-          bytesLeft: msg.data.data.viewportFollowingByteCount,
-        } as ViewportData_t
-
-        console.table($viewportData_t)
-
-        // $_viewportData = msg.data.data.viewportData
-        // $viewportData = msg.data.data.viewportData
-        $viewportStartOffset = msg.data.data.viewportOffset
-        $viewportLength = msg.data.data.viewportLength
-        $viewportFollowingByteCount = msg.data.data.viewportFollowingByteCount
-        $viewportCapacity = msg.data.data.viewportCapacity
-
-        break
-
       case MessageCommand.editorOnChange:
         if ($editMode === EditByteModes.Multiple)
           $editorSelection = msg.data.display
@@ -389,15 +367,16 @@ limitations under the License.
 
   <hr />
   <ServerMetrics />
-  <!-- 
+
   <FlexContainer --dir="row">
     <FlexContainer --dir="column" --width="50%">
       <h2>Debug</h2>
       <hr style="width: 50%;" />
       <StoreDebug name={'selectionData'} store={selectionData} />
-      <StoreDebug name={'viewportData_t'} store={viewportData_t} />
+      <StoreDebug name={'viewportData_t'} store={viewport} />
+      <StoreDebug name={'selectedByte'} store={selectedByte} />
     </FlexContainer>
-  </FlexContainer> -->
+  </FlexContainer>
 </body>
 
 <!-- svelte-ignore css-unused-selector -->

@@ -30,7 +30,7 @@ limitations under the License.
   import {
     BYTE_VALUE_DIV_OFFSET,
     update_byte_action_offsets,
-    viewportData_t,
+    viewport,
     selectedByte,
     type ByteSelectionEvent,
     null_byte,
@@ -85,7 +85,7 @@ limitations under the License.
     update_byte_action_offsets(selectionEvent.targetElement, $viewportScrollTop)
 
     editedDataSegment.update(() => {
-      return viewportData_t.subarray(
+      return viewport.subarray(
         $selectionData.startOffset,
         $selectionData.endOffset + 1
       )
@@ -100,7 +100,7 @@ limitations under the License.
     vscode.postMessage({
       command: MessageCommand.editorOnChange,
       data: {
-        fileOffset: $selectionData.startOffset,
+        fileOffset: $selectionData.startOffset + $viewport.fileOffset,
         selectionData: $editedDataSegment,
         encoding: forcedEncoding ? forcedEncoding : $editorEncoding,
         selectionSize: $selectionSize,
@@ -117,8 +117,8 @@ limitations under the License.
   class:locked={$selectionData.active}
   style="width: calc({$bytesPerRow} * {BYTE_VALUE_DIV_OFFSET}px);"
 >
-  {#key $viewportData_t.data}
-    {#each viewportData_t.physical_byte_values(16, 16) as byte}
+  {#key $viewport.data}
+    {#each viewport.physical_byte_values(16, 16) as byte}
       <BinaryValue {byte} on:mouseup={mouseup} on:mousedown={mousedown} />
     {/each}
   {/key}

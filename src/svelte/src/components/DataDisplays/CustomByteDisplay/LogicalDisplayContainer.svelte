@@ -29,7 +29,7 @@ limitations under the License.
   import { vscode } from '../../../utilities/vscode'
   import {
     BYTE_VALUE_DIV_OFFSET,
-    viewportData_t,
+    viewport,
     selectedByte,
     type ByteValue,
     update_byte_action_offsets,
@@ -40,7 +40,7 @@ limitations under the License.
 
   let logicalByteArray: ByteValue[]
 
-  $: logicalByteArray = logical_bytes_from($viewportData_t.data)
+  $: logicalByteArray = logical_bytes_from($viewport.data)
   $: selectionActive = $selectionData.active
 
   function latin1_undefined(charCode: number): boolean {
@@ -76,7 +76,7 @@ limitations under the License.
 
     editedDataSegment.update(() => {
       return Uint8Array.from(
-        viewportData_t.subarray(
+        viewport.subarray(
           $selectionData.startOffset,
           $selectionData.endOffset + 1
         )

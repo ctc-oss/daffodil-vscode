@@ -127,7 +127,7 @@ export class ViewportDataStore_t extends SimpleWritable<ViewportData_t> {
   }
 }
 
-export const viewportData_t = new ViewportDataStore_t()
+export const viewport = new ViewportDataStore_t()
 
 export const viewportFileOffset = writable(0)
 export class ViewportDataStore extends SimpleWritable<Uint8Array> {
