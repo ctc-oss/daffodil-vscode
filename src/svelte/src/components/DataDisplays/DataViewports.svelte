@@ -41,8 +41,6 @@ limitations under the License.
   import BinaryValueActions from './CustomByteDisplay/BinaryValueActions.svelte'
   import ByteViewports from './ByteViewports.svelte'
   import {
-    VIEWPORT_SCROLL_INCREMENT,
-    ViewportBoundaryTrigger,
     _viewportData,
     selectedByte,
     viewport,
@@ -71,7 +69,7 @@ limitations under the License.
       if (viewportRefs.physical) {
         // wait for the DOM to be updated before getting the viewport geometry
         await tick()
-        // $viewportScrollTop = viewportRefs.physical.scrollTop
+        $viewportScrollTop = viewportRefs.physical.scrollTop
         $viewportScrollHeight = viewportRefs.physical.scrollHeight
         $viewportClientHeight = viewportRefs.physical.clientHeight
         $viewportLineHeight = parseFloat(
@@ -110,7 +108,7 @@ limitations under the License.
 />
 
 <ByteViewports
-  bind:viewportData={$viewport}
+  bind:viewport={$viewport}
   addressRadix={$addressRadix}
   bytesPerRow={$bytesPerRow}
 />

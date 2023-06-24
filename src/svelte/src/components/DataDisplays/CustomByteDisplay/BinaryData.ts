@@ -105,6 +105,9 @@ export class ViewportDataStore_t extends SimpleWritable<ViewportData_t> {
   public subarray(from: number, to: number): Uint8Array {
     return this.storeData().data.subarray(from, to)
   }
+  public slice(from: number, to: number): Uint8Array {
+    return this.storeData().data.slice(from, to)
+  }
 
   private physical_display(radix: RadixValues, bytesPerRow: 16 | 8): string {
     let result = ''

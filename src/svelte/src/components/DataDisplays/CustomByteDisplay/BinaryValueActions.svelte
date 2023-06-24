@@ -62,7 +62,7 @@ limitations under the License.
   // $: if ($editMode === EditByteModes.Single && $selectionData.active) {
   //   $editorSelection = $editByte
   // }
-  $: $editorSelection = byte.text
+  // $: $editorSelection = byte.text
   $: console.log($editMode, $editorSelection, $editByte, $selectedByte)
   $: {
     if (
@@ -102,7 +102,7 @@ limitations under the License.
   function commitChanges(action: EditAction) {
     if (action === 'byte-input') {
       update_selectedByte({
-        text: editedByteText,
+        text: $editorSelection,
         offset: $selectedByte.offset,
         value: parseInt(editedByteText, 16),
       })
@@ -145,6 +145,7 @@ limitations under the License.
     type="text"
     class:invalid
     class:inProgress
+    placeholder={$editByte}
     bind:value={$editorSelection}
     on:input={handleEditorEvent}
     style="top: {styleOffsets.input.top}px; left: {styleOffsets.input.left}px;"

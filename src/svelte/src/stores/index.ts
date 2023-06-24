@@ -28,6 +28,7 @@ import { derived, writable } from 'svelte/store'
 import { SimpleWritable } from './localStore'
 import {
   BYTE_VALUE_DIV_OFFSET,
+  selectedByte,
   viewport,
 } from '../components/DataDisplays/CustomByteDisplay/BinaryData'
 
@@ -180,12 +181,12 @@ export const seekOffset = derived(
 // derived readable string whose value is the selected encoded byte value with respect to the current focused viewport
 export const editByte = derived(
   [displayRadix, focusedViewportId, viewport, selectionData],
-  ([$displayRadix, $focusedViewportId, $viewportData, $selectionData]) => {
+  ([$displayRadix, $focusedViewportId, $viewport, $selectionData]) => {
     // TODO: I think there is a cleaner way to do this given that we already have the encoded data in the respective viewports
-    if ($viewportData[$selectionData.startOffset] !== undefined) {
+    if ($viewport.data[$selectionData.startOffset] !== undefined) {
       return $focusedViewportId === 'logical'
-        ? String.fromCharCode($viewportData[$selectionData.startOffset])
-        : $viewportData[$selectionData.startOffset]
+        ? String.fromCharCode($viewport.data[$selectionData.startOffset])
+        : $viewport.data[$selectionData.startOffset]
             .toString($displayRadix)
             .padStart(radixBytePad($displayRadix), '0')
             .toUpperCase()
@@ -196,11 +197,12 @@ export const editByte = derived(
 
 // derived readable boolean that indicates if the edited byte is equivalent to the original byte
 export const editedByteIsOriginalByte = derived(
-  [editorSelection, editByte, focusedViewportId],
-  ([$editorSelection, $editByte, $focusedViewportId]) => {
+  [editorSelection, selectedByte, focusedViewportId],
+  ([$editorSelection, $selectedByte, $focusedViewportId]) => {
+    console.log(`EBIO: ${$selectedByte.text}`)
     return $focusedViewportId === 'logical'
-      ? $editorSelection === $editByte
-      : $editorSelection.toLowerCase() === $editByte.toLowerCase()
+      ? $editorSelection === $selectedByte.text
+      : $editorSelection.toLowerCase() === $selectedByte.text.toLowerCase()
   }
 )
 
@@ -256,10 +258,11 @@ export const requestable = derived(
 
 export const originalDataSegment = derived(
   [viewport, selectionData],
-  ([$viewportData, $selectionData]) => {
-    return !$viewportData
+  ([$viewport, $selectionData]) => {
+    console.log($viewport.data)
+    return !$viewport.data
       ? []
-      : $viewportData.data.slice(
+      : $viewport.data.slice(
           $selectionData.startOffset,
           $selectionData.originalEndOffset + 1
         )
@@ -279,7 +282,7 @@ export const committable = derived(
   ],
   ([
     $requestable,
-    $viewportData,
+    $viewport,
     $selectedFileData,
     $selectionData,
     $selectionSize,
@@ -298,8 +301,7 @@ export const committable = derived(
     if (originalLength !== editedLength) return true
     for (let i = 0; i < $selectionSize; i++) {
       if (
-        $viewportData.data[i + $selectionData.startOffset] !==
-        $selectedFileData[i]
+        $viewport.data[i + $selectionData.startOffset] !== $selectedFileData[i]
       )
         return true
     }
@@ -335,9 +337,9 @@ function typedArrayToBuffer(
 
 export const dataView = derived(
   [selectionData, viewport],
-  ([$selectionData, $viewportData]) => {
+  ([$selectionData, $viewport]) => {
     return new DataView(
-      typedArrayToBuffer($viewportData.data, $selectionData.startOffset, 8)
+      typedArrayToBuffer($viewport.data, $selectionData.startOffset, 8)
     )
   }
 )
@@ -517,7 +519,7 @@ function logicalDisplay(bytes: Uint8Array, bytesPerRow: number): string {
 // derived readable string whose value is the logical display of the current viewport
 export const viewportLogicalDisplayText = derived(
   [viewport, bytesPerRow],
-  ([$viewportData, $bytesPerRow]) => {
-    return logicalDisplay($viewportData.data, $bytesPerRow)
+  ([$viewport, $bytesPerRow]) => {
+    return logicalDisplay($viewport.data, $bytesPerRow)
   }
 )

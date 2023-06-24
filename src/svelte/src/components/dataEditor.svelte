@@ -39,6 +39,7 @@ limitations under the License.
     viewportLineHeight,
     viewportNumLinesDisplayed,
     viewportStartOffset,
+    editByte,
   } from '../stores'
   import {
     CSSThemeClass,
@@ -195,8 +196,8 @@ limitations under the License.
     const action = event.detail.action
 
     let editedData: Uint8Array
-    let editedOffset = $selectionData.startOffset
     let originalData = $originalDataSegment
+    let editedOffset = $selectionData.startOffset
 
     // noinspection FallThroughInSwitchStatementJS
     switch (action) {
@@ -205,7 +206,6 @@ limitations under the License.
       // intentional fallthrough
       case 'insert-before':
         originalData = new Uint8Array(0)
-      // intentional fallthrough
       case 'byte-input':
         editedData = $editedDataSegment.subarray(0, 1)
         break
@@ -372,8 +372,20 @@ limitations under the License.
     <FlexContainer --dir="column" --width="50%">
       <h2>Debug</h2>
       <hr style="width: 50%;" />
+      <StoreDebug name={'editorSelection'} store={editorSelection} />
+      <StoreDebug name={'editByte'} store={editByte} />
       <StoreDebug name={'selectionData'} store={selectionData} />
       <StoreDebug name={'viewportData_t'} store={viewport} />
+      <StoreDebug
+        name={'editedDataSegment'}
+        store={editedDataSegment}
+        array={true}
+      />
+      <StoreDebug
+        name={'originalDataSegment'}
+        store={originalDataSegment}
+        array={true}
+      />
       <StoreDebug name={'selectedByte'} store={selectedByte} />
     </FlexContainer>
   </FlexContainer>

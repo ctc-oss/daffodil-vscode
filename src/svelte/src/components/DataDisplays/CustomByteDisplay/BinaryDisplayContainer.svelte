@@ -85,7 +85,7 @@ limitations under the License.
     update_byte_action_offsets(selectionEvent.targetElement, $viewportScrollTop)
 
     editedDataSegment.update(() => {
-      return viewport.subarray(
+      return viewport.slice(
         $selectionData.startOffset,
         $selectionData.endOffset + 1
       )

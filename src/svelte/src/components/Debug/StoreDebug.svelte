@@ -1,9 +1,9 @@
 <script lang="ts">
-  import type { Writable } from 'svelte/store'
+  import type { Writable, Readable } from 'svelte/store'
   import type { SimpleWritable } from '../../stores/localStore'
 
   export let name: string
-  export let store: Writable<any>
+  export let store: Writable<any> | Readable<any>
   export const array: boolean = false
   const storeKeys = Object.keys($store)
   const hasKeys = storeKeys.length > 0

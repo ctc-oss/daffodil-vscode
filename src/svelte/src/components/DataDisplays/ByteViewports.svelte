@@ -37,7 +37,7 @@ limitations under the License.
 
   export let addressRadix = 16
   export let bytesPerRow = 16
-  export let viewportData: ViewportData_t
+  export let viewport: ViewportData_t
 
   let addresses: Array<string>
   let viewportElementContainer: HTMLDivElement
@@ -53,11 +53,11 @@ limitations under the License.
     addresses = Array.from(
       {
         length: Math.ceil(
-          (viewportData.fileOffset + viewportData.length) / bytesPerRow
+          (viewport.fileOffset + viewport.length) / bytesPerRow
         ),
       },
       (_, i) =>
-        (i * bytesPerRow + viewportData.fileOffset)
+        (i * bytesPerRow + viewport.fileOffset)
           .toString(addressRadix)
           .toUpperCase()
     )
@@ -74,10 +74,9 @@ limitations under the License.
       Math.ceil($viewportScrollTop) + $viewportClientHeight ===
       $viewportScrollHeight
     const atFileHeadBoundary =
-      viewportData.fileOffset - VIEWPORT_SCROLL_INCREMENT < 0
+      viewport.fileOffset - VIEWPORT_SCROLL_INCREMENT < 0
     const atFileTailBoundary =
-      viewportData.fileOffset + VIEWPORT_SCROLL_INCREMENT >
-      $fileMetrics.diskSize
+      viewport.fileOffset + VIEWPORT_SCROLL_INCREMENT > $fileMetrics.diskSize
 
     if (
       (scrolledTop && !scrolledEnd && !atFileHeadBoundary) ||
@@ -89,8 +88,8 @@ limitations under the License.
         const boundary_trigger = scroll_boundary_event(scrolledTop, scrolledEnd)
         const offset =
           boundary_trigger === ViewportBoundaryTrigger.SCROLL_TOP
-            ? viewportData.fileOffset - VIEWPORT_SCROLL_INCREMENT
-            : viewportData.fileOffset + VIEWPORT_SCROLL_INCREMENT
+            ? viewport.fileOffset - VIEWPORT_SCROLL_INCREMENT
+            : viewport.fileOffset + VIEWPORT_SCROLL_INCREMENT
 
         vscode.postMessage({
           command: MessageCommand.scrollViewport,
@@ -113,21 +112,12 @@ limitations under the License.
     switch (msg.data.command) {
       case MessageCommand.viewportRefresh:
         // the viewport has been refreshed, so the editor views need to be updated
-        viewportData = {
+        viewport = {
           data: msg.data.data.viewportData,
           fileOffset: msg.data.data.viewportOffset,
           length: msg.data.data.viewportLength,
           bytesLeft: msg.data.data.viewportFollowingByteCount,
         } as ViewportData_t
-
-        // console.table($viewportData_t)
-
-        // $_viewportData = msg.data.data.viewportData
-        // $viewportData = msg.data.data.viewportData
-        // $viewportStartOffset = msg.data.data.viewportOffset
-        // $viewportLength = msg.data.data.viewportLength
-        // $viewportFollowingByteCount = msg.data.data.viewportFollowingByteCount
-        // $viewportCapacity = msg.data.data.viewportCapacity
 
         break
     }

@@ -15,7 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
-  import type { ByteValue } from './BinaryData'
+  import type { ByteSelectionEvent, ByteValue } from './BinaryData'
   import { selectedByte } from './BinaryData'
   import { createEventDispatcher } from 'svelte'
   import { editMode, selectionData } from '../../../stores'
@@ -50,6 +50,16 @@ limitations under the License.
         : 'var(--color-primary-dark)'
   }
 
+  function mouse_event_handle(event: MouseEvent) {
+    const type = event.type
+    const targetElement = event.target
+
+    eventDispatcher(type, {
+      targetElement: targetElement,
+      targetByte: byte,
+    } as ByteSelectionEvent)
+  }
+
   function select_byte(event: Event) {
     eventDispatcher('select_byte', {
       targetDiv: event.target as HTMLDivElement,
@@ -73,6 +83,8 @@ limitations under the License.
     ? 'var(--color-secondary-lightest)'
     : 'var(--color-primary-lightest)'}
   class:latin1Undefined
+  on:mouseup={mouse_event_handle}
+  on:mousedown={mouse_event_handle}
 >
   {byte.text}
 </div>

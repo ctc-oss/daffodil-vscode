@@ -23,6 +23,7 @@ limitations under the License.
     focusedViewportId,
     selectionData,
     selectionSize,
+    viewportScrollTop,
   } from '../../../stores'
   import { EditByteModes } from '../../../stores/configuration'
   import { MessageCommand } from '../../../utilities/message'
@@ -33,6 +34,8 @@ limitations under the License.
     selectedByte,
     type ByteValue,
     update_byte_action_offsets,
+    type ByteSelectionEvent,
+    null_byte,
   } from './BinaryData'
   import LogicalDisplayDiv from './LogicalValueDiv.svelte'
 
@@ -61,28 +64,56 @@ limitations under the License.
     }
     return ret
   }
-  function select_byte(event: CustomEvent) {
+  function mousedown(event: CustomEvent<ByteSelectionEvent>) {
+    selectionData.update((selections) => {
+      selections.active = false
+      selections.startOffset = event.detail.targetByte.offset
+      selections.endOffset = -1
+      selections.originalEndOffset = -1
+      return selections
+    })
+  }
+  function mouseup(event: CustomEvent<ByteSelectionEvent>) {
+    selectionData.update((selections) => {
+      selections.active = true
+      selections.endOffset = event.detail.targetByte.offset
+      selections.originalEndOffset = event.detail.targetByte.offset
+      adjust_event_offsets()
+      return selections
+    })
+
+    set_byte_selection(event.detail)
+  }
+  function adjust_event_offsets() {
+    const start = $selectionData.startOffset
+    const end = $selectionData.endOffset
+
+    if (start > end) {
+      $selectionData.startOffset = end
+      $selectionData.originalEndOffset = start
+      $selectionData.endOffset = start
+    }
+  }
+  function set_byte_selection(selectionEvent: ByteSelectionEvent) {
     $focusedViewportId = 'logical'
 
-    $selectedByte = event.detail.targetByte
-    selectionData.update((data) => {
-      data.active = true
-      data.startOffset = $selectedByte.offset
-      data.endOffset = data.startOffset
-      data.originalEndOffset = data.endOffset
-      return data
-    })
-    update_byte_action_offsets(event.detail.targetDiv)
+    $selectedByte =
+      $editMode === EditByteModes.Single
+        ? selectionEvent.targetByte
+        : null_byte()
+
+    update_byte_action_offsets(selectionEvent.targetElement, $viewportScrollTop)
 
     editedDataSegment.update(() => {
-      return Uint8Array.from(
-        viewport.subarray(
-          $selectionData.startOffset,
-          $selectionData.endOffset + 1
-        )
+      return viewport.slice(
+        $selectionData.startOffset,
+        $selectionData.endOffset + 1
       )
     })
-    if ($editMode === EditByteModes.Single) postEditorOnChangeMsg('hex')
+
+    $editMode === EditByteModes.Single
+      ? postEditorOnChangeMsg('hex')
+      : postEditorOnChangeMsg()
   }
 
   function postEditorOnChangeMsg(forcedEncoding?: string) {
@@ -108,7 +139,7 @@ limitations under the License.
 >
   {#key logicalByteArray}
     {#each logicalByteArray as byte}
-      <LogicalDisplayDiv {byte} on:select_byte={select_byte} />
+      <LogicalDisplayDiv {byte} on:mouseup={mouseup} on:mousedown={mousedown} />
     {/each}
   {/key}
 </div>
