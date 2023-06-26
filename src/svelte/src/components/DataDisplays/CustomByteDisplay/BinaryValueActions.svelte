@@ -62,7 +62,7 @@ limitations under the License.
   // $: if ($editMode === EditByteModes.Single && $selectionData.active) {
   //   $editorSelection = $editByte
   // }
-  // $: $editorSelection = byte.text
+  $: $editorSelection = byte.text
   $: console.log($editMode, $editorSelection, $editByte, $selectedByte)
   $: {
     if (
