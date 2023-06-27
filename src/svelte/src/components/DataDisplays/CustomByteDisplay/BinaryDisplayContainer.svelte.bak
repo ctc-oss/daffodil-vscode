@@ -43,23 +43,24 @@ limitations under the License.
   // export let viewportData: ViewportData_t
 
   function mousedown(event: CustomEvent<ByteSelectionEvent>) {
-    // selectionData.update((selections) => {
-    //   selections.active = false
-    //   selections.startOffset = event.detail.targetByte.offset
-    //   selections.endOffset = -1
-    //   selections.originalEndOffset = -1
-    //   return selections
-    // })
+    selectionData.update((selections) => {
+      selections.active = false
+      selections.startOffset = event.detail.targetByte.offset
+      selections.endOffset = -1
+      selections.originalEndOffset = -1
+      return selections
+    })
   }
   function mouseup(event: CustomEvent<ByteSelectionEvent>) {
-    // selectionData.update((selections) => {
-    //   selections.active = true
-    //   selections.endOffset = event.detail.targetByte.offset
-    //   selections.originalEndOffset = event.detail.targetByte.offset
-    //   adjust_event_offsets()
-    //   return selections
-    // })
-    // set_byte_selection(event.detail)
+    selectionData.update((selections) => {
+      selections.active = true
+      selections.endOffset = event.detail.targetByte.offset
+      selections.originalEndOffset = event.detail.targetByte.offset
+      adjust_event_offsets()
+      return selections
+    })
+
+    set_byte_selection(event.detail)
   }
 
   function adjust_event_offsets() {

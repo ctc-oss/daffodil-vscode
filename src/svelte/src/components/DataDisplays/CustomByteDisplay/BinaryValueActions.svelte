@@ -32,6 +32,7 @@ limitations under the License.
     editByte,
     editMode,
     editorSelection,
+    focusedViewportId,
     selectionData,
   } from '../../../stores'
   import { radixBytePad, radixToString } from '../../../utilities/display'
@@ -63,7 +64,7 @@ limitations under the License.
   //   $editorSelection = $editByte
   // }
   $: $editorSelection = byte.text
-  $: console.log($editMode, $editorSelection, $editByte, $selectedByte)
+
   $: {
     if (
       !$committable &&

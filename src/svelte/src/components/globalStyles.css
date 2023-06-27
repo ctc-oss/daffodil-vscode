@@ -65,7 +65,7 @@ button {
   cursor: pointer;
   border-width: 1pt;
   border-style: solid;
-  min-width: 90px;
+  width: 80pt;
   margin: 1pt 2pt 1pt 2px;
   padding: 2px;
 }
@@ -300,7 +300,6 @@ div.hide-scrollbar::-webkit-scrollbar {
   display: grid;
   /* grid-template-columns: max-content max-content max-content auto; */
   grid-template-rows: max-content 25pt auto;
-  height: 400pt;
   /*noinspection CssUnresolvedCustomProperty*/
   font-family: 'Red Hat Mono';
 }

@@ -16,28 +16,60 @@ limitations under the License.
 -->
 <script lang="ts">
   import { selectionData } from '../../../stores'
+  import FlexContainer from '../../layouts/FlexContainer.svelte'
+  import { onMount } from 'svelte'
 
-  export const id: string = ''
+  export let topLine = 0
+  export let bytesPerRow = 16
+  export let radix = 16
+
+  const MAX_LINES = 20
+
+  let addresses: Array<string> = []
+  $: if (addresses) generate_address_lines(topLine)
+  onMount(() => {
+    addresses = new Array(MAX_LINES)
+    generate_address_lines(topLine)
+  })
+
+  let height = `calc(${MAX_LINES} * 20)px`
+
+  function generate_address_lines(from: number) {
+    for (let i = 0; i < MAX_LINES; i++) {
+      addresses[i] = from.toString(radix)
+      from += bytesPerRow
+    }
+  }
 </script>
 
-<!-- svelte-ignore a11y-click-events-have-key-events -->
-<div class="byte-container" class:locked={$selectionData.active} />
+<button
+  id="increment"
+  on:click={() => {
+    topLine += bytesPerRow
+  }}>+</button
+>
+<button
+  id="decrement"
+  on:click={() => {
+    topLine -= bytesPerRow
+  }}>-</button
+>
+<div class="container" style:height>
+  {#key topLine}
+    {#each addresses as address}
+      <div>{address}</div>
+    {/each}
+  {/key}
+</div>
 
-<style>
-  div.byte-container {
+<style lang="scss">
+  div.container {
+    width: 80pt;
     display: flex;
-    flex-wrap: wrap;
-    border-radius: 5px;
-    border-width: 2px;
-    border-style: solid;
-    border-color: var(--color-primary-mid);
-    background-color: var(--color-primary-dark);
-    overflow: hidden;
+    flex-direction: column;
+    flex-wrap: nowrap;
   }
-  div.byte-container::-webkit-scrollbar {
-    width: 0;
-  }
-  div.byte-container.locked {
-    overflow-y: hidden;
+  div.container div {
+    width: 100%;
   }
 </style>

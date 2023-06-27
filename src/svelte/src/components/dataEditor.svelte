@@ -61,7 +61,6 @@ limitations under the License.
   import { EditByteModes } from '../stores/configuration'
   import FlexContainer from './layouts/FlexContainer.svelte'
   import ServerMetrics from './ServerMetrics/ServerMetrics.svelte'
-  import { writable } from 'svelte/store'
   import { enterKeypressEvents } from '../utilities/enterKeypressEvents'
   import {
     _viewportData,
@@ -74,9 +73,8 @@ limitations under the License.
     VIEWPORT_SCROLL_INCREMENT,
     ViewportData_t,
   } from './DataDisplays/CustomByteDisplay/BinaryData'
-
-  import BinaryValue from './DataDisplays/CustomByteDisplay/BinaryValueDiv.svelte'
   import StoreDebug from './Debug/StoreDebug.svelte'
+  import DataLineFeed from './DataDisplays/CustomByteDisplay/DataLineFeed.svelte'
 
   $: $rawEditorSelectionTxt = $editorSelection
   $: $UIThemeCSSClass = $darkUITheme ? CSSThemeClass.Dark : CSSThemeClass.Light
@@ -197,7 +195,7 @@ limitations under the License.
 
     let editedData: Uint8Array
     let originalData = $originalDataSegment
-    let editedOffset = $selectionData.startOffset
+    let editedOffset = $selectionData.startOffset + $viewport.fileOffset
 
     // noinspection FallThroughInSwitchStatementJS
     switch (action) {
@@ -367,6 +365,7 @@ limitations under the License.
 
   <hr />
   <ServerMetrics />
+  <!-- <DataLineFeed bind:viewportData={$viewport} bytesPerRow={$bytesPerRow} /> -->
 
   <FlexContainer --dir="row">
     <FlexContainer --dir="column" --width="50%">

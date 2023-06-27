@@ -45,6 +45,7 @@ limitations under the License.
     selectedByte,
     viewport,
   } from './CustomByteDisplay/BinaryData'
+  import DataLineFeed from './CustomByteDisplay/DataLineFeed.svelte'
 
   const viewportRefs = viewport_references() as ViewportReferences
 
@@ -107,11 +108,13 @@ limitations under the License.
   on:handleEditorEvent
 />
 
-<ByteViewports
+<!-- <ByteViewports
   bind:viewport={$viewport}
   addressRadix={$addressRadix}
   bytesPerRow={$bytesPerRow}
-/>
+/> -->
+
+<DataLineFeed viewportData={$viewport} />
 
 <style lang="scss">
 </style>

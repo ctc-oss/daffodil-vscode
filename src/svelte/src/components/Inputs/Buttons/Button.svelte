@@ -17,7 +17,7 @@ limitations under the License.
 <script lang="ts">
   export let fn: (event?: Event) => void
   export let disabledBy = false
-
+  export let width = ''
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
   import FlexContainer from '../../layouts/FlexContainer.svelte'
 </script>
@@ -26,6 +26,7 @@ limitations under the License.
   class={$UIThemeCSSClass}
   disabled={disabledBy}
   on:click={!disabledBy ? fn : () => {}}
+  style:width
 >
   <FlexContainer --dir="row" --align-items="center" --justify-content="center">
     <svelte:fragment>
@@ -35,3 +36,6 @@ limitations under the License.
     </svelte:fragment>
   </FlexContainer>
 </button>
+
+<style lang="scss">
+</style>

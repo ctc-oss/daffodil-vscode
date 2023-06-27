@@ -14,52 +14,66 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 -->
+
 <script lang="ts">
   import {
+    editMode,
     editedDataSegment,
     editorEncoding,
     focusedViewportId,
-    selectionSize,
-    editMode,
     selectionData,
+    selectionSize,
     viewportScrollTop,
   } from '../../../stores'
   import { EditByteModes } from '../../../stores/configuration'
   import { MessageCommand } from '../../../utilities/message'
   import { vscode } from '../../../utilities/vscode'
   import {
-    BYTE_VALUE_DIV_OFFSET,
-    update_byte_action_offsets,
-    viewport,
-    selectedByte,
-    type ByteSelectionEvent,
     null_byte,
+    type ByteSelectionEvent,
+    type DisplayDataTypes,
+    selectedByte,
+    update_byte_action_offsets,
+    BYTE_VALUE_DIV_OFFSET,
+    ViewportDataStore_t,
     ViewportData_t,
+    type ByteValue,
   } from './BinaryData'
-  import { bytesPerRow } from './BinaryData'
-  import BinaryValue from './BinaryValueDiv.svelte'
+  import BinaryValueDiv from './BinaryValueDiv.svelte'
+  import LogicalValueDiv from './LogicalValueDiv.svelte'
 
-  export const id: string = ''
-  // export let viewportData: ViewportData_t
+  export let dataType: DisplayDataTypes
+  export let bytesPerRow: number
+  export let viewport: ViewportDataStore_t
+
+  let viewportDisplay: ByteValue[]
+  $: {
+    viewportDisplay = viewport
+      .physical_byte_values(16, 16)
+      .slice($viewport.fileOffset, $viewport.fileOffset + 320)
+  }
+  const rowNumber = 20
 
   function mousedown(event: CustomEvent<ByteSelectionEvent>) {
-    // selectionData.update((selections) => {
-    //   selections.active = false
-    //   selections.startOffset = event.detail.targetByte.offset
-    //   selections.endOffset = -1
-    //   selections.originalEndOffset = -1
-    //   return selections
-    // })
+    selectionData.update((selections) => {
+      selections.active = false
+      selections.startOffset = event.detail.targetByte.offset
+      selections.endOffset = -1
+      selections.originalEndOffset = -1
+      return selections
+    })
   }
+
   function mouseup(event: CustomEvent<ByteSelectionEvent>) {
-    // selectionData.update((selections) => {
-    //   selections.active = true
-    //   selections.endOffset = event.detail.targetByte.offset
-    //   selections.originalEndOffset = event.detail.targetByte.offset
-    //   adjust_event_offsets()
-    //   return selections
-    // })
-    // set_byte_selection(event.detail)
+    selectionData.update((selections) => {
+      selections.active = true
+      selections.endOffset = event.detail.targetByte.offset
+      selections.originalEndOffset = event.detail.targetByte.offset
+      adjust_event_offsets()
+      return selections
+    })
+
+    set_byte_selection(event.detail)
   }
 
   function adjust_event_offsets() {
@@ -111,31 +125,43 @@ limitations under the License.
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <div
-  {id}
-  class="byte-container hide-scrollbar {id}"
+  id={dataType}
+  class="byte-container hide-scrollbar {dataType}"
   class:locked={$selectionData.active}
-  style="width: calc({$bytesPerRow} * {BYTE_VALUE_DIV_OFFSET}px);"
+  style="width: calc({bytesPerRow} * {BYTE_VALUE_DIV_OFFSET}px);"
 >
-  {#key $viewport.data}
-    {#each viewport.physical_byte_values(16, 16) as byte}
-      <BinaryValue {byte} on:mouseup={mouseup} on:mousedown={mousedown} />
-    {/each}
-  {/key}
+  {#if dataType === 'physical'}
+    {#key $viewport}
+      {#each viewportDisplay as byte}
+        <BinaryValueDiv {byte} on:mouseup={mouseup} on:mousedown={mousedown} />
+      {/each}
+    {/key}
+  {:else}
+    {#key $viewport}
+      {#each viewport.logical_byte_values() as byte}
+        <LogicalValueDiv {byte} on:mouseup={mouseup} on:mousedown={mousedown} />
+      {/each}
+    {/key}
+  {/if}
 </div>
 
 <style>
   div.byte-container {
     display: flex;
     flex-wrap: wrap;
-    border-radius: 5px;
-    border-width: 2px;
+    /* border-radius: 5px; */
+    border-width: 0 2px 0 2px;
     border-style: solid;
     border-color: var(--color-primary-mid);
     background-color: var(--color-primary-dark);
-    /* overflow: scroll; */
-    grid-row-start: 3;
+    grid-row-start: 1;
     grid-row-end: 5;
+  }
+  div.phyiscal {
     grid-column: 2;
+  }
+  div.logical {
+    grid-column: 3;
   }
   div.byte-container::-webkit-scrollbar {
     display: none;

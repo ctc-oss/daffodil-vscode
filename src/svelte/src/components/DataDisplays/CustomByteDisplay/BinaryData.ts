@@ -62,6 +62,14 @@ export const scroll_boundary_event = (top: boolean, end: boolean) => {
     : ViewportBoundaryTrigger.SCROLL_BOTTOM
 }
 
+export const byte_value_string = (value: number, radix: RadixValues) => {
+  if (value > 255)
+    throw `Value {${value}} is larger than an unsigned int (255).`
+  let str = value.toString(radix)
+  let validLen = radixBytePad(radix)
+  return str.length < validLen ? str.padStart(validLen, '0') : str
+}
+
 export type ByteSelectionEvent = {
   targetElement: HTMLDivElement
   targetByte: ByteValue
@@ -179,74 +187,6 @@ export class ViewportDataStore extends SimpleWritable<Uint8Array> {
 }
 export const _viewportData = new ViewportDataStore()
 
-// class ViewportDataSegments {
-//   public prefix = new ViewportDataStore()
-//   public head = new ViewportDataStore()
-//   public tail = new ViewportDataStore()
-//   public next = new ViewportDataStore()
-// }
-// // export type ViewportDisplaySegment = keyof ViewportDataSegments['head'] | keyof ViewportDataSegments['tail']
-// // export type SetableViewportSegments = ViewportDisplaySegment | 'next'
-
-// export class ViewportBuffers extends SimpleWritable<ViewportDataSegments> {
-//   static BUFFER_SIZE = 512
-//   static DISPLAY_SIZE = 1024
-
-//   private _displaySegment: number = 0
-
-//   constructor(){
-//     super()
-//     this._generate_mock_data(get(this.store).prefix)
-//     this._generate_mock_data(get(this.store).head)
-//     this._generate_mock_data(get(this.store).tail)
-//     this._generate_mock_data(get(this.store).next, true)
-//   }
-
-//   public current_display_segment(): number {
-//     return this._displaySegment
-//   }
-
-//   protected init(): ViewportDataSegments {
-//     return new ViewportDataSegments()
-//   }
-
-//   private _generate_mock_data(data: ViewportDataStore, reverse: boolean = false) {
-//     !reverse
-//       ? data.set(new Uint8Array(ViewportBuffers.BUFFER_SIZE).map((v,i) => {
-//           return (i*(this._displaySegment+1)) % 256
-//         }))
-//       : data.set(new Uint8Array(ViewportBuffers.BUFFER_SIZE).map((v,i) => {
-//           return 256 - (i*(this._displaySegment+1))
-//         }))
-//   }
-
-//   public display_buffers(): [ViewportDataStore, ViewportDataStore] {
-//     return [get(this.store).head, get(this.store).tail]
-//   }
-
-//   public swap_buffers(trigger: ViewportBoundaryTrigger) {
-//     if(trigger === ViewportBoundaryTrigger.SCROLL_BOTTOM) {
-//       this.store.update(dataSegments => {
-//         const tmp = get(dataSegments.head)
-//         dataSegments.head.set(get(dataSegments.tail))
-//         dataSegments.tail.set(get(dataSegments.next))
-
-//         dataSegments.prefix.set(tmp)
-//         dataSegments.next.set(new Uint8Array(ViewportBuffers.BUFFER_SIZE))
-
-//         return dataSegments
-//       })
-
-//       this._displaySegment++
-//     }
-//   }
-
-//   // public set_segment_from(segment: SetableViewportSegments, data: Uint8Array) {
-//   //   get(this.store)[segment].set(data)
-//   // }
-// }
-// export const viewportBuffers = writable(new ViewportBuffers())
-
 export type ByteActionPxOffsets = {
   insertBefore: {
     left: number
@@ -266,28 +206,29 @@ export type ByteActionPxOffsets = {
   }
 }
 
-function latin1Undefined(charCode: number): boolean {
+export function latin1Undefined(charCode: number): boolean {
   return charCode < 32 || (charCode > 126 && charCode < 160)
 }
 export function update_byte_action_offsets(
   targetDiv: HTMLDivElement,
-  offsetTopBy: number = 0
+  offsetTopBy: number = 0,
+  offsetLeftBy: number = 0
 ) {
   byteActionPxOffsets.update((currentOffsets) => {
     currentOffsets.delete = {
-      left: targetDiv.offsetLeft,
+      left: targetDiv.offsetLeft + offsetLeftBy,
       top: targetDiv.offsetTop + BYTE_VALUE_DIV_OFFSET - offsetTopBy,
     }
     currentOffsets.input = {
-      left: targetDiv.offsetLeft,
+      left: targetDiv.offsetLeft + offsetLeftBy,
       top: targetDiv.offsetTop - offsetTopBy,
     }
     currentOffsets.insertAfter = {
-      left: targetDiv.offsetLeft + BYTE_VALUE_DIV_OFFSET,
+      left: targetDiv.offsetLeft + BYTE_VALUE_DIV_OFFSET + offsetLeftBy,
       top: targetDiv.offsetTop - offsetTopBy,
     }
     currentOffsets.insertBefore = {
-      left: targetDiv.offsetLeft - BYTE_VALUE_DIV_OFFSET,
+      left: targetDiv.offsetLeft - BYTE_VALUE_DIV_OFFSET + offsetLeftBy,
       top: targetDiv.offsetTop - offsetTopBy,
     }
 

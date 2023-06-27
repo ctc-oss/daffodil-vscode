@@ -104,22 +104,11 @@ limitations under the License.
   onMount(() => {
     viewportElementContainer.addEventListener('wheel', (event) => {
       // For some reason clicks are also registering as "scroll"s ?
-      console.log(event)
       syncScroll(viewportElementContainer)
     })
   })
   window.addEventListener('message', (msg) => {
     switch (msg.data.command) {
-      case MessageCommand.viewportRefresh:
-        // the viewport has been refreshed, so the editor views need to be updated
-        viewport = {
-          data: msg.data.data.viewportData,
-          fileOffset: msg.data.data.viewportOffset,
-          length: msg.data.data.viewportLength,
-          bytesLeft: msg.data.data.viewportFollowingByteCount,
-        } as ViewportData_t
-
-        break
     }
   })
 </script>

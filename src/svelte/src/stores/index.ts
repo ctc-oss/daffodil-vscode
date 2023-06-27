@@ -16,7 +16,11 @@
  */
 
 import type { ValidationResponse } from '../utilities/display'
-import { EditByteModes, UNPRINTABLE_CHAR_STAND_IN } from './configuration'
+import {
+  EditByteModes,
+  UNPRINTABLE_CHAR_STAND_IN,
+  type RadixValues,
+} from './configuration'
 import { ThemeType } from '../utilities/colorScheme'
 import { fileMetrics } from '../components/Header/fieldsets/FileMetrics'
 import {
@@ -32,7 +36,7 @@ import {
   viewport,
 } from '../components/DataDisplays/CustomByteDisplay/BinaryData'
 
-class SelectionData {
+export class SelectionData {
   startOffset = 0
   endOffset = 0
   originalEndOffset = 0
@@ -60,7 +64,7 @@ export const commitErrMsg = writable('')
 export const dataViewEndianness = writable('le')
 
 // radix to use for displaying raw bytes (2, 8, 10, 16)
-export const displayRadix = writable(16)
+export const displayRadix = writable(16 as RadixValues)
 
 // true if the edit byte window is hidden
 export const editByteWindowHidden = writable(true)
@@ -199,7 +203,6 @@ export const editByte = derived(
 export const editedByteIsOriginalByte = derived(
   [editorSelection, selectedByte, focusedViewportId],
   ([$editorSelection, $selectedByte, $focusedViewportId]) => {
-    console.log(`EBIO: ${$selectedByte.text}`)
     return $focusedViewportId === 'logical'
       ? $editorSelection === $selectedByte.text
       : $editorSelection.toLowerCase() === $selectedByte.text.toLowerCase()
@@ -259,7 +262,6 @@ export const requestable = derived(
 export const originalDataSegment = derived(
   [viewport, selectionData],
   ([$viewport, $selectionData]) => {
-    console.log($viewport.data)
     return !$viewport.data
       ? []
       : $viewport.data.slice(
