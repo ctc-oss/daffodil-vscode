@@ -436,4 +436,7 @@ limitations under the License.
   div.input-container {
     display: flex;
   }
+  div.input-container select {
+    width: max-content;
+  }
 </style>

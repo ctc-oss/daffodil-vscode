@@ -15,7 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
-  import { editorSelection, editMode } from '../../stores'
+  import { editorSelection, editMode, selectionData } from '../../stores'
   import { EditByteModes } from '../../stores/configuration'
   import { UIThemeCSSClass } from '../../utilities/colorScheme'
   import { createEventDispatcher } from 'svelte'
@@ -30,7 +30,7 @@ limitations under the License.
 </script>
 
 <div class="editView" id="edit_view">
-  {#if $editMode === EditByteModes.Multiple}
+  {#if $editMode === EditByteModes.Multiple && $selectionData.active}
     <textarea
       class={$UIThemeCSSClass}
       id="selectedContent"

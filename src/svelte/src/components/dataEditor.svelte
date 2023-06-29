@@ -304,6 +304,15 @@ limitations under the License.
       case MessageCommand.setUITheme:
         $darkUITheme = msg.data.theme === 2
         break
+      case MessageCommand.viewportRefresh:
+        // the viewport has been refreshed, so the editor views need to be updated
+        $viewport = {
+          data: msg.data.data.viewportData,
+          fileOffset: msg.data.data.viewportOffset,
+          length: msg.data.data.viewportLength,
+          bytesLeft: msg.data.data.viewportFollowingByteCount,
+        } as ViewportData_t
+        break
     }
   })
 
@@ -365,29 +374,6 @@ limitations under the License.
 
   <hr />
   <ServerMetrics />
-  <!-- <DataLineFeed bind:viewportData={$viewport} bytesPerRow={$bytesPerRow} /> -->
-
-  <FlexContainer --dir="row">
-    <FlexContainer --dir="column" --width="50%">
-      <h2>Debug</h2>
-      <hr style="width: 50%;" />
-      <StoreDebug name={'editorSelection'} store={editorSelection} />
-      <StoreDebug name={'editByte'} store={editByte} />
-      <StoreDebug name={'selectionData'} store={selectionData} />
-      <StoreDebug name={'viewportData_t'} store={viewport} />
-      <StoreDebug
-        name={'editedDataSegment'}
-        store={editedDataSegment}
-        array={true}
-      />
-      <StoreDebug
-        name={'originalDataSegment'}
-        store={originalDataSegment}
-        array={true}
-      />
-      <StoreDebug name={'selectedByte'} store={selectedByte} />
-    </FlexContainer>
-  </FlexContainer>
 </body>
 
 <!-- svelte-ignore css-unused-selector -->

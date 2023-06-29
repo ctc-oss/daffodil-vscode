@@ -25,10 +25,10 @@ limitations under the License.
     latin1Undefined,
     type ByteSelectionEvent,
     type ByteValue,
+    type ViewportDataType,
   } from './BinaryData'
   import { SelectionData, focusedViewportId } from '../../../stores'
 
-  type ViewportDataType = 'physical' | 'logical'
   export let id: ViewportDataType
   export let byte: ByteValue
   export let editMode: EditByteModes
@@ -62,10 +62,10 @@ limitations under the License.
     const type = event.type
     const targetElement = event.target
     if (id === 'logical') byte.text = String.fromCharCode(byte.value)
-
     eventDispatcher(type, {
       targetElement: targetElement,
       targetByte: byte,
+      fromViewport: id,
     } as ByteSelectionEvent)
   }
 

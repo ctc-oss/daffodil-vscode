@@ -241,6 +241,8 @@
   }
 
   function set_byte_selection(selectionEvent: ByteSelectionEvent) {
+    $focusedViewportId = selectionEvent.fromViewport
+
     $selectedByte =
       $editMode === EditByteModes.Single
         ? selectionEvent.targetByte
@@ -291,13 +293,6 @@
   window.addEventListener('message', (msg) => {
     switch (msg.data.command) {
       case MessageCommand.viewportRefresh:
-        // the viewport has been refreshed, so the editor views need to be updated
-        viewportData = {
-          data: msg.data.data.viewportData,
-          fileOffset: msg.data.data.viewportOffset,
-          length: msg.data.data.viewportLength,
-          bytesLeft: msg.data.data.viewportFollowingByteCount,
-        } as ViewportData_t
         if (awaitViewportScroll) {
           lineTop = 0
           awaitViewportScroll = false
@@ -390,16 +385,6 @@
     </Button>
     <div class="file-traversal-indicator" />
   </FlexContainer>
-  <div>lineTop: {lineTop} / {lineTopMaxViewport}</div>
-  <div>viewportFileSegment: {viewportFileSegment}</div>
-  <div>
-    totalLines[ {totalLinesPerViewport}(Viewport), {totalLinesPerFilesize}(File)
-    ]
-  </div>
-  <div>atViewportHead: {atViewportHead}</div>
-  <div>atViewportTail: {atViewportTail}</div>
-  <div>atFileHead: {atFileTail}</div>
-  <div>atFileTail: {atFileTail}</div>
 </div>
 
 <style lang="scss">

@@ -48,7 +48,6 @@ limitations under the License.
     $selectionData.endOffset,
     $selectionSize
   )
-
   $: {
     physicalOffsetText = getOffsetDisplay(
       $addressRadix,
@@ -208,19 +207,15 @@ limitations under the License.
   </span>
 </div>
 <div class={$UIThemeCSSClass + ' measure selection'}>
-  {#if $editMode === EditByteModes.Multiple}
-    {#if $selectionData.active}
-      <div
-        class="clear-selection"
-        title="Clear selection data"
-        on:click={clearDataDisplays}
-        on:keypress={clearDataDisplays}
-      >
-        &#10006;
-      </div>
-    {:else}
-      <div class="clear-selection" />
-    {/if}
+  {#if $selectionData.active && $editMode !== EditByteModes.Single}
+    <div
+      class="clear-selection"
+      title="Clear selection data"
+      on:click={clearDataDisplays}
+      on:keypress={clearDataDisplays}
+    >
+      &#10006;
+    </div>
     <div>
       {selectionOffsetText}
     </div>

@@ -1,24 +1,25 @@
 <script lang="ts">
   import type { Writable, Readable } from 'svelte/store'
-  import type { SimpleWritable } from '../../stores/localStore'
 
   export let name: string
   export let store: Writable<any> | Readable<any>
   export const array: boolean = false
   const storeKeys = Object.keys($store)
   const hasKeys = storeKeys.length > 0
+  let storeData: any
+  $: storeData = $store
 </script>
 
 <div class="container">
   <div>{name}</div>
   <div>
-    {#if $store}
+    {#if storeData}
       {#if hasKeys}
-        {#each Object.keys($store) as key}
-          <u>{key}</u>: {$store[key]}<br />
+        {#each Object.keys(storeData) as key}
+          <u>{key}</u>: {storeData[key]}<br />
         {/each}
       {:else}
-        {$store}
+        {storeData}
       {/if}
     {:else}
       <b>-</b>

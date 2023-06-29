@@ -69,10 +69,11 @@ export const byte_value_string = (value: number, radix: RadixValues) => {
   let validLen = radixBytePad(radix)
   return str.length < validLen ? str.padStart(validLen, '0') : str
 }
-
+export type ViewportDataType = 'physical' | 'logical'
 export type ByteSelectionEvent = {
   targetElement: HTMLDivElement
   targetByte: ByteValue
+  fromViewport: ViewportDataType
 }
 export const RADIX_REGEX_MATCH_STR = {
   16: /[0-9a-fA-F]{2}/g,
