@@ -39,7 +39,6 @@ limitations under the License.
   import { vscode } from '../../utilities/vscode'
   import { EditByteModes } from '../../stores/configuration'
   import BinaryValueActions from './CustomByteDisplay/BinaryValueActions.svelte'
-  import ByteViewports from './ByteViewports.svelte'
   import {
     _viewportData,
     selectedByte,
@@ -107,12 +106,6 @@ limitations under the License.
   on:commitChanges
   on:handleEditorEvent
 />
-
-<!-- <ByteViewports
-  bind:viewport={$viewport}
-  addressRadix={$addressRadix}
-  bytesPerRow={$bytesPerRow}
-/> -->
 
 <DataLineFeed viewportData={$viewport} />
 
