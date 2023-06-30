@@ -30,6 +30,7 @@
   import { MessageCommand } from '../../../utilities/message'
   import Button from '../../Inputs/Buttons/Button.svelte'
   import FlexContainer from '../../layouts/FlexContainer.svelte'
+  import FileTraversalIndicator from './FileTraversalIndicator.svelte'
 
   export let lineTop = 0
   export let bytesPerRow = 16
@@ -70,6 +71,7 @@
     bytes: Array<ByteValue>
     highlight: 'even' | 'odd'
   }
+
   enum ViewportScrollDirection {
     DECREMENT = -1,
     INCREMENT = 1,
@@ -97,6 +99,7 @@
     atFileHead = viewportData.fileOffset === 0
     atFileTail = viewportData.bytesLeft === 0
   }
+
   $: {
     if (viewportData.fileOffset >= 0 && !awaitViewportScroll) {
       viewportLines = generate_line_data(
@@ -290,6 +293,7 @@
         viewportDataContainer.addEventListener('wheel', navigation_wheel_event)
     }
   }
+
   window.addEventListener('message', (msg) => {
     switch (msg.data.command) {
       case MessageCommand.viewportRefresh:
@@ -311,7 +315,8 @@
 
       <div
         class="byte-line"
-        style:width={(bytesPerRow * BYTE_VALUE_DIV_OFFSET).toString() + 'px'}
+        style:width={(bytesPerRow * BYTE_VALUE_DIV_OFFSET - 4).toString() +
+          'px'}
       >
         {#each viewportLine.bytes as byte}
           <DataValue
@@ -346,44 +351,51 @@
       </div>
     </div>
   {/each}
-  <FlexContainer --dir="row">
-    <Button
-      fn={INCREMENT_LINE}
-      disabledBy={atViewportTail && atFileTail}
-      width="30pt"
-    >
-      <span slot="default" class="btn-icon material-symbols-outlined"
-        >keyboard_arrow_down</span
+  <FlexContainer --dir="column">
+    <FileTraversalIndicator
+      totalLines={totalLinesPerFilesize}
+      currentLine={lineTop}
+      fileOffset={viewportData.fileOffset}
+      {bytesPerRow}
+    />
+    <FlexContainer --dir="row">
+      <Button
+        fn={INCREMENT_LINE}
+        disabledBy={atViewportTail && atFileTail}
+        width="30pt"
       >
-    </Button>
-    <Button
-      fn={INCREMENT_SEGMENT}
-      disabledBy={atViewportTail && atFileTail}
-      width="30pt"
-    >
-      <span slot="default" class="btn-icon material-symbols-outlined"
-        >keyboard_double_arrow_down</span
+        <span slot="default" class="btn-icon material-symbols-outlined"
+          >keyboard_arrow_down</span
+        >
+      </Button>
+      <Button
+        fn={INCREMENT_SEGMENT}
+        disabledBy={atViewportTail && atFileTail}
+        width="30pt"
       >
-    </Button>
-    <Button
-      fn={DECREMENT_LINE}
-      disabledBy={atViewportHead && atFileHead}
-      width="30pt"
-    >
-      <span slot="default" class="btn-icon material-symbols-outlined"
-        >keyboard_arrow_up</span
+        <span slot="default" class="btn-icon material-symbols-outlined"
+          >keyboard_double_arrow_down</span
+        >
+      </Button>
+      <Button
+        fn={DECREMENT_LINE}
+        disabledBy={atViewportHead && atFileHead}
+        width="30pt"
       >
-    </Button>
-    <Button
-      fn={DECREMENT_SEGMENT}
-      disabledBy={atViewportHead && atFileHead}
-      width="30pt"
-    >
-      <span slot="default" class="btn-icon material-symbols-outlined"
-        >keyboard_double_arrow_up</span
+        <span slot="default" class="btn-icon material-symbols-outlined"
+          >keyboard_arrow_up</span
+        >
+      </Button>
+      <Button
+        fn={DECREMENT_SEGMENT}
+        disabledBy={atViewportHead && atFileHead}
+        width="30pt"
       >
-    </Button>
-    <div class="file-traversal-indicator" />
+        <span slot="default" class="btn-icon material-symbols-outlined"
+          >keyboard_double_arrow_up</span
+        >
+      </Button>
+    </FlexContainer>
   </FlexContainer>
 </div>
 
@@ -421,7 +433,7 @@
   div.container div.line div.address {
     width: 80pt;
     direction: rtl;
-    padding-right: 5pt;
+    padding-right: 2px;
     letter-spacing: 4px;
   }
   div.container .line .byte-line {
@@ -429,6 +441,9 @@
     display: flex;
     flex-direction: row;
     width: 100%;
+    border-width: 0px 2px 0px 2px;
+    border-color: var(--color-primary-mid);
+    border-style: solid;
   }
   div.byte {
     width: 24px;

@@ -17,13 +17,13 @@ limitations under the License.
 <script lang="ts">
 </script>
 
-<div class="container">
+<div class="flex-container">
   <slot />
 </div>
 
 <!--suppress CssInvalidFunction -->
 <style lang="scss">
-  div.container {
+  div.flex-container {
     width: var(--width, var(--container-width, '100%'));
     height: var(--height, var(--container-height, 'auto'));
     display: flex;
