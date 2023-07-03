@@ -23,7 +23,7 @@ def generate_file(filename, num_lines, address_kind="dec"):
     elif address_kind == "oct":
         converter = oct
     with open(filename, "w") as file:
-        for i in range(0, num_lines, 16):
+        for i in range(0, num_lines * 16, 16):
             line = f"{converter(i).lstrip('0xo').zfill(6)}: 89ABCDE\n"
             file.write(line)
 
