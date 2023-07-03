@@ -15,11 +15,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-def generate_file(filename, num_lines):
+
+def generate_file(filename, num_lines, address_kind="dec"):
+    converter = str
+    if address_kind == "hex":
+        converter = hex
+    elif address_kind == "oct":
+        converter = oct
     with open(filename, "w") as file:
-        for i in range(0, num_lines * 16, 16):
-            line = f"{str(i).zfill(6)}: 89ABCDE\n"
+        for i in range(0, num_lines, 16):
+            line = f"{converter(i).lstrip('0xo').zfill(6)}: 89ABCDE\n"
             file.write(line)
 
-# Example usage: Generate a file with 10,000 lines, each line containing 16 bytes
-generate_file("test-10000.txt", 10000)
+
+# Example usage: Generate a file with 100,000 lines, each line containing 16 bytes using hex addresses
+generate_file("test-100000.txt", 100000, "hex")
