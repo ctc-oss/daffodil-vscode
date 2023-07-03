@@ -19,6 +19,7 @@
     type ByteSelectionEvent,
     update_byte_action_offsets,
     BYTE_VALUE_DIV_OFFSET,
+    viewport,
   } from './BinaryData'
   import { fileMetrics } from '../../Header/fieldsets/FileMetrics'
   import {
@@ -40,14 +41,20 @@
   const NUM_LINES_DISPLAYED = 20
   const DEBOUNCE_TIMEOUT_MS = 20
   const CONTAINER_ID = 'viewportData-container'
-  const OFFSET_FETCH_ADJUSTMENT = (direction: ViewportScrollDirection) => {
-    return direction === ViewportScrollDirection.INCREMENT
-      ? viewportData.bytesLeft < 512
-        ? viewportData.fileOffset + viewportData.bytesLeft
-        : 512
-      : viewportData.fileOffset - 512 > 0
-      ? viewportData.fileOffset - 512
-      : 0
+  function OFFSET_FETCH_ADJUSTMENT(direction: ViewportScrollDirection) {
+    if (direction === ViewportScrollDirection.INCREMENT) {
+      const validBytesRemaining = viewportData.bytesLeft > 512
+      if (validBytesRemaining) return 512
+      else {
+        return viewportData.fileOffset + viewportData.bytesLeft
+      }
+    } else {
+      const validBytesRemaining = viewportData.fileOffset - 512 > 0
+      if (!validBytesRemaining) return 0
+      else {
+        return viewportData.fileOffset - 512
+      }
+    }
   }
   const INCREMENT_LINE = () => {
     handle_navigation(ViewportScrollDirection.INCREMENT)
@@ -71,6 +78,7 @@
       },
     })
     lineTopOnRefresh = 0
+    awaitViewportScroll = true
   }
   const SCROLL_TO_TOP = () => {
     vscode.postMessage({
@@ -81,6 +89,7 @@
       },
     })
     lineTopOnRefresh = 0
+    awaitViewportScroll = true
   }
   const LINE_IN_FILE = () => {
     return lineTop + viewportData.fileOffset / bytesPerRow
@@ -124,8 +133,8 @@
   })
 
   $: {
-    totalLinesPerFilesize = Math.floor($fileMetrics.computedSize / bytesPerRow)
-    totalLinesPerViewport = Math.floor(viewportData.data.length / bytesPerRow)
+    totalLinesPerFilesize = Math.ceil($fileMetrics.computedSize / bytesPerRow)
+    totalLinesPerViewport = Math.ceil(viewportData.data.length / bytesPerRow)
     lineTopMaxFile = totalLinesPerFilesize - NUM_LINES_DISPLAYED
     lineTopMaxViewport = totalLinesPerViewport - NUM_LINES_DISPLAYED
     viewportFileSegment = viewportData.fileOffset / viewportData.length + 1
@@ -155,11 +164,13 @@
 
       for (let bytePos = 0; bytePos < bytesPerRow; bytePos++) {
         let byteOffset = viewportLineOffset + bytePos
-        let viewportOffset = byteOffset % viewportData.length
         bytes.push({
-          offset: viewportOffset,
-          value: viewportData.data[viewportOffset],
-          text: byte_value_string(viewportData.data[viewportOffset], radix),
+          offset: byteOffset,
+          value: viewportData.data[byteOffset],
+          text:
+            byteOffset < viewportData.length
+              ? byte_value_string(viewportData.data[byteOffset], radix)
+              : '',
         })
       }
 
@@ -215,10 +226,7 @@
     if (at_scroll_boundary(direction)) return
 
     if (at_fetch_boundary(direction)) {
-      const offset =
-        direction === ViewportScrollDirection.DECREMENT
-          ? viewportData.fileOffset - OFFSET_FETCH_ADJUSTMENT(direction)
-          : viewportData.fileOffset + OFFSET_FETCH_ADJUSTMENT(direction)
+      let offset = OFFSET_FETCH_ADJUSTMENT(direction)
       // ? viewportData.fileOffset - viewportData.length
       // : viewportData.fileOffset + viewportData.length
 
@@ -372,6 +380,7 @@
             selectionData={$selectionData}
             radix={$displayRadix}
             editMode={$editMode}
+            disabled={byte.offset > viewportData.length}
             on:mouseup={mouseup}
             on:mousedown={mousedown}
           />
@@ -452,7 +461,7 @@
       </Button>
       <Button
         fn={SCROLL_TO_TOP}
-        disabledBy={atViewportTail && atFileTail}
+        disabledBy={atViewportHead && atFileHead}
         width="30pt"
       >
         <span slot="default" class="btn-icon material-symbols-outlined"

@@ -8,7 +8,7 @@
   let offsetAdjustment = 0
 
   $: {
-    offsetAdjustment = fileOffset / bytesPerRow
+    offsetAdjustment = fileOffset / bytesPerRow + 20
     percentageTraversed =
       ((currentLine + offsetAdjustment) / totalLines) * 100.0
   }

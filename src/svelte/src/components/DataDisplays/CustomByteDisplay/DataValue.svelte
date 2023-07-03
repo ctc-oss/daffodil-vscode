@@ -35,6 +35,7 @@ limitations under the License.
   export let selectionData: SelectionData
   export let selectedByte: ByteValue
   export let radix: RadixValues
+  export let disabled = false
 
   const eventDispatcher = createEventDispatcher()
 
@@ -78,8 +79,9 @@ limitations under the License.
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
-
-{#if id === 'physical'}
+{#if disabled}
+  <div class="byte disabled" />
+{:else if id === 'physical'}
   <div
     class="byte"
     style:background-color={bgColor}
@@ -133,5 +135,9 @@ limitations under the License.
     content: '?';
     font-size: 16px;
     filter: brightness(0.75);
+  }
+  div.disabled {
+    background-color: var(--color-primary-darkest);
+    color: var(--color-primary-darkest);
   }
 </style>
