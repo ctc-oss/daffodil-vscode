@@ -9,7 +9,8 @@
 
   $: {
     offsetAdjustment = fileOffset / bytesPerRow
-    percentageTraversed = ((currentLine + offsetAdjustment) / totalLines) * 10.0
+    percentageTraversed =
+      ((currentLine + offsetAdjustment) / totalLines) * 100.0
   }
 </script>
 
@@ -17,6 +18,8 @@
   <div class="traversal-thumb" style:width="{percentageTraversed}%" />
 </div>
 
+<!-- <div>(({currentLine} + {offsetAdjustment}) / {totalLines}) * 100.0 = {percentageTraversed}</div>
+<div>{offsetAdjustment} = {fileOffset} / {bytesPerRow}</div> -->
 <style lang="scss">
   div.traversal-container {
     background-color: var(--color-secondary-dark);

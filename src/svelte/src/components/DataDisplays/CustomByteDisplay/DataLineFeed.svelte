@@ -40,6 +40,15 @@
   const NUM_LINES_DISPLAYED = 20
   const DEBOUNCE_TIMEOUT_MS = 20
   const CONTAINER_ID = 'viewportData-container'
+  const OFFSET_FETCH_ADJUSTMENT = (direction: ViewportScrollDirection) => {
+    return direction === ViewportScrollDirection.INCREMENT
+      ? viewportData.bytesLeft < 512
+        ? viewportData.fileOffset + viewportData.bytesLeft
+        : 512
+      : viewportData.fileOffset - 512 > 0
+      ? viewportData.fileOffset - 512
+      : 0
+  }
   const INCREMENT_LINE = () => {
     handle_navigation(ViewportScrollDirection.INCREMENT)
   }
@@ -52,6 +61,31 @@
   const DECREMENT_SEGMENT = () => {
     handle_navigation(ViewportScrollDirection.DECREMENT, -NUM_LINES_DISPLAYED)
   }
+  const SCROLL_TO_END = () => {
+    vscode.postMessage({
+      command: MessageCommand.scrollViewport,
+      data: {
+        scrollOffset:
+          $fileMetrics.computedSize - NUM_LINES_DISPLAYED * bytesPerRow,
+        bytesPerRow: bytesPerRow,
+      },
+    })
+    lineTopOnRefresh = 0
+  }
+  const SCROLL_TO_TOP = () => {
+    vscode.postMessage({
+      command: MessageCommand.scrollViewport,
+      data: {
+        scrollOffset: 0,
+        bytesPerRow: bytesPerRow,
+      },
+    })
+    lineTopOnRefresh = 0
+  }
+  const LINE_IN_FILE = () => {
+    return lineTop + viewportData.fileOffset / bytesPerRow
+  }
+  const LINE_FROM_BYTE_OFFSET = (offset: number) => {}
 
   let totalLinesPerFilesize = 0
   let totalLinesPerViewport = 0
@@ -63,11 +97,13 @@
   let atFileHead = true
   let atFileTail = false
   let awaitViewportScroll = false
+  let lineTopOnRefresh = 0
   let height = `calc(${NUM_LINES_DISPLAYED} * 20)px`
   let scrollDebounce: NodeJS.Timeout | null = null
 
   type ViewportLineData = {
     offset: string
+    fileLine: number
     bytes: Array<ByteValue>
     highlight: 'even' | 'odd'
   }
@@ -101,26 +137,24 @@
   }
 
   $: {
-    if (viewportData.fileOffset >= 0 && !awaitViewportScroll) {
-      viewportLines = generate_line_data(
-        lineTop,
-        lineTop + NUM_LINES_DISPLAYED - 1
-      )
-    }
+    if (viewportData.fileOffset >= 0 && !awaitViewportScroll)
+      viewportLines = generate_line_data(lineTop)
   }
 
   function generate_line_data(
     startIndex: number,
-    endIndex: number
+    endIndex: number = startIndex + (NUM_LINES_DISPLAYED - 1)
   ): Array<ViewportLineData> {
     let ret = []
     for (let i = startIndex; i <= endIndex; i++) {
-      const fileOffset = i * bytesPerRow + viewportData.fileOffset
+      const viewportLineOffset = i * bytesPerRow
+      const fileOffset = viewportLineOffset + viewportData.fileOffset
+
       let bytes: Array<ByteValue> = []
       const highlight = i % 2 === 0
 
       for (let bytePos = 0; bytePos < bytesPerRow; bytePos++) {
-        let byteOffset = fileOffset + bytePos
+        let byteOffset = viewportLineOffset + bytePos
         let viewportOffset = byteOffset % viewportData.length
         bytes.push({
           offset: viewportOffset,
@@ -131,6 +165,7 @@
 
       ret.push({
         offset: fileOffset.toString(radix).padStart(8, '0'),
+        fileLine: fileOffset / bytesPerRow,
         bytes: bytes,
         highlight: highlight ? 'even' : 'odd',
       })
@@ -182,8 +217,10 @@
     if (at_fetch_boundary(direction)) {
       const offset =
         direction === ViewportScrollDirection.DECREMENT
-          ? viewportData.fileOffset - viewportData.length
-          : viewportData.fileOffset + viewportData.length
+          ? viewportData.fileOffset - OFFSET_FETCH_ADJUSTMENT(direction)
+          : viewportData.fileOffset + OFFSET_FETCH_ADJUSTMENT(direction)
+      // ? viewportData.fileOffset - viewportData.length
+      // : viewportData.fileOffset + viewportData.length
 
       vscode.postMessage({
         command: MessageCommand.scrollViewport,
@@ -193,6 +230,12 @@
         },
       })
       awaitViewportScroll = true
+      lineTopOnRefresh =
+        direction === ViewportScrollDirection.DECREMENT
+          ? totalLinesPerViewport / 2 + linesToMove
+          : 12 + linesToMove
+
+      return
     }
 
     const newLine = lineTop + linesToMove
@@ -298,8 +341,8 @@
     switch (msg.data.command) {
       case MessageCommand.viewportRefresh:
         if (awaitViewportScroll) {
-          lineTop = 0
           awaitViewportScroll = false
+          lineTop = lineTopOnRefresh
         }
         break
     }
@@ -308,7 +351,10 @@
 
 <div class="container" style:height id={CONTAINER_ID}>
   {#each viewportLines as viewportLine}
-    <div class={`line ${viewportLine.highlight}`}>
+    <div
+      class={`line ${viewportLine.highlight}`}
+      title={`file line #${viewportLine.fileLine}`}
+    >
       <div class="address" id="address">
         <b>{viewportLine.offset}</b>
       </div>
@@ -378,6 +424,15 @@
         >
       </Button>
       <Button
+        fn={SCROLL_TO_END}
+        disabledBy={atViewportTail && atFileTail}
+        width="30pt"
+      >
+        <span slot="default" class="btn-icon material-symbols-outlined"
+          >stat_minus_3</span
+        >
+      </Button>
+      <Button
         fn={DECREMENT_LINE}
         disabledBy={atViewportHead && atFileHead}
         width="30pt"
@@ -393,6 +448,15 @@
       >
         <span slot="default" class="btn-icon material-symbols-outlined"
           >keyboard_double_arrow_up</span
+        >
+      </Button>
+      <Button
+        fn={SCROLL_TO_TOP}
+        disabledBy={atViewportTail && atFileTail}
+        width="30pt"
+      >
+        <span slot="default" class="btn-icon material-symbols-outlined"
+          >stat_3</span
         >
       </Button>
     </FlexContainer>
