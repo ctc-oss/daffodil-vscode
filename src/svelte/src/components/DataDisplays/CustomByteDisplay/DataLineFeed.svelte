@@ -41,13 +41,15 @@
   const NUM_LINES_DISPLAYED = 20
   const DEBOUNCE_TIMEOUT_MS = 20
   const CONTAINER_ID = 'viewportData-container'
+
   function OFFSET_FETCH_ADJUSTMENT(direction: ViewportScrollDirection) {
     if (direction === ViewportScrollDirection.INCREMENT) {
-      const validBytesRemaining = viewportData.bytesLeft > 512
-      if (validBytesRemaining) return 512
-      else {
-        return viewportData.fileOffset + viewportData.bytesLeft
-      }
+      const fetchBound = viewportData.fileOffset + 512
+      if (fetchBound > $fileMetrics.computedSize)
+        return (
+          (fetchBound - $fileMetrics.computedSize / bytesPerRow) * bytesPerRow
+        )
+      return fetchBound
     } else {
       const validBytesRemaining = viewportData.fileOffset - 512 > 0
       if (!validBytesRemaining) return 0
@@ -56,6 +58,7 @@
       }
     }
   }
+
   const INCREMENT_LINE = () => {
     handle_navigation(ViewportScrollDirection.INCREMENT)
   }
@@ -69,16 +72,19 @@
     handle_navigation(ViewportScrollDirection.DECREMENT, -NUM_LINES_DISPLAYED)
   }
   const SCROLL_TO_END = () => {
-    vscode.postMessage({
-      command: MessageCommand.scrollViewport,
-      data: {
-        scrollOffset:
-          $fileMetrics.computedSize - NUM_LINES_DISPLAYED * bytesPerRow,
-        bytesPerRow: bytesPerRow,
-      },
-    })
-    lineTopOnRefresh = 0
-    awaitViewportScroll = true
+    if ($fileMetrics.computedSize > 1024) {
+      vscode.postMessage({
+        command: MessageCommand.scrollViewport,
+        data: {
+          scrollOffset:
+            Math.ceil(($fileMetrics.computedSize - 1024) / bytesPerRow) *
+            bytesPerRow,
+          bytesPerRow: bytesPerRow,
+        },
+      })
+      lineTopOnRefresh = lineTopMaxViewport
+      awaitViewportScroll = true
+    } else lineTop = lineTopMaxViewport
   }
   const SCROLL_TO_TOP = () => {
     vscode.postMessage({
@@ -135,8 +141,11 @@
   $: {
     totalLinesPerFilesize = Math.ceil($fileMetrics.computedSize / bytesPerRow)
     totalLinesPerViewport = Math.ceil(viewportData.data.length / bytesPerRow)
-    lineTopMaxFile = totalLinesPerFilesize - NUM_LINES_DISPLAYED
-    lineTopMaxViewport = totalLinesPerViewport - NUM_LINES_DISPLAYED
+    lineTopMaxFile = Math.max(totalLinesPerFilesize - NUM_LINES_DISPLAYED, 0)
+    lineTopMaxViewport = Math.max(
+      totalLinesPerViewport - NUM_LINES_DISPLAYED,
+      0
+    )
     viewportFileSegment = viewportData.fileOffset / viewportData.length + 1
 
     atViewportHead = lineTop === 0
@@ -187,17 +196,12 @@
   function navigation_keydown_event(event: KeyboardEvent) {
     event.preventDefault() // Prevent page scrolling
     const { key, shiftKey } = event
-    let linesToMove
     if (key === 'PageDown' || key === 'ArrowDown')
-      linesToMove = shiftKey ? NUM_LINES_DISPLAYED : 1
+      shiftKey ? INCREMENT_SEGMENT() : INCREMENT_LINE()
     else if (key === 'PageUp' || key === 'ArrowUp')
-      linesToMove = shiftKey ? -NUM_LINES_DISPLAYED : -1
-    else if (key === 'Home') linesToMove = -NUM_LINES_DISPLAYED
-    else if (key === 'End')
-      linesToMove = totalLinesPerFilesize - lineTop - NUM_LINES_DISPLAYED
-
-    const direction: ViewportScrollDirection = Math.sign(linesToMove)
-    if (linesToMove) handle_navigation(direction, linesToMove)
+      shiftKey ? DECREMENT_SEGMENT() : DECREMENT_LINE()
+    else if (key === 'Home') DECREMENT_SEGMENT()
+    else if (key === 'End') INCREMENT_SEGMENT()
   }
 
   function navigation_wheel_event(event: WheelEvent) {
@@ -225,23 +229,27 @@
   ) {
     if (at_scroll_boundary(direction)) return
 
-    if (at_fetch_boundary(direction)) {
-      let offset = OFFSET_FETCH_ADJUSTMENT(direction)
-      // ? viewportData.fileOffset - viewportData.length
-      // : viewportData.fileOffset + viewportData.length
+    if (at_fetch_boundary(direction, linesToMove)) {
+      const viewportOffset = viewportData.fileOffset
+      const lineTopOffset = viewportLines[0].bytes[0].offset
+      const nextViewportOffset = OFFSET_FETCH_ADJUSTMENT(direction)
 
       vscode.postMessage({
         command: MessageCommand.scrollViewport,
         data: {
-          scrollOffset: offset,
+          scrollOffset: nextViewportOffset,
           bytesPerRow: bytesPerRow,
         },
       })
       awaitViewportScroll = true
       lineTopOnRefresh =
         direction === ViewportScrollDirection.DECREMENT
-          ? totalLinesPerViewport / 2 + linesToMove
-          : 12 + linesToMove
+          ? Math.floor((viewportOffset - nextViewportOffset) / bytesPerRow) +
+            linesToMove
+          : Math.floor(
+              (viewportOffset + lineTopOffset - nextViewportOffset) /
+                bytesPerRow
+            ) + linesToMove
 
       return
     }
@@ -255,7 +263,15 @@
         : newLine
   }
 
-  function at_fetch_boundary(direction: ViewportScrollDirection): boolean {
+  function at_fetch_boundary(
+    direction: ViewportScrollDirection,
+    linesToMove: number = direction
+  ): boolean {
+    if (linesToMove != direction)
+      return direction === ViewportScrollDirection.INCREMENT
+        ? lineTop + linesToMove >= lineTopMaxViewport
+        : lineTop + linesToMove <= 0
+
     return direction === ViewportScrollDirection.INCREMENT
       ? atViewportTail && !atFileTail
       : atViewportHead && !atFileHead
@@ -350,7 +366,7 @@
       case MessageCommand.viewportRefresh:
         if (awaitViewportScroll) {
           awaitViewportScroll = false
-          lineTop = lineTopOnRefresh
+          lineTop = Math.min(lineTopOnRefresh, lineTopMaxViewport)
         }
         break
     }
@@ -399,6 +415,7 @@
             selectionData={$selectionData}
             radix={$displayRadix}
             editMode={$editMode}
+            disabled={byte.offset > viewportData.length}
             on:mouseup={mouseup}
             on:mousedown={mousedown}
           />
@@ -471,6 +488,7 @@
     </FlexContainer>
   </FlexContainer>
 </div>
+<div>totalLinesPerViewport: {totalLinesPerViewport}</div>
 
 <style lang="scss">
   span {
