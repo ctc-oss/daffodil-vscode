@@ -243,14 +243,9 @@
       })
       awaitViewportScroll = true
       lineTopOnRefresh =
-        direction === ViewportScrollDirection.DECREMENT
-          ? Math.floor((viewportOffset - nextViewportOffset) / bytesPerRow) +
-            linesToMove
-          : Math.floor(
-              (viewportOffset + lineTopOffset - nextViewportOffset) /
-                bytesPerRow
-            ) + linesToMove
-
+        Math.floor(
+          (viewportOffset + lineTopOffset - nextViewportOffset) / bytesPerRow
+        ) + linesToMove
       return
     }
 
@@ -366,7 +361,7 @@
       case MessageCommand.viewportRefresh:
         if (awaitViewportScroll) {
           awaitViewportScroll = false
-          lineTop = Math.min(lineTopOnRefresh, lineTopMaxViewport)
+          lineTop = Math.max(0, Math.min(lineTopOnRefresh, lineTopMaxViewport))
         }
         break
     }
