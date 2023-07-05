@@ -26,7 +26,6 @@ limitations under the License.
     editorSelection,
     focusedViewportId,
     seekOffset,
-    headerHidden,
     offsetMax,
     originalDataSegment,
     rawEditorSelectionTxt,
@@ -56,6 +55,7 @@ limitations under the License.
   import FileMetrics from './Header/fieldsets/FileMetrics.svelte'
   import { fileMetrics } from './Header/fieldsets/FileMetrics'
   import SearchReplace from './Header/fieldsets/SearchReplace.svelte'
+  import Header from './Header/Header.svelte'
   import Settings from './Header/fieldsets/Settings.svelte'
   import Main from './Main.svelte'
   import { EditByteModes } from '../stores/configuration'
@@ -244,22 +244,6 @@ limitations under the License.
     })
   }
 
-  function elementMinMax(event: Event) {
-    const button = event.target as HTMLButtonElement
-    const headerTag = document.querySelector('.header-container') as HTMLElement
-    if ($headerHidden) {
-      button.style.transform = ''
-      headerTag.style.display = 'flex'
-      $headerHidden = false
-    } else {
-      const headerTag = document.querySelector(
-        '.header-container'
-      ) as HTMLElement
-      headerTag.style.display = 'none'
-      $headerHidden = true
-    }
-  }
-
   function clearDataDisplays() {
     $selectionData.startOffset = 0
     $selectionData.endOffset = 0
@@ -328,40 +312,13 @@ limitations under the License.
 
 <svelte:window on:keydown|nonpassive={handleKeyBind} />
 <body class={$UIThemeCSSClass}>
-  <FlexContainer --height="150pt">
-    <header>
-      <FlexContainer --height="fit-content">
-        <FileMetrics
-          on:clearChangeStack={clearChangeStack}
-          on:redo={redo}
-          on:undo={undo}
-        />
-        <SearchReplace
-          on:seek={seekEventHandler}
-          on:clearDataDisplays={clearDataDisplays}
-        />
-        <Settings on:seek={seekEventHandler} />
-      </FlexContainer>
-    </header>
-    {#if $headerHidden}
-      <FlexContainer --justify-content="space-between" --align-items="center">
-        <div class="filename-display">{$fileMetrics.name}</div>
-        <button
-          class={$UIThemeCSSClass + ' minmax-icon'}
-          on:click={elementMinMax}
-          >&<span class="material-symbols-outlined">expand_all</span></button
-        >
-      </FlexContainer>
-    {:else}
-      <div class="display-icons">
-        <button
-          class={$UIThemeCSSClass + ' minmax-icon'}
-          on:click={elementMinMax}
-          ><span class="material-symbols-outlined">collapse_all</span></button
-        >
-      </div>
-    {/if}
-  </FlexContainer>
+  <Header 
+    on:clearChangeStack={clearChangeStack}
+    on:seekEventHandler={seekEventHandler}
+    on:clearDataDisplays={clearDataDisplays}
+    on:redo={redo}
+    on:undo={undo}
+  />
 
   <Main
     on:clearDataDisplays={clearDataDisplays}

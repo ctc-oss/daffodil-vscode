@@ -84,8 +84,6 @@ export const focusedViewportId = writable('')
 // writeable string input for the seek offset
 export const seekOffsetInput = writable('')
 
-// writeable boolean, true indicates that the header is hidden
-export const headerHidden = writable(false)
 export const rawEditorSelectionTxt = writable('')
 
 // writeable boolean, true indicates that the search is case insensitive for character sets that support it
