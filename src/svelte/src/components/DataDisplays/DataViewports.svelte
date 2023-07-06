@@ -28,6 +28,7 @@ limitations under the License.
     viewportScrollHeight,
     viewportScrollTop,
     viewportLength,
+    displayRadix,
   } from '../../stores'
   import { UIThemeCSSClass } from '../../utilities/colorScheme'
   import {
@@ -107,7 +108,12 @@ limitations under the License.
   on:handleEditorEvent
 />
 
-<DataLineFeed viewportData={$viewport} />
+<DataLineFeed
+  viewportData={$viewport}
+  bytesPerRow={$bytesPerRow}
+  dataRadix={$displayRadix}
+  addressRadix={$addressRadix}
+/>
 
 <style lang="scss">
 </style>

@@ -23,6 +23,13 @@ import { radixBytePad, type Viewport } from '../../../utilities/display'
 export const BYTE_VALUE_DIV_OFFSET: number = 24
 export const VIEWPORT_SCROLL_INCREMENT: number = 512
 
+export type EditAction =
+  | 'insert-before'
+  | 'insert-after'
+  | 'insert-replace'
+  | 'delete'
+  | 'byte-input'
+
 export type ByteValue = {
   offset: number
   text: string | undefined
@@ -36,13 +43,6 @@ export const null_byte = () => {
     value: -1,
   } as ByteValue
 }
-
-export type EditAction =
-  | 'insert-before'
-  | 'insert-after'
-  | 'insert-replace'
-  | 'delete'
-  | 'byte-input'
 
 export interface EditEvent {
   action: EditAction

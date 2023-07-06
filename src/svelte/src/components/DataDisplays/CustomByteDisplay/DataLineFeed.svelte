@@ -24,6 +24,7 @@
   import { fileMetrics } from '../../Header/fieldsets/FileMetrics'
   import {
     EditByteModes,
+    type BytesPerRow,
     type RadixValues,
   } from '../../../stores/configuration'
   import DataValue from './DataValue.svelte'
@@ -33,9 +34,9 @@
   import FlexContainer from '../../layouts/FlexContainer.svelte'
   import FileTraversalIndicator from './FileTraversalIndicator.svelte'
 
-  export let lineTop = 0
-  export let bytesPerRow = 16
-  export let radix: RadixValues = 16
+  export let bytesPerRow: BytesPerRow = 16
+  export let dataRadix: RadixValues = 16
+  export let addressRadix: RadixValues = 16
   export let viewportData: ViewportData_t
 
   const NUM_LINES_DISPLAYED = 20
@@ -97,11 +98,8 @@
     lineTopOnRefresh = 0
     awaitViewportScroll = true
   }
-  const LINE_IN_FILE = () => {
-    return lineTop + viewportData.fileOffset / bytesPerRow
-  }
-  const LINE_FROM_BYTE_OFFSET = (offset: number) => {}
 
+  let lineTop = 0
   let totalLinesPerFilesize = 0
   let totalLinesPerViewport = 0
   let lineTopMaxViewport = 64
@@ -156,11 +154,19 @@
 
   $: {
     if (viewportData.fileOffset >= 0 && !awaitViewportScroll)
-      viewportLines = generate_line_data(lineTop)
+      viewportLines = generate_line_data(
+        lineTop,
+        dataRadix,
+        addressRadix,
+        bytesPerRow
+      )
   }
 
   function generate_line_data(
     startIndex: number,
+    dataRadix: RadixValues,
+    addressRadix: RadixValues,
+    bytesPerRow: BytesPerRow,
     endIndex: number = startIndex + (NUM_LINES_DISPLAYED - 1)
   ): Array<ViewportLineData> {
     let ret = []
@@ -178,13 +184,13 @@
           value: viewportData.data[byteOffset],
           text:
             byteOffset < viewportData.length
-              ? byte_value_string(viewportData.data[byteOffset], radix)
+              ? byte_value_string(viewportData.data[byteOffset], dataRadix)
               : '',
         })
       }
 
       ret.push({
-        offset: fileOffset.toString(radix).padStart(8, '0'),
+        offset: fileOffset.toString(addressRadix).padStart(8, '0'),
         fileLine: fileOffset / bytesPerRow,
         bytes: bytes,
         highlight: highlight ? 'even' : 'odd',
@@ -374,18 +380,14 @@
         <b>{viewportLine.offset}</b>
       </div>
 
-      <div
-        class="byte-line"
-        style:width={(bytesPerRow * BYTE_VALUE_DIV_OFFSET - 4).toString() +
-          'px'}
-      >
+      <div class="byte-line">
         {#each viewportLine.bytes as byte}
           <DataValue
             {byte}
             id={'physical'}
             selectedByte={$selectedByte}
             selectionData={$selectionData}
-            radix={$displayRadix}
+            radix={dataRadix}
             editMode={$editMode}
             disabled={byte.offset > viewportData.length}
             on:mouseup={mouseup}
@@ -394,17 +396,14 @@
         {/each}
       </div>
 
-      <div
-        class="byte-line"
-        style:width={(bytesPerRow * BYTE_VALUE_DIV_OFFSET).toString() + 'px'}
-      >
+      <div class="byte-line">
         {#each viewportLine.bytes as byte}
           <DataValue
             {byte}
             id={'logical'}
             selectedByte={$selectedByte}
             selectionData={$selectionData}
-            radix={$displayRadix}
+            radix={dataRadix}
             editMode={$editMode}
             disabled={byte.offset > viewportData.length}
             on:mouseup={mouseup}
@@ -512,16 +511,16 @@
     background-color: var(--color-primary-dark);
   }
   div.container div.line div.address {
-    width: 80pt;
+    width: 110px;
     direction: rtl;
-    padding-right: 2px;
+    justify-content: center;
     letter-spacing: 4px;
   }
   div.container .line .byte-line {
     background-color: var(--color-primary-dark);
     display: flex;
     flex-direction: row;
-    width: 100%;
+    // width: 100%;
     border-width: 0px 2px 0px 2px;
     border-color: var(--color-primary-mid);
     border-style: solid;

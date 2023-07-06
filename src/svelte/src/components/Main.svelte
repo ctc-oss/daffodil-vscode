@@ -25,10 +25,7 @@ limitations under the License.
     '90pt ' + columnWidth + 'px) calc(' + columnWidth + 'px) auto;'
 </script>
 
-<main
-  class="dataEditor"
-  style="grid-template-columns: 80pt calc({columnWidth}px) calc({columnWidth}px) auto;"
->
+<main class="dataEditor">
   <DisplayHeader on:clearDataDisplays />
   <DataViewports
     on:clearDataDisplays

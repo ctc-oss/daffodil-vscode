@@ -20,6 +20,7 @@ import {
   EditByteModes,
   UNPRINTABLE_CHAR_STAND_IN,
   type RadixValues,
+  type BytesPerRow,
 } from './configuration'
 import { ThemeType } from '../utilities/colorScheme'
 import { fileMetrics } from '../components/Header/fieldsets/FileMetrics'
@@ -55,7 +56,7 @@ class SelectionDataStore extends SimpleWritable<SelectionData> {
 export const UITheme = writable(ThemeType.Dark)
 
 // address radix to use for the UI (2, 8, 10, 16)
-export const addressRadix = writable(16)
+export const addressRadix = writable(16 as RadixValues)
 
 // populated when there is a commit error
 export const commitErrMsg = writable('')
@@ -209,7 +210,7 @@ export const editedByteIsOriginalByte = derived(
 
 // derived readable number that indicates the number of encoded bytes per row in each viewport
 export const bytesPerRow = derived(displayRadix, ($displayRadix) => {
-  return $displayRadix === 2 ? 8 : 16
+  return $displayRadix === 2 ? 8 : (16 as BytesPerRow)
 })
 
 export const viewportColumnWidth = derived(bytesPerRow, (bytesPerRow) => {

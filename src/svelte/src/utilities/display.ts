@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { EditByteModes } from '../stores/configuration'
+import { EditByteModes, type RadixValues } from '../stores/configuration'
 
 export type ViewportReferences = {
   physical: HTMLTextAreaElement
@@ -26,6 +26,17 @@ export type Viewport = 'physical' | 'address' | 'logical'
 export type ValidationResponse = {
   valid: boolean
   errMsg: string
+}
+
+export type ByteDivWidth = '20px' | '24px' | '64px'
+
+type ByteDivWidths = { [key in RadixValues]: ByteDivWidth }
+
+const ByteDivWidths = {
+  16: '20px' as ByteDivWidth,
+  10: '24px' as ByteDivWidth,
+  8: '24px' as ByteDivWidth,
+  2: '64px' as ByteDivWidth,
 }
 
 export function viewport_references(
@@ -44,7 +55,7 @@ export function edit_byte_window_ref(): HTMLDivElement {
   return document.getElementById('editByteWindow') as HTMLDivElement
 }
 
-export function radixBytePad(radix: number): number {
+export function radixBytePad(radix: RadixValues): number {
   switch (radix) {
     case 2:
       return 8
@@ -58,7 +69,7 @@ export function radixBytePad(radix: number): number {
   return 0
 }
 
-export function radixToString(radix: number): string {
+export function radixToString(radix: RadixValues): string {
   switch (radix) {
     case 2:
       return 'binary'
@@ -70,6 +81,10 @@ export function radixToString(radix: number): string {
       return 'hex'
   }
   return 'binary'
+}
+
+export function byteDivWidthFromRadix(radix: RadixValues): ByteDivWidth {
+  return ByteDivWidths[radix]
 }
 
 export function regexEditDataTest(

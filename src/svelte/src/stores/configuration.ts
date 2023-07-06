@@ -19,6 +19,8 @@ export type Radixes = 'Hexadecimal' | 'Decimal' | 'Octal' | 'Binary'
 
 export type RadixValues = 16 | 10 | 8 | 2
 
+export type BytesPerRow = 16 | 8
+
 export enum EditByteModes {
   Single = 'single',
   Multiple = 'multiple',

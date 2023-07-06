@@ -27,6 +27,7 @@ limitations under the License.
   import {
     EditByteModes,
     ADDRESS_RADIX_OPTIONS,
+    type RadixValues,
   } from '../../../stores/configuration'
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
   import {
@@ -95,17 +96,17 @@ limitations under the License.
         // address are in decimal
         16: {
           // radix is hex
-          text: '0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 <br/>0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 ',
+          text: '0000000000111111<br/>0123456789012345',
           spread: 2,
         },
         10: {
           // radix is decimal
-          text: '0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 <br/>0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 ',
+          text: '0000000000111111<br/>0123456789012345',
           spread: 3,
         },
         8: {
           // radix is octal
-          text: '0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 <br/>0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 ',
+          text: '0000000000111111<br/>0123456701234567',
           spread: 3,
         },
         2: {
@@ -171,7 +172,7 @@ limitations under the License.
     const addrSelect = event.target as HTMLSelectElement
     const newSeekInput = $seekOffset.toString(parseInt(addrSelect.value))
     $seekOffsetInput = newSeekInput === 'NaN' ? '0' : newSeekInput
-    $addressRadix = parseInt(addrSelect.value)
+    $addressRadix = parseInt(addrSelect.value) as RadixValues
   }
 
   function clearDataDisplays() {

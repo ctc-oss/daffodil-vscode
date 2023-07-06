@@ -298,7 +298,7 @@ div.hide-scrollbar::-webkit-scrollbar {
 /* Global Style Classes */
 .dataEditor {
   display: grid;
-  /* grid-template-columns: max-content max-content max-content auto; */
+  grid-template-columns: 110px max-content max-content auto;
   grid-template-rows: max-content 25pt auto;
   /*noinspection CssUnresolvedCustomProperty*/
   font-family: 'Red Hat Mono';
@@ -404,6 +404,7 @@ div.hide-scrollbar::-webkit-scrollbar {
 }
 .dataEditor select.address_type {
   height: 100%;
+  border: 2px solid var(--color-primary-lightest);
 }
 .dataEditor textarea.dark {
   background-color: #101821;

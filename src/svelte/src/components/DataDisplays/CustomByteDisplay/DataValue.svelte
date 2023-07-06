@@ -27,7 +27,11 @@ limitations under the License.
     type ByteValue,
     type ViewportDataType,
   } from './BinaryData'
-  import { SelectionData, focusedViewportId } from '../../../stores'
+  import { SelectionData } from '../../../stores'
+  import {
+    byteDivWidthFromRadix,
+    type ByteDivWidth,
+  } from '../../../utilities/display'
 
   export let id: ViewportDataType
   export let byte: ByteValue
@@ -42,7 +46,9 @@ limitations under the License.
   let bgColor: string
   let singleSelected,
     withinSelectionRange = false
+  let width: ByteDivWidth = '20px'
 
+  $: width = byteDivWidthFromRadix(radix)
   $: singleSelected =
     selectionData.active && editMode === EditByteModes.Single
       ? selectedByte.offset === byte.offset
@@ -84,6 +90,7 @@ limitations under the License.
 {:else if id === 'physical'}
   <div
     class="byte"
+    style:width
     style:background-color={bgColor}
     style:border-color={bgColor}
     on:mouseup={mouse_event_handle}
@@ -98,6 +105,7 @@ limitations under the License.
 {:else}
   <div
     class="byte"
+    style:width
     class:latin1Undefined={latin1Undefined(byte.value)}
     style:background-color={bgColor}
     style:border-color={bgColor}
@@ -119,7 +127,6 @@ limitations under the License.
     border-style: solid;
     border-width: 2px;
     height: 20px;
-    width: 20px;
     text-align: center;
     border-color: var(--color-primary-dark);
     transition: all 0.25s;
