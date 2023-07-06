@@ -242,6 +242,7 @@
         },
       })
       awaitViewportScroll = true
+
       lineTopOnRefresh =
         Math.floor(
           (viewportOffset + lineTopOffset - nextViewportOffset) / bytesPerRow
@@ -250,12 +251,7 @@
     }
 
     const newLine = lineTop + linesToMove
-    lineTop =
-      newLine < 0
-        ? 0
-        : newLine > lineTopMaxViewport
-        ? lineTopMaxViewport
-        : newLine
+    lineTop = Math.max(0, Math.min(newLine, lineTopMaxViewport))
   }
 
   function at_fetch_boundary(
@@ -264,8 +260,8 @@
   ): boolean {
     if (linesToMove != direction)
       return direction === ViewportScrollDirection.INCREMENT
-        ? lineTop + linesToMove >= lineTopMaxViewport
-        : lineTop + linesToMove <= 0
+        ? lineTop + linesToMove >= lineTopMaxViewport && !atFileTail
+        : lineTop + linesToMove <= 0 && !atFileHead
 
     return direction === ViewportScrollDirection.INCREMENT
       ? atViewportTail && !atFileTail
@@ -483,7 +479,6 @@
     </FlexContainer>
   </FlexContainer>
 </div>
-<div>totalLinesPerViewport: {totalLinesPerViewport}</div>
 
 <style lang="scss">
   span {

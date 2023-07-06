@@ -312,7 +312,7 @@ limitations under the License.
 
 <svelte:window on:keydown|nonpassive={handleKeyBind} />
 <body class={$UIThemeCSSClass}>
-  <Header 
+  <Header
     on:clearChangeStack={clearChangeStack}
     on:seekEventHandler={seekEventHandler}
     on:clearDataDisplays={clearDataDisplays}
