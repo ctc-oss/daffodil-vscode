@@ -44,6 +44,7 @@ import {
   pauseViewportEvents,
   profileSession,
   redo,
+  replaceOneSession,
   replaceSession,
   resumeViewportEvents,
   saveSession,
@@ -66,6 +67,7 @@ import {
   EditorMessage,
   MessageCommand,
   MessageLevel,
+  ReplaceStrategy,
 } from '../svelte/src/utilities/message'
 import { EditByteModes } from '../svelte/src/stores/configuration'
 import net from 'net'
@@ -479,28 +481,128 @@ export class DataEditorClient implements vscode.Disposable {
 
       case MessageCommand.searchAndReplace:
         {
-          // pause viewport events before search, then resume after search
-          await pauseViewportEvents(this.omegaSessionId)
-          const replacementsCount = await replaceSession(
-            this.omegaSessionId,
-            encodedStrToData(message.data.searchData, message.data.encoding),
-            encodedStrToData(message.data.replaceData, message.data.encoding),
-            message.data.caseInsensitive,
-            0,
-            0,
-            0,
-            true,
-            message.data.overwriteOnly
-          )
-          await resumeViewportEvents(this.omegaSessionId)
-          await notifyChangedViewports(this.omegaSessionId)
-          await this.panel.webview.postMessage({
-            command: MessageCommand.replaceResults,
-            data: {
-              replacementsCount: replacementsCount,
-            },
-          })
-          await this.sendChangesInfo()
+          switch (message.data.replaceStrategy) {
+            case ReplaceStrategy.ReplaceAll:
+              {
+                // pause viewport events before replacing, then resume after replacing
+                await pauseViewportEvents(this.omegaSessionId)
+                const replacementsCount = await replaceSession(
+                  this.omegaSessionId,
+                  encodedStrToData(
+                    message.data.searchData,
+                    message.data.encoding
+                  ),
+                  encodedStrToData(
+                    message.data.replaceData,
+                    message.data.encoding
+                  ),
+                  message.data.caseInsensitive,
+                  message.data.startOffset,
+                  0,
+                  0,
+                  true,
+                  message.data.overwriteOnly
+                )
+                await resumeViewportEvents(this.omegaSessionId)
+                await notifyChangedViewports(this.omegaSessionId)
+                await this.panel.webview.postMessage({
+                  command: MessageCommand.replaceResults,
+                  data: {
+                    replaceStrategy: ReplaceStrategy.ReplaceAll,
+                    replacementsCount: replacementsCount,
+                  },
+                })
+                await this.sendChangesInfo()
+              }
+              break
+
+            case ReplaceStrategy.ReplaceOne:
+              {
+                const nextOffset = await replaceOneSession(
+                  this.omegaSessionId,
+                  encodedStrToData(
+                    message.data.searchData,
+                    message.data.encoding
+                  ),
+                  encodedStrToData(
+                    message.data.replaceData,
+                    message.data.encoding
+                  ),
+                  message.data.caseInsensitive,
+                  message.data.startOffset,
+                  0
+                  // TODO: wire overwriteOnly (once OmegaEdit supports it)
+                  //message.data.overwriteOnly
+                )
+                if (nextOffset === -1) {
+                  // this is unlikely to happen since replacements should only be allowed if there are matches
+                  vscode.window.showErrorMessage('No replacement took place')
+                  await this.panel.webview.postMessage({
+                    command: MessageCommand.replaceResults,
+                    data: {
+                      replaceStrategy: ReplaceStrategy.ReplaceOne,
+                      replacementsCount: 0,
+                    },
+                  })
+                } else {
+                  const searchDataBytes = encodedStrToData(
+                    message.data.searchData,
+                    message.data.encoding
+                  )
+                  const searchResults = await searchSession(
+                    this.omegaSessionId,
+                    searchDataBytes,
+                    message.data.caseInsensitive,
+                    nextOffset,
+                    0,
+                    0
+                  )
+                  if (searchResults.length === 0) {
+                    vscode.window.showInformationMessage(
+                      `No more matches found for '${message.data.searchData}'`
+                    )
+                  }
+                  await this.panel.webview.postMessage({
+                    command: MessageCommand.replaceResults,
+                    data: {
+                      replaceStrategy: ReplaceStrategy.ReplaceOne,
+                      replacementsCount: 1,
+                      searchResults: searchResults,
+                    },
+                  })
+                }
+              }
+              break
+
+            case ReplaceStrategy.searchNext:
+              {
+                const searchDataBytes = encodedStrToData(
+                  message.data.searchData,
+                  message.data.encoding
+                )
+                const searchResults = await searchSession(
+                  this.omegaSessionId,
+                  searchDataBytes,
+                  message.data.caseInsensitive,
+                  message.data.startOffset,
+                  0,
+                  0
+                )
+                if (searchResults.length === 0) {
+                  vscode.window.showInformationMessage(
+                    `No more matches found for '${message.data.searchData}'`
+                  )
+                }
+                await this.panel.webview.postMessage({
+                  command: MessageCommand.replaceResults,
+                  data: {
+                    replaceStrategy: ReplaceStrategy.searchNext,
+                    searchResults: searchResults,
+                  },
+                })
+              }
+              break
+          }
         }
         break
 
@@ -518,10 +620,15 @@ export class DataEditorClient implements vscode.Disposable {
             0,
             0
           )
+          if (searchResults.length === 0) {
+            vscode.window.showInformationMessage(
+              `No matches found for '${message.data.searchData}'`
+            )
+          }
           await this.panel.webview.postMessage({
             command: MessageCommand.searchResults,
             data: {
-              results: searchResults,
+              searchResults: searchResults,
             },
           })
         }

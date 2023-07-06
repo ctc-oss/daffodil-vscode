@@ -48,3 +48,9 @@ export type EditorMessage = {
   command: MessageCommand
   data: Record<string, any>
 }
+
+export enum ReplaceStrategy {
+  searchNext,
+  ReplaceOne,
+  ReplaceAll,
+}

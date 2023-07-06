@@ -27,7 +27,7 @@ limitations under the License.
   import { replaceErr, searchErr, searchable, replaceable, seekErr } from '..'
   import { searchQuery, replaceQuery } from './SearchReplace'
   import { vscode } from '../../../utilities/vscode'
-  import { MessageCommand } from '../../../utilities/message'
+  import { MessageCommand, ReplaceStrategy } from '../../../utilities/message'
 
   import Error from '../../Error/Error.svelte'
   import Button from '../../Inputs/Buttons/Button.svelte'
@@ -44,6 +44,9 @@ limitations under the License.
   let containerClass: string
   let inlineClass: string
   let inputClass: string
+  let startOffset: number = 0
+  let replaceStarted: boolean = false
+  let showReplaceOptions: boolean = false
 
   $: {
     containerClass = CSSThemeClass('input-actions')
@@ -71,7 +74,29 @@ limitations under the License.
     })
     $searchQuery.processing = true
   }
-  function searchAndReplace() {
+
+  function startReplace() {
+    searchQuery.clear()
+    startOffset = 0
+    replaceStarted = true
+    search()
+  }
+
+  function skipReplace() {
+    vscode.postMessage({
+      command: MessageCommand.searchAndReplace,
+      data: {
+        searchData: $searchQuery.input,
+        caseInsensitive: $searchCaseInsensitive,
+        replaceData: $replaceQuery.input,
+        encoding: $editorEncoding,
+        startOffset: startOffset,
+        replaceStrategy: ReplaceStrategy.searchNext,
+      },
+    })
+  }
+
+  function searchAndReplace(strategy: ReplaceStrategy) {
     searchQuery.clear()
     $replaceQuery.count = -1
     vscode.postMessage({
@@ -82,11 +107,27 @@ limitations under the License.
         replaceData: $replaceQuery.input,
         encoding: $editorEncoding,
         overwriteOnly: $editorActionsAllowed === 'overwrite-only',
+        startOffset: startOffset,
+        replaceStrategy: strategy,
       },
     })
     $replaceQuery.processing = true
     eventDispatcher('clearDataDisplays')
   }
+
+  function replaceOne() {
+    searchAndReplace(ReplaceStrategy.ReplaceOne)
+  }
+
+  function replaceRest() {
+    searchAndReplace(ReplaceStrategy.ReplaceAll)
+  }
+
+  function replaceAll() {
+    startOffset = 0
+    searchAndReplace(ReplaceStrategy.ReplaceAll)
+  }
+
   function handleInputEnter(event: CustomEvent) {
     switch (event.detail.id) {
       case 'search':
@@ -115,21 +156,62 @@ limitations under the License.
   window.addEventListener('message', (msg) => {
     switch (msg.data.command) {
       case MessageCommand.searchResults:
-        $searchQuery.searchResults = msg.data.data.results
+        $searchQuery.searchResults = msg.data.data.searchResults
         $searchQuery.processing = false
         if ($searchQuery.searchResults.length > 0) {
           searchQuery.updateSearchResults($searchQuery.searchIndex)
           eventDispatcher('seek')
         }
+        if (replaceStarted) {
+          replaceStarted = false
+          if ($searchQuery.searchResults.length > 0) {
+            showReplaceOptions = true
+            startOffset = $searchQuery.searchResults[0]
+          }
+        }
         break
 
       case MessageCommand.replaceResults:
+        $searchQuery.processing = false
         $replaceQuery.processing = false
-        $replaceQuery.count = msg.data.data.replacementsCount
-        // reset replace query count after 5 seconds
-        setTimeout(() => {
-          $replaceQuery.count = -1
-        }, 5000)
+        switch (msg.data.data.replaceStrategy) {
+          case ReplaceStrategy.searchNext:
+            $searchQuery.searchResults = msg.data.data.searchResults
+            if ($searchQuery.searchResults.length > 0) {
+              startOffset = $searchQuery.searchResults[0]
+              searchQuery.updateSearchResults($searchQuery.searchIndex)
+              eventDispatcher('seek')
+            } else {
+              showReplaceOptions = false
+            }
+            break
+
+          case ReplaceStrategy.ReplaceOne:
+            $searchQuery.searchResults = msg.data.data.searchResults
+            $replaceQuery.count = msg.data.data.replacementsCount
+            if ($searchQuery.searchResults.length > 0) {
+              startOffset = msg.data.data.replacementOffset
+              searchQuery.updateSearchResults($searchQuery.searchIndex)
+              eventDispatcher('seek')
+            } else {
+              showReplaceOptions = false
+            }
+            // reset replace query count after 5 seconds
+            setTimeout(() => {
+              $replaceQuery.count = -1
+            }, 5000)
+            break
+
+          case ReplaceStrategy.ReplaceAll:
+            showReplaceOptions = false
+            $searchQuery.searchResults = []
+            $replaceQuery.count = msg.data.data.replacementsCount
+            // reset replace query count after 5 seconds
+            setTimeout(() => {
+              $replaceQuery.count = -1
+            }, 5000)
+            break
+        }
         break
     }
   })
@@ -206,15 +288,15 @@ limitations under the License.
         on:inputEnter={handleInputEnter}
       />
       <Error err={replaceErr} display={replaceErrDisplay} />
-      <Button disabledBy={!$replaceable} fn={searchAndReplace}>
+      <Button disabledBy={!$replaceable} fn={startReplace}>
         <span slot="left" class="btn-icon material-symbols-outlined"
           >find_replace</span
         >
-        <span slot="default">&nbsp;Replace</span>
+        <span slot="default">&nbsp;Replace&nbsp;...</span>
       </Button>
     </FlexContainer>
 
-    {#if $searchQuery.searchResults.length > 0}
+    {#if !showReplaceOptions && $searchQuery.searchResults.length > 0}
       <FlexContainer --dir="row">
         <Button fn={scrollSearchPrev}>
           <span slot="left" class="btn-icon material-symbols-outlined"
@@ -231,6 +313,34 @@ limitations under the License.
         <sub
           >{$searchQuery.searchIndex + 1} / {$searchQuery.searchResults.length} Results</sub
         >
+      </FlexContainer>
+    {/if}
+    {#if showReplaceOptions}
+      <FlexContainer --dir="row">
+        <Button fn={replaceOne}>
+          <span slot="left" class="btn-icon material-symbols-outlined"
+            >find_replace</span
+          >
+          <span slot="default">&nbsp;Replace</span></Button
+        >
+        <Button fn={replaceAll}>
+          <span slot="left" class="btn-icon material-symbols-outlined"
+            >find_replace</span
+          >
+          <span slot="default">&nbsp;Replace&nbsp;All</span></Button
+        >
+        <Button fn={replaceRest}>
+          <span slot="left" class="btn-icon material-symbols-outlined"
+            >find_replace</span
+          >
+          <span slot="default">&nbsp;Replace&nbsp;Rest</span></Button
+        >
+        <Button fn={skipReplace}>
+          <span slot="left" class="btn-icon material-symbols-outlined"
+            >skip_next</span
+          >
+          <span slot="default">Skip&nbsp;</span>
+        </Button>
       </FlexContainer>
     {/if}
     {#if $replaceQuery.count > -1}
