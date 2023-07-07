@@ -196,7 +196,6 @@
   }
 
   function navigation_keydown_event(event: KeyboardEvent) {
-    event.preventDefault() // Prevent page scrolling
     const { key, shiftKey } = event
     if (key === 'PageDown' || key === 'ArrowDown')
       shiftKey ? INCREMENT_SEGMENT() : INCREMENT_LINE()
@@ -354,6 +353,7 @@
     }
   }
 
+  window.addEventListener('keydown', navigation_keydown_event)
   window.addEventListener('message', (msg) => {
     switch (msg.data.command) {
       case MessageCommand.viewportRefresh:
