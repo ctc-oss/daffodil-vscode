@@ -142,6 +142,7 @@ limitations under the License.
       <Input
         id="seek"
         placeholder="Seek To Offset (base {$addressRadix})"
+        allowDefaultInput="true"
         bind:value={$seekOffsetInput}
         on:inputEnter={handleInputEnter}
       />

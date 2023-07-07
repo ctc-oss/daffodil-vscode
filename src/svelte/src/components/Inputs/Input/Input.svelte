@@ -26,7 +26,7 @@ limitations under the License.
   export let id: string = ''
   export let maxlength: number = 100
   export let placeholder: string = ''
-  export let type: InputTypes = 'search' // default to search for the clear button
+  export let inputType: InputTypes = 'search' // default to search for the clear button
   export let value: string = ''
   export let width: string = '100%'
 
@@ -71,6 +71,8 @@ limitations under the License.
         initialValue,
         value: thisElement.value,
       })
+    } else {
+      value += event.key
     }
   }
 
@@ -106,7 +108,7 @@ limitations under the License.
   })
 </script>
 
-{#if type === 'text' || type === 'search'}
+{#if inputType === 'text' || inputType === 'search'}
   <span
     class={containerClass}
     {id}
@@ -116,8 +118,8 @@ limitations under the License.
   >
     <span class={inlineClass}>
       <input
-        use:setType={type}
-        class="{$UIThemeCSSClass} {type}"
+        use:setType={inputType}
+        class="{$UIThemeCSSClass} {inputType}"
         bind:this={thisElement}
         bind:value
         {placeholder}
@@ -139,13 +141,6 @@ limitations under the License.
     </span>
   </span>
   <slot />
-{:else if type === 'checkbox'}
-  <input
-    type="checkbox"
-    class="{$UIThemeCSSClass} {type}"
-    bind:this={thisElement}
-    bind:checked={value}
-  />
 {/if}
 
 <style lang="scss">

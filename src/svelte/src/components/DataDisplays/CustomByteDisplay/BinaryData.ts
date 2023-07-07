@@ -15,12 +15,13 @@
  * limitations under the License.
  */
 
-import { get, writable } from 'svelte/store'
+import { writable, derived } from 'svelte/store'
 import { SimpleWritable } from '../../../stores/localStore'
 import type { RadixValues } from '../../../stores/configuration'
-import { radixBytePad, type Viewport } from '../../../utilities/display'
+import { radixBytePad } from '../../../utilities/display'
 
 export const BYTE_VALUE_DIV_OFFSET: number = 24
+
 export const VIEWPORT_SCROLL_INCREMENT: number = 512
 
 export type EditAction =
@@ -51,6 +52,7 @@ export interface EditEvent {
 export interface EditByteEvent extends EditEvent {
   targetByte: ByteValue
 }
+
 export enum ViewportBoundaryTrigger {
   SCROLL_TOP,
   SCROLL_BOTTOM,
@@ -69,19 +71,24 @@ export const byte_value_string = (value: number, radix: RadixValues) => {
   let validLen = radixBytePad(radix)
   return str.length < validLen ? str.padStart(validLen, '0') : str
 }
+
 export type ViewportDataType = 'physical' | 'logical'
+
 export type ByteSelectionEvent = {
   targetElement: HTMLDivElement
   targetByte: ByteValue
   fromViewport: ViewportDataType
 }
+
 export const RADIX_REGEX_MATCH_STR = {
   16: /[0-9a-fA-F]{2}/g,
   10: /[0-9]{3}/g,
   8: /[0-8]{3}/g,
   2: /[0-1]{8}/g,
 }
+
 export const processingViewportRefresh = writable(false)
+
 export class ViewportData_t {
   data = new Uint8Array(0)
   fileOffset = -1
@@ -89,6 +96,7 @@ export class ViewportData_t {
   bytesLeft = -1
   capacity = this.data.length
 }
+
 export class ViewportDataStore_t extends SimpleWritable<ViewportData_t> {
   protected init(): ViewportData_t {
     return new ViewportData_t()
@@ -114,8 +122,14 @@ export class ViewportDataStore_t extends SimpleWritable<ViewportData_t> {
   public subarray(from: number, to: number): Uint8Array {
     return this.storeData().data.subarray(from, to)
   }
+
   public slice(from: number, to: number): Uint8Array {
     return this.storeData().data.slice(from, to)
+  }
+
+  public offsetMax(): number {
+    const store = this.storeData()
+    return store.fileOffset + store.bytesLeft + store.data.length
   }
 
   private physical_display(radix: RadixValues, bytesPerRow: 16 | 8): string {
@@ -141,53 +155,6 @@ export class ViewportDataStore_t extends SimpleWritable<ViewportData_t> {
 
 export const viewport = new ViewportDataStore_t()
 
-export const viewportFileOffset = writable(0)
-export class ViewportDataStore extends SimpleWritable<Uint8Array> {
-  protected init(): Uint8Array {
-    return new Uint8Array()
-  }
-  public set(value: Uint8Array): void {
-    this.store.set(Uint8Array.from(value))
-  }
-  public physical_byte_values(
-    radix: RadixValues,
-    bytesPerRow: 16 | 8
-  ): ByteValue[] {
-    const byteValues =
-      this.physical_display(radix, bytesPerRow).match(
-        RADIX_REGEX_MATCH_STR[radix]
-      ) || []
-
-    return byteValues.map((byteStr, index) => {
-      return {
-        text: byteStr,
-        offset: index,
-        value: parseInt(byteStr, radix),
-      }
-    })
-  }
-  private physical_display(radix: RadixValues, bytesPerRow: 16 | 8): string {
-    let result = ''
-    let arr = get(this.store)
-    if (arr.byteLength > 0) {
-      const pad = radixBytePad(radix)
-      let i = 0
-      while (true) {
-        for (let col = 0; i < arr.byteLength && col < bytesPerRow; ++col) {
-          result += arr[i++].toString(radix).padStart(pad, '0') + ' '
-        }
-        result = result.slice(0, result.length - 1)
-        if (i === arr.byteLength) {
-          break
-        }
-        result += '\n'
-      }
-    }
-    return result
-  }
-}
-export const _viewportData = new ViewportDataStore()
-
 export type ByteActionPxOffsets = {
   insertBefore: {
     left: number
@@ -210,6 +177,7 @@ export type ByteActionPxOffsets = {
 export function latin1Undefined(charCode: number): boolean {
   return charCode < 32 || (charCode > 126 && charCode < 160)
 }
+
 export function update_byte_action_offsets(
   targetDiv: HTMLDivElement,
   offsetTopBy: number = 0,
@@ -241,7 +209,6 @@ export enum ByteValuePxWidths {
   DISPLAY = 20,
   EDITING = 68,
 }
-type ByteValueDivWidths = 20 | 68
 
 export let ByteValueArray: Array<ByteValue> = []
 
@@ -272,6 +239,11 @@ export const byteActionPxOffsets = writable({
 } as ByteActionPxOffsets)
 export const mouseSelectionBytes = writable({ mousedown: -1, mouseup: -1 })
 
+// derived readable number whose value is the computed number of bytes in the edited file
+export const offsetMax = derived(viewport, ($viewport) => {
+  // this should be the same as the computed file size
+  return $viewport.fileOffset + $viewport.length + $viewport.bytesLeft
+})
 export function focus_byte_input() {
   document.getElementById('byte-input').focus()
 }

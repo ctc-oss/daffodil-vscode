@@ -20,10 +20,11 @@ limitations under the License.
   import { fileMetrics } from './FileMetrics'
   import { MessageCommand } from '../../../utilities/message'
   import { vscode } from '../../../utilities/vscode'
-  import { offsetMax, saveable } from '../../../stores'
+  import { saveable } from '../../../stores'
   import { createEventDispatcher } from 'svelte'
   import SidePanel from '../../layouts/SidePanel.svelte'
   import ByteFrequencyGraph from '../../DataMetrics/ByteFrequencyGraph.svelte'
+  import { viewport } from '../../DataDisplays/CustomByteDisplay/BinaryData'
   const eventDispatcher = createEventDispatcher()
 
   let displayOpts = false
@@ -95,7 +96,7 @@ limitations under the License.
     canRevert = $fileMetrics.undoCount + $fileMetrics.changeCount > 0
     redoText = canRedo ? '(' + $fileMetrics.undoCount + ')' : ''
     undoText = canUndo ? '(' + $fileMetrics.changeCount + ')' : ''
-    length = length === 0 ? $offsetMax - startOffset : length
+    length = length === 0 ? viewport.offsetMax() - startOffset : length
   }
 
   function redo() {

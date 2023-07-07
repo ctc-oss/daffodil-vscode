@@ -19,14 +19,12 @@ limitations under the License.
   import {
     bytesPerRow,
     displayRadix,
-    editByteWindowHidden,
     editedDataSegment,
     editMode,
     editorEncoding,
     editorSelection,
     focusedViewportId,
     seekOffset,
-    offsetMax,
     originalDataSegment,
     rawEditorSelectionTxt,
     requestable,
@@ -38,7 +36,6 @@ limitations under the License.
     viewportLineHeight,
     viewportNumLinesDisplayed,
     viewportStartOffset,
-    editByte,
   } from '../stores'
   import {
     CSSThemeClass,
@@ -48,33 +45,19 @@ limitations under the License.
   import {
     type ViewportReferences,
     viewport_references,
-    radixBytePad,
   } from '../utilities/display'
   import { MessageCommand } from '../utilities/message'
   import { vscode } from '../utilities/vscode'
-  import FileMetrics from './Header/fieldsets/FileMetrics.svelte'
-  import { fileMetrics } from './Header/fieldsets/FileMetrics'
-  import SearchReplace from './Header/fieldsets/SearchReplace.svelte'
   import Header from './Header/Header.svelte'
-  import Settings from './Header/fieldsets/Settings.svelte'
   import Main from './Main.svelte'
   import { EditByteModes } from '../stores/configuration'
-  import FlexContainer from './layouts/FlexContainer.svelte'
   import ServerMetrics from './ServerMetrics/ServerMetrics.svelte'
   import { enterKeypressEvents } from '../utilities/enterKeypressEvents'
   import {
-    _viewportData,
-    selectedByte,
-    byteActionPxOffsets,
-    mouseSelectionBytes,
-    type EditByteEvent,
     type EditEvent,
     viewport,
-    VIEWPORT_SCROLL_INCREMENT,
     ViewportData_t,
   } from './DataDisplays/CustomByteDisplay/BinaryData'
-  import StoreDebug from './Debug/StoreDebug.svelte'
-  import DataLineFeed from './DataDisplays/CustomByteDisplay/DataLineFeed.svelte'
 
   $: $rawEditorSelectionTxt = $editorSelection
   $: $UIThemeCSSClass = $darkUITheme ? CSSThemeClass.Dark : CSSThemeClass.Light
@@ -100,7 +83,9 @@ limitations under the License.
     if (!offsetArg) offsetArg = $seekOffset
 
     const offset =
-      offsetArg > 0 && offsetArg < $offsetMax && offsetArg % $bytesPerRow === 0
+      offsetArg > 0 &&
+      offsetArg < viewport.offsetMax() &&
+      offsetArg % $bytesPerRow === 0
         ? offsetArg + 1
         : offsetArg
 

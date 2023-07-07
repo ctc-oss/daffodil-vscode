@@ -1,7 +1,5 @@
 <script lang="ts">
   import {
-    displayRadix,
-    dvInt16,
     editMode,
     editedDataSegment,
     editorEncoding,
@@ -9,7 +7,7 @@
     selectionData,
     selectionSize,
   } from '../../../stores'
-  import { createEventDispatcher, onMount, tick } from 'svelte'
+  import { onMount, tick } from 'svelte'
   import {
     byte_value_string,
     selectedByte,
@@ -18,8 +16,6 @@
     null_byte,
     type ByteSelectionEvent,
     update_byte_action_offsets,
-    BYTE_VALUE_DIV_OFFSET,
-    viewport,
   } from './BinaryData'
   import { fileMetrics } from '../../Header/fieldsets/FileMetrics'
   import {

@@ -40,11 +40,7 @@ limitations under the License.
   import { vscode } from '../../utilities/vscode'
   import { EditByteModes } from '../../stores/configuration'
   import BinaryValueActions from './CustomByteDisplay/BinaryValueActions.svelte'
-  import {
-    _viewportData,
-    selectedByte,
-    viewport,
-  } from './CustomByteDisplay/BinaryData'
+  import { selectedByte, viewport } from './CustomByteDisplay/BinaryData'
   import DataLineFeed from './CustomByteDisplay/DataLineFeed.svelte'
 
   const viewportRefs = viewport_references() as ViewportReferences

@@ -20,7 +20,7 @@ limitations under the License.
   import { MessageCommand } from '../../utilities/message'
   import { onMount } from 'svelte'
   import Input from '../Inputs/Input/Input.svelte'
-  import { offsetMax } from '../../stores'
+  import { offsetMax } from '../DataDisplays/CustomByteDisplay/BinaryData'
 
   // title for the byte profile graph
   export let title: string

@@ -152,15 +152,6 @@ export const viewportScrolledToEnd = derived(
   }
 )
 
-// derived readable number whose value is the computed number of bytes in the edited file
-export const offsetMax = derived(
-  [viewportStartOffset, viewportLength, viewportFollowingByteCount],
-  ([$viewportOffset, $viewportLength, $viewportFollowingByteCount]) => {
-    // this should be the same as the computed file size
-    return $viewportOffset + $viewportLength + $viewportFollowingByteCount
-  }
-)
-
 // derived readable number whose value is the size of the current data selection
 export const selectionSize = derived(
   [selectionData, editorSelection],
@@ -313,10 +304,18 @@ export const committable = derived(
 
 // derived readable boolean that indicates if the seek offset input is valid
 export const seekable = derived(
-  [seekOffset, seekOffsetInput, offsetMax, addressRadix],
-  ([$seekOffset, $seekOffsetInput, $offsetMax, $addressRadix]) => {
+  [seekOffset, seekOffsetInput, viewport, addressRadix],
+  ([$seekOffset, $seekOffsetInput, $viewport, $addressRadix]) => {
+    console.table([
+      {
+        $seekOffset: $seekOffset,
+        $seekOffsetInput: $seekOffsetInput,
+        $offsetMax: viewport.offsetMax(),
+        $addressRadix: $addressRadix,
+      },
+    ])
     if ($seekOffsetInput.length <= 0) return { valid: false, seekErrMsg: '' }
-    if ($seekOffset > $offsetMax)
+    if ($seekOffset > viewport.offsetMax())
       return { valid: false, seekErrMsg: 'Exceeds filesize' }
     if (!regexEditDataTest($seekOffsetInput, $addressRadix))
       return { valid: false, seekErrMsg: 'Invalid characters' }
