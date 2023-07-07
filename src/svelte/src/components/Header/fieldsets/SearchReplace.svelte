@@ -318,21 +318,24 @@ limitations under the License.
     {#if showReplaceOptions}
       <FlexContainer --dir="row">
         <Button fn={replaceOne}>
-          <span slot="left" class="btn-icon material-symbols-outlined"
-            >find_replace</span
-          >
+          <span slot="left" class="icon-container">
+            <span class="btn-icon material-symbols-outlined">find_replace</span>
+            <div class="icon-badge">1</div>
+          </span>
           <span slot="default">&nbsp;Replace</span></Button
         >
         <Button fn={replaceAll}>
-          <span slot="left" class="btn-icon material-symbols-outlined"
-            >find_replace</span
-          >
+          <span slot="left" class="icon-container">
+            <span class="btn-icon material-symbols-outlined">find_replace</span>
+            <div class="icon-badge">{$searchQuery.searchResults.length}</div>
+          </span>
           <span slot="default">&nbsp;Replace&nbsp;All</span></Button
         >
         <Button fn={replaceRest}>
-          <span slot="left" class="btn-icon material-symbols-outlined"
-            >find_replace</span
-          >
+          <span slot="left" class="icon-container">
+            <span class="btn-icon material-symbols-outlined">find_replace</span>
+            <div class="icon-badge">{$searchQuery.searchResults.length}</div>
+          </span>
           <span slot="default">&nbsp;Replace&nbsp;Rest</span></Button
         >
         <Button fn={skipReplace}>
@@ -372,5 +375,22 @@ limitations under the License.
   button.case-btn {
     margin-right: 5px;
     cursor: pointer;
+  }
+  .icon-container {
+    position: relative;
+    display: inline-block;
+  }
+  .icon-badge {
+    position: absolute;
+    top: -10px; /* Adjust these values as needed. */
+    right: -8px;
+    background-color: #796444;
+    color: #fffdfa;
+    padding: 2px 4px;
+    opacity: 0.8;
+    font-size: 0.8em;
+    border-radius: 50%;
+    min-width: 16px;
+    text-align: center;
   }
 </style>

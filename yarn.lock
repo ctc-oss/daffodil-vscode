@@ -3128,10 +3128,10 @@ typed-rest-client@^1.8.4:
     tunnel "0.0.6"
     underscore "^1.12.1"
 
-typescript@5.1.3:
-  version "5.1.3"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-5.1.3.tgz#8d84219244a6b40b6fb2b33cc1c062f715b9e826"
-  integrity sha512-XH627E9vkeqhlZFQuL+UsyAXEnibT0kWR2FWONlr4sTjvxyJYnyefgrkyECLzM5NenmKzRAy2rR/OlYLA1HkZw==
+typescript@5.1.6:
+  version "5.1.6"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-5.1.6.tgz#02f8ac202b6dad2c0dd5e0913745b47a37998274"
+  integrity sha512-zaWCozRZ6DLEWAWFrVDz1H6FVXzUSfTy5FUMWsQlU8Ym5JP9eO4xkTIROFCQvhQf61z6O/G6ugw3SgAnvvm+HA==
 
 uc.micro@^1.0.1, uc.micro@^1.0.5:
   version "1.0.6"
@@ -3222,10 +3222,10 @@ vscode-extension-tester-locators@^3.4.1:
   resolved "https://registry.yarnpkg.com/vscode-extension-tester-locators/-/vscode-extension-tester-locators-3.6.0.tgz#112f8173fd5d86c9e312a6eae16820ce9525608a"
   integrity sha512-RjQf5XL33dJORl9ck5X0vhAHf93TOONPE4nb9nai/pDM15nYcD1TqMyzRGl/XxHpvBu/bP8MV/bHfCT6b8w2cQ==
 
-vscode-extension-tester@5.5.2:
-  version "5.5.2"
-  resolved "https://registry.yarnpkg.com/vscode-extension-tester/-/vscode-extension-tester-5.5.2.tgz#90fee8f4d077740d4a5df3628a7b365f54fac155"
-  integrity sha512-+vRgJ7vdH5vsoF1kD4T7c0urxp5KETXuSeNvJcvsT+hBlWABdBjPHvyydtK7SQmcPKB4DtmsZVH2s2UX1+4GiA==
+vscode-extension-tester@5.5.3:
+  version "5.5.3"
+  resolved "https://registry.yarnpkg.com/vscode-extension-tester/-/vscode-extension-tester-5.5.3.tgz#da000f796639af08180b6be1da4a7c168118366a"
+  integrity sha512-oWfd+j8qXK5OJy3lpC7YmsIotI8BSrOxj3cFGNC3ukDJV3zqk8DW6GAwWxnS22NXQp3AYcsIaed9eDGPc+Ix3Q==
   dependencies:
     "@types/selenium-webdriver" "^4.1.12"
     "@vscode/vsce" "^2.18.0"
