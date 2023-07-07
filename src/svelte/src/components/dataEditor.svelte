@@ -33,19 +33,15 @@ limitations under the License.
     viewportCapacity,
     viewportEndOffset,
     viewportFollowingByteCount,
-    viewportLineHeight,
     viewportNumLinesDisplayed,
     viewportStartOffset,
+    dataFeedLineTop,
   } from '../stores'
   import {
     CSSThemeClass,
     UIThemeCSSClass,
     darkUITheme,
   } from '../utilities/colorScheme'
-  import {
-    type ViewportReferences,
-    viewport_references,
-  } from '../utilities/display'
   import { MessageCommand } from '../utilities/message'
   import { vscode } from '../utilities/vscode'
   import Header from './Header/Header.svelte'
@@ -90,7 +86,10 @@ limitations under the License.
         : offsetArg
 
     // make sure that the offset is within the loaded viewport
-    if (offset < $viewport.fileOffset|| offset > $viewport.fileOffset + $viewport.length) {
+    if (
+      offset < $viewport.fileOffset ||
+      offset > $viewport.fileOffset + $viewport.length
+    ) {
       // NOTE: Scrolling the viewport will make the display bounce until it goes to the correct offset
       vscode.postMessage({
         command: MessageCommand.scrollViewport,
@@ -107,17 +106,7 @@ limitations under the License.
     const relativeOffset = offset - $viewportStartOffset
     // relative line number from viewport start
     const relativeTargetLine = Math.floor(relativeOffset / $bytesPerRow)
-    const scrollTop = relativeTargetLine * $viewportLineHeight
-    const viewportRefs = viewport_references() as ViewportReferences
-    if (viewportRefs.physical) {
-      viewportRefs.physical.scrollTop = scrollTop
-    }
-    if (viewportRefs.logical) {
-      viewportRefs.logical.scrollTop = scrollTop
-    }
-    if (viewportRefs.address) {
-      viewportRefs.address.scrollTop = scrollTop
-    }
+    $dataFeedLineTop = relativeTargetLine
 
     clearDataDisplays()
   }
@@ -299,7 +288,7 @@ limitations under the License.
 <body class={$UIThemeCSSClass}>
   <Header
     on:clearChangeStack={clearChangeStack}
-    on:seekEventHandler={seekEventHandler}
+    on:seek={seekEventHandler}
     on:clearDataDisplays={clearDataDisplays}
     on:redo={redo}
     on:undo={undo}

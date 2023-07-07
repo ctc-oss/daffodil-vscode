@@ -104,10 +104,12 @@ export class ViewportDataStore_t extends SimpleWritable<ViewportData_t> {
     return new ViewportData_t()
   }
 
-  public get offsetMax(): number { return this._offsetMax }
+  public get offsetMax(): number {
+    return this._offsetMax
+  }
 
   public set(value: ViewportData_t): void {
-    this.store.set(value)  
+    this.store.set(value)
     this._offsetMax = value.fileOffset + value.bytesLeft + value.length
   }
 
@@ -135,11 +137,6 @@ export class ViewportDataStore_t extends SimpleWritable<ViewportData_t> {
 
   public slice(from: number, to: number): Uint8Array {
     return this.storeData().data.slice(from, to)
-  }
-
-  public offsetMax(): number {
-    const store = this.storeData()
-    return store.fileOffset + store.bytesLeft + store.data.length
   }
 
   private physical_display(radix: RadixValues, bytesPerRow: 16 | 8): string {

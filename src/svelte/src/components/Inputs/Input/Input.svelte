@@ -71,8 +71,6 @@ limitations under the License.
         initialValue,
         value: thisElement.value,
       })
-    } else {
-      value += event.key
     }
   }
 

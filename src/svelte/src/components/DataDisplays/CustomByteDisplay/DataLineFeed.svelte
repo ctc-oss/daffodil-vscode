@@ -30,6 +30,7 @@
   import FlexContainer from '../../layouts/FlexContainer.svelte'
   import FileTraversalIndicator from './FileTraversalIndicator.svelte'
 
+  export let lineTop
   export let bytesPerRow: BytesPerRow = 16
   export let dataRadix: RadixValues = 16
   export let addressRadix: RadixValues = 16
@@ -95,7 +96,6 @@
     awaitViewportScroll = true
   }
 
-  let lineTop = 0
   let totalLinesPerFilesize = 0
   let totalLinesPerViewport = 0
   let lineTopMaxViewport = 64

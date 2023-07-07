@@ -186,7 +186,6 @@ limitations under the License.
       }
     })
     endOffset = startOffset + length
-    console.log(`onMount: end ${endOffset} = start ${startOffset} + length ${length}`)
     requestSessionProfile(startOffset, length)
   })
 </script>

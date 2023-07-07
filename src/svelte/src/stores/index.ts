@@ -80,6 +80,7 @@ export const editorActionsAllowed = writable('delete-insert-overwrite')
 export const editorEncoding = writable('latin1')
 
 export const editorSelection = writable('')
+
 export const focusedViewportId = writable('')
 
 // writeable string input for the seek offset
@@ -90,6 +91,7 @@ export const rawEditorSelectionTxt = writable('')
 // writeable boolean, true indicates that the search is case insensitive for character sets that support it
 export const searchCaseInsensitive = writable(false)
 
+export const dataFeedLineTop = writable(0)
 // data in the viewport
 // export const viewportData = writable(new Uint8Array(0))
 
