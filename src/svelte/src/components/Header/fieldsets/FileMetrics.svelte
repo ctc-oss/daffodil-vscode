@@ -96,7 +96,7 @@ limitations under the License.
     canRevert = $fileMetrics.undoCount + $fileMetrics.changeCount > 0
     redoText = canRedo ? '(' + $fileMetrics.undoCount + ')' : ''
     undoText = canUndo ? '(' + $fileMetrics.changeCount + ')' : ''
-    length = length === 0 ? viewport.offsetMax() - startOffset : length
+    length = length <= 0 ? viewport.offsetMax - startOffset : length
   }
 
   function redo() {

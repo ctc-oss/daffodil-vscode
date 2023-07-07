@@ -98,9 +98,19 @@ export class ViewportData_t {
 }
 
 export class ViewportDataStore_t extends SimpleWritable<ViewportData_t> {
+  private _offsetMax: number = -1
+
   protected init(): ViewportData_t {
     return new ViewportData_t()
   }
+
+  public get offsetMax(): number { return this._offsetMax }
+
+  public set(value: ViewportData_t): void {
+    this.store.set(value)  
+    this._offsetMax = value.fileOffset + value.bytesLeft + value.length
+  }
+
   public physical_byte_values(
     radix: RadixValues,
     bytesPerRow: 16 | 8

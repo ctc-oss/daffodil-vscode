@@ -84,19 +84,19 @@ limitations under the License.
 
     const offset =
       offsetArg > 0 &&
-      offsetArg < viewport.offsetMax() &&
+      offsetArg < viewport.offsetMax &&
       offsetArg % $bytesPerRow === 0
         ? offsetArg + 1
         : offsetArg
 
     // make sure that the offset is within the loaded viewport
-    if (offset < $viewportStartOffset || offset > $viewportEndOffset) {
+    if (offset < $viewport.fileOffset|| offset > $viewport.fileOffset + $viewport.length) {
       // NOTE: Scrolling the viewport will make the display bounce until it goes to the correct offset
       vscode.postMessage({
         command: MessageCommand.scrollViewport,
         data: {
           // scroll the viewport with the offset in the middle
-          scrollOffset: Math.max(offset - Math.floor($viewportCapacity / 2), 0),
+          scrollOffset: Math.max(offset - Math.floor($viewport.length / 2), 0),
           bytesPerRow: $bytesPerRow,
           numLinesDisplayed: $viewportNumLinesDisplayed,
         },
