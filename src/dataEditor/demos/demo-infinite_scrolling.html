@@ -312,23 +312,25 @@ limitations under the License.
           handleNavigation(direction)
         })
 
-      const indicatorContainer = document.querySelector('.indicator');
+      const indicatorContainer = document.querySelector('.indicator')
       indicatorContainer.addEventListener('click', (event) => {
         // Calculate the position of the click relative to the indicator container
-        const relativeClickPosition = event.clientX - indicatorContainer.getBoundingClientRect().left;
+        const relativeClickPosition =
+          event.clientX - indicatorContainer.getBoundingClientRect().left
 
         // Calculate the width of the indicator container
-        const indicatorContainerWidth = indicatorContainer.getBoundingClientRect().width;
+        const indicatorContainerWidth =
+          indicatorContainer.getBoundingClientRect().width
 
         // Calculate the percentage into the file
-        const percentage = relativeClickPosition / indicatorContainerWidth;
+        const percentage = relativeClickPosition / indicatorContainerWidth
 
         // Calculate the new line to go to
-        const newLine = Math.round(percentage * totalLines);
+        const newLine = Math.round(percentage * totalLines)
 
         // Go to the new line
-        handleNavigation(newLine - currentLine);
-      });
+        handleNavigation(newLine - currentLine)
+      })
 
       // Initialize the initial state
       updateContainer()

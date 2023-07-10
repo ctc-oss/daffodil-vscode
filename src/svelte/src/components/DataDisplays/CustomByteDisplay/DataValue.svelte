@@ -86,8 +86,9 @@ limitations under the License.
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 {#if disabled}
-  <div class="byte disabled" />
+  <div class="byte disabled" style:width />
 {:else if id === 'physical'}
+  <!-- svelte-ignore a11y-no-static-element-interactions -->
   <div
     class="byte"
     style:width
@@ -103,6 +104,7 @@ limitations under the License.
     {/if}
   </div>
 {:else}
+  <!-- svelte-ignore a11y-no-static-element-interactions -->
   <div
     class="byte"
     style:width

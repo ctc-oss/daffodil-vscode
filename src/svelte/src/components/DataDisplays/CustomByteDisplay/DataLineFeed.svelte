@@ -110,6 +110,9 @@
   let height = `calc(${NUM_LINES_DISPLAYED} * 20)px`
   let scrollDebounce: NodeJS.Timeout | null = null
 
+  let disableIncrement = false
+  let disableDecrement = false
+
   type ViewportLineData = {
     offset: string
     fileLine: number
@@ -146,6 +149,9 @@
     atViewportTail = lineTop === lineTopMaxViewport
     atFileHead = viewportData.fileOffset === 0
     atFileTail = viewportData.bytesLeft === 0
+
+    disableDecrement = $selectionData.active || (atViewportHead && atFileHead)
+    disableIncrement = $selectionData.active || (atViewportTail && atFileTail)
   }
 
   $: {
@@ -315,7 +321,7 @@
     editedDataSegment.update(() => {
       return viewportData.data.slice(
         $selectionData.startOffset,
-        $selectionData.endOffset + 1
+        $selectionData.originalEndOffset + 1
       )
     })
 
@@ -409,6 +415,7 @@
       </div>
     </div>
   {/each}
+
   <FlexContainer --dir="column">
     <FileTraversalIndicator
       totalLines={totalLinesPerFilesize}
@@ -417,56 +424,32 @@
       {bytesPerRow}
     />
     <FlexContainer --dir="row">
-      <Button
-        fn={INCREMENT_LINE}
-        disabledBy={atViewportTail && atFileTail}
-        width="30pt"
-      >
+      <Button fn={INCREMENT_LINE} disabledBy={disableIncrement} width="30pt">
         <span slot="default" class="btn-icon material-symbols-outlined"
           >keyboard_arrow_down</span
         >
       </Button>
-      <Button
-        fn={INCREMENT_SEGMENT}
-        disabledBy={atViewportTail && atFileTail}
-        width="30pt"
-      >
+      <Button fn={INCREMENT_SEGMENT} disabledBy={disableIncrement} width="30pt">
         <span slot="default" class="btn-icon material-symbols-outlined"
           >keyboard_double_arrow_down</span
         >
       </Button>
-      <Button
-        fn={SCROLL_TO_END}
-        disabledBy={atViewportTail && atFileTail}
-        width="30pt"
-      >
+      <Button fn={SCROLL_TO_END} disabledBy={disableIncrement} width="30pt">
         <span slot="default" class="btn-icon material-symbols-outlined"
           >stat_minus_3</span
         >
       </Button>
-      <Button
-        fn={DECREMENT_LINE}
-        disabledBy={atViewportHead && atFileHead}
-        width="30pt"
-      >
+      <Button fn={DECREMENT_LINE} disabledBy={disableDecrement} width="30pt">
         <span slot="default" class="btn-icon material-symbols-outlined"
           >keyboard_arrow_up</span
         >
       </Button>
-      <Button
-        fn={DECREMENT_SEGMENT}
-        disabledBy={atViewportHead && atFileHead}
-        width="30pt"
-      >
+      <Button fn={DECREMENT_SEGMENT} disabledBy={disableDecrement} width="30pt">
         <span slot="default" class="btn-icon material-symbols-outlined"
           >keyboard_double_arrow_up</span
         >
       </Button>
-      <Button
-        fn={SCROLL_TO_TOP}
-        disabledBy={atViewportHead && atFileHead}
-        width="30pt"
-      >
+      <Button fn={SCROLL_TO_TOP} disabledBy={disableDecrement} width="30pt">
         <span slot="default" class="btn-icon material-symbols-outlined"
           >stat_3</span
         >
@@ -511,6 +494,9 @@
     direction: rtl;
     justify-content: center;
     letter-spacing: 4px;
+  }
+  div.container div.line div.address b::selection {
+    background-color: transparent;
   }
   div.container .line .byte-line {
     background-color: var(--color-primary-dark);
