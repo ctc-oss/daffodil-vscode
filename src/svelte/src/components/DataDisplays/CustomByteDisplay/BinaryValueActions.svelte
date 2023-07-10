@@ -50,7 +50,7 @@ limitations under the License.
   let active: boolean
   let styleOffsets: ByteActionPxOffsets
   let inputWidth: ByteDivWidth
-  
+
   enterKeypressEvents.register({
     id: byteInputId,
     run: () => {
@@ -145,7 +145,7 @@ limitations under the License.
   </div>
 
   <input
-    id="{byteInputId}"
+    id={byteInputId}
     type="text"
     class:invalid
     class:inProgress

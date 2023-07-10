@@ -44,10 +44,14 @@ limitations under the License.
   const eventDispatcher = createEventDispatcher()
 
   let bgColor: string
+  let borderColor: string
   let singleSelected,
-    withinSelectionRange = false
+    withinSelectionRange,
+    makingSelection = false
   let width: ByteDivWidth = '20px'
 
+  $: makingSelection =
+    selectionData.startOffset >= 0 && selectionData.active === false
   $: width = byteDivWidthFromRadix(radix)
   $: singleSelected =
     selectionData.active && editMode === EditByteModes.Single
@@ -62,9 +66,28 @@ limitations under the License.
   $: {
     if ((singleSelected || withinSelectionRange) && selectionData.active)
       bgColor = 'var(--color-secondary-mid)'
-    else bgColor = 'var(--color-primary-dark)'
+    else if (
+      makingSelection &&
+      (byte.offset === selectionData.startOffset ||
+        byte.offset === selectionData.endOffset)
+    )
+      borderColor = 'var(--color-secondary-mid)'
+    else {
+      bgColor = 'var(--color-primary-dark)'
+      borderColor = 'var(--color-primary-dark)'
+    }
   }
 
+  function mouse_enter_handle(event: MouseEvent) {
+    if (!makingSelection) return
+    selectionData.endOffset = byte.offset
+    console.log(selectionData)
+  }
+  function mouse_leave_handle(event: MouseEvent) {
+    if (!makingSelection) return
+    if (byte.offset != selectionData.startOffset)
+      borderColor = 'var(--color-primary-dark)'
+  }
   function mouse_event_handle(event: MouseEvent) {
     const type = event.type
     const targetElement = event.target
@@ -93,9 +116,11 @@ limitations under the License.
     class="byte"
     style:width
     style:background-color={bgColor}
-    style:border-color={bgColor}
+    style:border-color={makingSelection ? borderColor : bgColor}
     on:mouseup={mouse_event_handle}
     on:mousedown={mouse_event_handle}
+    on:mouseenter={mouse_enter_handle}
+    on:mouseleave={mouse_leave_handle}
   >
     {#if radix === RADIX_OPTIONS.Hexadecimal}
       {byte.text.toUpperCase()}
@@ -110,7 +135,7 @@ limitations under the License.
     style:width={'20px'}
     class:latin1Undefined={latin1Undefined(byte.value)}
     style:background-color={bgColor}
-    style:border-color={bgColor}
+    style:border-color={makingSelection ? borderColor : bgColor}
     on:mouseup={mouse_event_handle}
     on:mousedown={mouse_event_handle}
   >

@@ -38,9 +38,9 @@ import {
 } from '../components/DataDisplays/CustomByteDisplay/BinaryData'
 
 export class SelectionData {
-  startOffset = 0
-  endOffset = 0
-  originalEndOffset = 0
+  startOffset = -1
+  endOffset = -1
+  originalEndOffset = -1
   active = false
 }
 
