@@ -17,10 +17,10 @@
 
 import { writable, derived } from 'svelte/store'
 import { SimpleWritable } from '../../../stores/localStore'
-import type { RadixValues } from '../../../stores/configuration'
+import type { BytesPerRow, RadixValues } from '../../../stores/configuration'
 import { radixBytePad } from '../../../utilities/display'
 
-export const BYTE_VALUE_DIV_OFFSET: number = 24
+export const BYTE_ACTION_DIV_OFFSET: number = 24
 
 export const VIEWPORT_SCROLL_INCREMENT: number = 512
 
@@ -190,21 +190,22 @@ export function update_byte_action_offsets(
   offsetTopBy: number = 0,
   offsetLeftBy: number = 0
 ) {
+  const targetWidth = parseInt(targetDiv.style.width.replace('px', '')) + 4
   byteActionPxOffsets.update((currentOffsets) => {
     currentOffsets.delete = {
       left: targetDiv.offsetLeft + offsetLeftBy,
-      top: targetDiv.offsetTop + BYTE_VALUE_DIV_OFFSET - offsetTopBy,
+      top: targetDiv.offsetTop + BYTE_ACTION_DIV_OFFSET - offsetTopBy,
     }
     currentOffsets.input = {
       left: targetDiv.offsetLeft + offsetLeftBy,
       top: targetDiv.offsetTop - offsetTopBy,
     }
     currentOffsets.insertAfter = {
-      left: targetDiv.offsetLeft + BYTE_VALUE_DIV_OFFSET + offsetLeftBy,
+      left: targetDiv.offsetLeft + targetWidth + offsetLeftBy,
       top: targetDiv.offsetTop - offsetTopBy,
     }
     currentOffsets.insertBefore = {
-      left: targetDiv.offsetLeft - BYTE_VALUE_DIV_OFFSET + offsetLeftBy,
+      left: targetDiv.offsetLeft - targetWidth + offsetLeftBy,
       top: targetDiv.offsetTop - offsetTopBy,
     }
 
@@ -219,7 +220,7 @@ export enum ByteValuePxWidths {
 
 export let ByteValueArray: Array<ByteValue> = []
 
-export const bytesPerRow = writable(16)
+export const bytesPerRow = writable(16 as BytesPerRow)
 export const editingByte = writable(false)
 export const selectedByte = writable({
   text: '',

@@ -18,11 +18,6 @@ limitations under the License.
   import DataEditor from './Editors/DataEditor.svelte'
   import DataViewports from './DataDisplays/DataViewports.svelte'
   import DisplayHeader from './DataDisplays/Header/DisplayHeader.svelte'
-  import { bytesPerRow } from '../stores'
-  import { BYTE_VALUE_DIV_OFFSET } from './DataDisplays/CustomByteDisplay/BinaryData'
-  let columnWidth = $bytesPerRow * BYTE_VALUE_DIV_OFFSET
-  let gridTemplateColumns =
-    '90pt ' + columnWidth + 'px) calc(' + columnWidth + 'px) auto;'
 </script>
 
 <main class="dataEditor">

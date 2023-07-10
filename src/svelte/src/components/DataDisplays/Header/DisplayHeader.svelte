@@ -28,20 +28,35 @@ limitations under the License.
     EditByteModes,
     ADDRESS_RADIX_OPTIONS,
     type RadixValues,
+    type BytesPerRow,
+    RADIX_OPTIONS,
   } from '../../../stores/configuration'
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
-  import {
-    viewport_references,
-    type ViewportReferences,
-  } from '../../../utilities/display'
   import { createEventDispatcher } from 'svelte'
+  import { bytesPerRow } from '../CustomByteDisplay/BinaryData'
+
+  type ViewportDivSpread = '24px' | '28px' | '68px'
 
   const eventDispatcher = createEventDispatcher()
+  const bitNumText = '01234567'
+  const physicalOffsetSpreads = {
+    16: '24px',
+    10: '28px',
+    8: '28px',
+    2: '68px',
+  }
 
-  let physicalOffsetText: string
-  let logicalOffsetText: string
+  let phyiscalOffsetSpread: ViewportDivSpread
   let selectionOffsetText: string
-  let viewportRefs = viewport_references() as ViewportReferences
+  let offsetLine = []
+
+  $: {
+    offsetLine = generate_offset_headers(
+      $addressRadix,
+      $displayRadix,
+      $bytesPerRow
+    )
+  }
 
   $: selectionOffsetText = setSelectionOffsetInfo(
     'Selection',
@@ -49,114 +64,27 @@ limitations under the License.
     $selectionData.endOffset,
     $selectionSize
   )
-  $: {
-    physicalOffsetText = getOffsetDisplay(
-      $addressRadix,
-      $displayRadix,
-      'physical'
-    )
-    logicalOffsetText = getOffsetDisplay(
-      $addressRadix,
-      $displayRadix,
-      'logical'
-    )
-    if (viewportRefs.logical) {
-      viewportRefs.logical.style.maxWidth = $displayRadix === 2 ? '105pt' : ''
-    }
-  }
 
-  function getOffsetDisplay(address: number, radix: number, view: string) {
-    // address, followed by radix
-    const offsetDisplays = {
-      16: {
-        // address are in hex
-        16: {
-          // radix is hex
-          text: '0000000000000000<br/>0123456789ABCDEF',
-          spread: 2,
-        },
-        10: {
-          // radix is decimal
-          text: '0000000000000000<br/>0123456789ABCDEF',
-          spread: 3,
-        },
-        8: {
-          // radix is octal
-          // text: '0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 <br/>0 1 2 3 4 5 6 7 8 9 A B C D E F ',
-          text: '0000000000000000<br/>0123456789ABCDEF',
-          spread: 3,
-        },
-        2: {
-          // radix is binary
-          text: '0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 4&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 5&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 6&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 7&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <br/><em><b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567</em> ',
-          spread: 1,
-        },
-      },
-      10: {
-        // address are in decimal
-        16: {
-          // radix is hex
-          text: '0000000000111111<br/>0123456789012345',
-          spread: 2,
-        },
-        10: {
-          // radix is decimal
-          text: '0000000000111111<br/>0123456789012345',
-          spread: 3,
-        },
-        8: {
-          // radix is octal
-          text: '0000000000111111<br/>0123456701234567',
-          spread: 3,
-        },
-        2: {
-          // radix is binary
-          text: '0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 4&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 5&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 6&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 7&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <br/><em><b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567</em> ',
-          spread: 1,
-        },
-      },
-      8: {
-        // address are in octal
-        16: {
-          // radix is hex
-          text: '0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 <br/>0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 ',
-          spread: 2,
-        },
-        10: {
-          // radix is decimal
-          text: '0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 <br/>0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 ',
-          spread: 3,
-        },
-        8: {
-          // radix is octal
-          text: '0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 <br/>0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 ',
-          spread: 3,
-        },
-        2: {
-          // radix is binary
-          text: '0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 4&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 5&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 6&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 7&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <br/><em><b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567</em> ',
-          spread: 1,
-        },
-      },
-    }
+  function generate_offset_headers(
+    addressRadix: RadixValues,
+    displayRadix: RadixValues,
+    bytesPerRow: BytesPerRow
+  ) {
+    let ret = []
 
-    let spread = offsetDisplays[address][radix].spread
-    if (view === 'logical') {
-      if (radix === 2)
-        return (
-          '0 0 0 0 0 0 0 0 <br>0 1 2 3 4 5 6 7 '.replaceAll(' ', '&nbsp;') +
-          '&nbsp'
-        )
-      spread = 1
+    if (displayRadix != RADIX_OPTIONS.Binary) {
+      for (let i = 0; i < bytesPerRow; i++) {
+        ret.push(i.toString(addressRadix).padStart(2, '0'))
+      }
+    } else {
+      for (let i = 0; i < 8; i++) {
+        ret.push(i.toString(10))
+      }
     }
-    return offsetDisplays[address][radix].text
-
-    // return (
-    //   offsetDisplays[address][radix].text.replaceAll(
-    //     ' ',
-    //     '&nbsp;'.repeat(spread)
-    //   ) + '&nbsp'
-    // )
+    phyiscalOffsetSpread = physicalOffsetSpreads[
+      displayRadix
+    ] as ViewportDivSpread
+    return ret
   }
 
   export function setSelectionOffsetInfo(
@@ -196,19 +124,32 @@ limitations under the License.
   </select>
 </div>
 
-<div class={$UIThemeCSSClass + ' measure viewports'}>
-  <span id="physical_offsets">
-    {@html physicalOffsetText}
-  </span>
+<div class={$UIThemeCSSClass + ' measure physical-viewport-header'}>
+  {#if $displayRadix === RADIX_OPTIONS.Binary}
+    {#each offsetLine as offset}
+      <div class="phyiscal-addr-seg binary" style:width={phyiscalOffsetSpread}>
+        <div>{offset}</div>
+        <div>{bitNumText}</div>
+      </div>
+    {/each}
+  {:else}
+    {#each offsetLine as offset}
+      <div class="physical-addr-seg" style:width={phyiscalOffsetSpread}>
+        {offset}
+      </div>
+    {/each}
+  {/if}
 </div>
 
-<div class={$UIThemeCSSClass + ' measure viewports'}>
-  <span id="logical_offsets">
-    {@html logicalOffsetText}
-  </span>
+<div class={$UIThemeCSSClass + ' measure logical-viewport-header'}>
+  {#each offsetLine as offset}
+    <div class="logical-addr-seg">{offset}</div>
+  {/each}
 </div>
+
 <div class={$UIThemeCSSClass + ' measure selection'}>
   {#if $selectionData.active && $editMode !== EditByteModes.Single}
+    <!-- svelte-ignore a11y-no-static-element-interactions -->
     <div
       class="clear-selection"
       title="Clear selection data"
@@ -231,3 +172,22 @@ limitations under the License.
     </div>
   {/if}
 </div>
+
+<style lang="scss">
+  div.physical-addr-seg,
+  div.logical-addr-seg {
+    writing-mode: vertical-lr;
+    text-orientation: upright;
+    cursor: default;
+  }
+  div.logical-addr-seg {
+    width: 24px;
+  }
+  div.div.physical-addr-seg.binary {
+    writing-mode: horizontal-tb;
+    text-orientation: sideways;
+  }
+  div.physical-viewport-header {
+    padding-left: 4px;
+  }
+</style>

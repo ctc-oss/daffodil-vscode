@@ -299,7 +299,7 @@ div.hide-scrollbar::-webkit-scrollbar {
 .dataEditor {
   display: grid;
   grid-template-columns: 110px max-content max-content auto;
-  grid-template-rows: max-content 25pt auto;
+  grid-template-rows: max-content auto;
   /*noinspection CssUnresolvedCustomProperty*/
   font-family: 'Red Hat Mono';
 }
@@ -326,21 +326,20 @@ div.hide-scrollbar::-webkit-scrollbar {
   display: flex;
   font-family: 'Red Hat Mono';
   height: 25pt;
-}
-.dataEditor div.measure.viewports {
-  font-size: 13px;
-  letter-spacing: 16px;
-  padding-left: 4px;
+  border-width: 0 0 2px 0;
+  border-style: solid;
 }
 .dataEditor div.measure.dark {
   display: flex;
   background-color: #101821;
   color: #e1e3e5;
+  border-color: var(--color-primary-light);
 }
 .dataEditor div.measure.light {
   display: flex;
   background-color: #e1e3e5;
   color: #02060b;
+  border-color: var(--color-primary-dark);
 }
 .dataEditor div.measure.selection {
   flex-direction: row;

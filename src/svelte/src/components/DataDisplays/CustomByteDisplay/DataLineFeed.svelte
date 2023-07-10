@@ -1,5 +1,6 @@
 <script lang="ts">
   import {
+    displayRadix,
     editMode,
     editedDataSegment,
     editorEncoding,
@@ -29,6 +30,7 @@
   import Button from '../../Inputs/Buttons/Button.svelte'
   import FlexContainer from '../../layouts/FlexContainer.svelte'
   import FileTraversalIndicator from './FileTraversalIndicator.svelte'
+  import { byteDivWidthFromRadix } from '../../../utilities/display'
 
   export let lineTop
   export let bytesPerRow: BytesPerRow = 16

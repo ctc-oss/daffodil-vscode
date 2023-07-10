@@ -32,7 +32,7 @@ import {
 import { derived, writable } from 'svelte/store'
 import { SimpleWritable } from './localStore'
 import {
-  BYTE_VALUE_DIV_OFFSET,
+  BYTE_ACTION_DIV_OFFSET,
   selectedByte,
   viewport,
 } from '../components/DataDisplays/CustomByteDisplay/BinaryData'
@@ -207,7 +207,7 @@ export const bytesPerRow = derived(displayRadix, ($displayRadix) => {
 })
 
 export const viewportColumnWidth = derived(bytesPerRow, (bytesPerRow) => {
-  return bytesPerRow * BYTE_VALUE_DIV_OFFSET
+  return bytesPerRow * BYTE_ACTION_DIV_OFFSET
 })
 // derived readable boolean that indicates if the case-insensitive search is allowed
 export const allowCaseInsensitiveSearch = derived(

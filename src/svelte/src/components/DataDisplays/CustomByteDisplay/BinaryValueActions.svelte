@@ -25,17 +25,19 @@ limitations under the License.
   } from './BinaryData'
   import { enterKeypressEvents } from '../../../utilities/enterKeypressEvents'
   import {
-    addressRadix,
     commitErrMsg,
     committable,
     displayRadix,
     editByte,
     editMode,
     editorSelection,
-    focusedViewportId,
     selectionData,
   } from '../../../stores'
-  import { radixBytePad, radixToString } from '../../../utilities/display'
+  import {
+    radixBytePad,
+    type ByteDivWidth,
+    byteDivWidthFromRadix,
+  } from '../../../utilities/display'
   import { EditByteModes } from '../../../stores/configuration'
 
   export let byte: ByteValue
@@ -47,24 +49,19 @@ limitations under the License.
   let inProgress: boolean
   let active: boolean
   let styleOffsets: ByteActionPxOffsets
-
-  onMount(() => {
-    enterKeypressEvents.register({
-      id: byteInputId,
-      run: () => {
-        if (invalid || inProgress) return
-        commitChanges('byte-input')
-      },
-    })
+  let inputWidth: ByteDivWidth
+  
+  enterKeypressEvents.register({
+    id: byteInputId,
+    run: () => {
+      if (invalid || inProgress) return
+      commitChanges('byte-input')
+    },
   })
 
   $: styleOffsets = $byteActionPxOffsets
   $: active = $selectionData.active
-  // $: if ($editMode === EditByteModes.Single && $selectionData.active) {
-  //   $editorSelection = $editByte
-  // }
   $: $editorSelection = byte.text
-
   $: {
     if (
       !$committable &&
@@ -85,7 +82,9 @@ limitations under the License.
       inProgress = false
     }
   }
-
+  $: {
+    inputWidth = byteDivWidthFromRadix($displayRadix)
+  }
   function update_selectedByte(editByte: ByteValue) {
     if (invalid) return
     $selectedByte = editByte
@@ -122,18 +121,22 @@ limitations under the License.
 
 {#if active && $editMode === EditByteModes.Single}
   <!-- svelte-ignore a11y-click-events-have-key-events -->
+  <!-- svelte-ignore a11y-no-static-element-interactions -->
   <div
     class="delete"
     on:click={send_delete}
+    style:width={inputWidth}
     style="top: {styleOffsets.delete.top}px; left: {styleOffsets.delete
       .left}px;"
   >
     &#10006;
   </div>
   <!-- svelte-ignore a11y-click-events-have-key-events -->
+  <!-- svelte-ignore a11y-no-static-element-interactions -->
   <div
     class="insert-before"
     id="insert-before"
+    style:width={inputWidth}
     style="top: {styleOffsets.insertBefore.top}px; left: {styleOffsets
       .insertBefore.left}px;"
     on:click={send_insert}
@@ -142,20 +145,23 @@ limitations under the License.
   </div>
 
   <input
-    id="byte-input"
+    id="{byteInputId}"
     type="text"
     class:invalid
     class:inProgress
     placeholder={$editByte}
     bind:value={$editorSelection}
     on:input={handleEditorEvent}
+    style:width={inputWidth}
     style="top: {styleOffsets.input.top}px; left: {styleOffsets.input.left}px;"
   />
 
   <!-- svelte-ignore a11y-click-events-have-key-events -->
+  <!-- svelte-ignore a11y-no-static-element-interactions -->
   <div
     id="insert-after"
     class="insert-after"
+    style:width={inputWidth}
     style="top: {styleOffsets.insertAfter.top}px; left: {styleOffsets
       .insertAfter.left}px;"
     on:click={send_insert}
@@ -193,7 +199,6 @@ limitations under the License.
     border-width: 2px;
     border-color: var(--color-primary-dark);
     height: 20px;
-    width: 20px;
     transition: border-color 0.25s, top 0.15s, left 0.15s, right 0.15s;
     outline: none;
   }

@@ -86,7 +86,7 @@ limitations under the License.
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 {#if disabled}
-  <div class="byte disabled" style:width />
+  <div class="byte disabled" style:width={id === 'logical' ? '20px' : width} />
 {:else if id === 'physical'}
   <!-- svelte-ignore a11y-no-static-element-interactions -->
   <div
@@ -107,7 +107,7 @@ limitations under the License.
   <!-- svelte-ignore a11y-no-static-element-interactions -->
   <div
     class="byte"
-    style:width
+    style:width={'20px'}
     class:latin1Undefined={latin1Undefined(byte.value)}
     style:background-color={bgColor}
     style:border-color={bgColor}
