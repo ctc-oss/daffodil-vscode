@@ -534,6 +534,7 @@ export class DataEditorClient implements vscode.Disposable {
                   // TODO: wire overwriteOnly (once OmegaEdit supports it)
                   //message.data.overwriteOnly
                 )
+                await this.sendChangesInfo()
                 if (nextOffset === -1) {
                   // this is unlikely to happen since replacements should only be allowed if there are matches
                   vscode.window.showErrorMessage('No replacement took place')

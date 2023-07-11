@@ -63,7 +63,10 @@ limitations under the License.
   }
   function search() {
     searchQuery.clear()
+    showReplaceOptions = false
     $replaceQuery.count = -1
+    $replaceQuery.replaceOneCount = 0
+    $replaceQuery.skipCount = 0
     vscode.postMessage({
       command: MessageCommand.search,
       data: {
@@ -90,7 +93,7 @@ limitations under the License.
         caseInsensitive: $searchCaseInsensitive,
         replaceData: $replaceQuery.input,
         encoding: $editorEncoding,
-        startOffset: startOffset,
+        startOffset: startOffset + 1,
         replaceStrategy: ReplaceStrategy.searchNext,
       },
     })
@@ -99,6 +102,8 @@ limitations under the License.
   function searchAndReplace(strategy: ReplaceStrategy) {
     searchQuery.clear()
     $replaceQuery.count = -1
+    $replaceQuery.replaceOneCount = 0
+    $replaceQuery.skipCount = 0
     vscode.postMessage({
       command: MessageCommand.searchAndReplace,
       data: {
@@ -167,6 +172,7 @@ limitations under the License.
           if ($searchQuery.searchResults.length > 0) {
             showReplaceOptions = true
             startOffset = $searchQuery.searchResults[0]
+
           }
         }
         break
@@ -176,6 +182,7 @@ limitations under the License.
         $replaceQuery.processing = false
         switch (msg.data.data.replaceStrategy) {
           case ReplaceStrategy.searchNext:
+            ++$replaceQuery.skipCount
             $searchQuery.searchResults = msg.data.data.searchResults
             if ($searchQuery.searchResults.length > 0) {
               startOffset = $searchQuery.searchResults[0]
@@ -189,6 +196,7 @@ limitations under the License.
           case ReplaceStrategy.ReplaceOne:
             $searchQuery.searchResults = msg.data.data.searchResults
             $replaceQuery.count = msg.data.data.replacementsCount
+            $replaceQuery.replaceOneCount += msg.data.data.replacementsCount
             if ($searchQuery.searchResults.length > 0) {
               startOffset = msg.data.data.replacementOffset
               searchQuery.updateSearchResults($searchQuery.searchIndex)
@@ -327,7 +335,7 @@ limitations under the License.
         <Button fn={replaceAll}>
           <span slot="left" class="icon-container">
             <span class="btn-icon material-symbols-outlined">find_replace</span>
-            <div class="icon-badge">{$searchQuery.searchResults.length}</div>
+            <div class="icon-badge">{$searchQuery.searchResults.length + $replaceQuery.skipCount}</div>
           </span>
           <span slot="default">&nbsp;All</span></Button
         >
@@ -338,7 +346,7 @@ limitations under the License.
           </span>
           <span slot="default">&nbsp;Rest</span></Button
         >
-        <Button fn={skipReplace}>
+        <Button fn={skipReplace} disabledBy={$searchQuery.searchResults.length <= 1}>
           <span slot="left" class="btn-icon material-symbols-outlined"
             >skip_next</span
           >

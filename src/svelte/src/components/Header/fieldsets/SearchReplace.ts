@@ -69,6 +69,8 @@ class ReplaceData implements QueryableData {
   processing: boolean = false
   isValid: boolean = false
   count: number = -1
+  replaceOneCount: number = 0
+  skipCount: number = 0
 }
 export class ReplaceQuery extends SimpleWritable<ReplaceData> {
   protected init(): ReplaceData {
