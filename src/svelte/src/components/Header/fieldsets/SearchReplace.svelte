@@ -322,27 +322,27 @@ limitations under the License.
             <span class="btn-icon material-symbols-outlined">find_replace</span>
             <div class="icon-badge">1</div>
           </span>
-          <span slot="default">&nbsp;Replace</span></Button
+          <span slot="default">&nbsp;One</span></Button
         >
         <Button fn={replaceAll}>
           <span slot="left" class="icon-container">
             <span class="btn-icon material-symbols-outlined">find_replace</span>
             <div class="icon-badge">{$searchQuery.searchResults.length}</div>
           </span>
-          <span slot="default">&nbsp;Replace&nbsp;All</span></Button
+          <span slot="default">&nbsp;All</span></Button
         >
         <Button fn={replaceRest}>
           <span slot="left" class="icon-container">
             <span class="btn-icon material-symbols-outlined">find_replace</span>
             <div class="icon-badge">{$searchQuery.searchResults.length}</div>
           </span>
-          <span slot="default">&nbsp;Replace&nbsp;Rest</span></Button
+          <span slot="default">&nbsp;Rest</span></Button
         >
         <Button fn={skipReplace}>
           <span slot="left" class="btn-icon material-symbols-outlined"
             >skip_next</span
           >
-          <span slot="default">Skip&nbsp;</span>
+          <span slot="default">Next&nbsp;</span>
         </Button>
       </FlexContainer>
     {/if}
@@ -362,35 +362,9 @@ limitations under the License.
   fieldset {
     width: 100%;
   }
-  fieldset input {
-    width: 75%;
-  }
-  fieldset .checkbox {
-    width: auto;
-  }
-  .rotate {
-    display: inline-block;
-    transform: rotate(-45deg);
-  }
   button.case-btn {
     margin-right: 5px;
+    width: fit-content;
     cursor: pointer;
-  }
-  .icon-container {
-    position: relative;
-    display: inline-block;
-  }
-  .icon-badge {
-    position: absolute;
-    top: -10px; /* Adjust these values as needed. */
-    right: -8px;
-    background-color: #796444;
-    color: #fffdfa;
-    padding: 2px 4px;
-    opacity: 0.8;
-    font-size: 0.8em;
-    border-radius: 50%;
-    min-width: 16px;
-    text-align: center;
   }
 </style>

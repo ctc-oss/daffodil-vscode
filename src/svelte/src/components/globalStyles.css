@@ -470,3 +470,21 @@ div.hide-scrollbar::-webkit-scrollbar {
   font-size: 8pt;
   opacity: 1;
 }
+
+.icon-container {
+  position: relative;
+  display: inline-block;
+}
+.icon-badge {
+  position: absolute;
+  top: -10px; /* Adjust these values as needed. */
+  left: -12px;
+  background-color: var(--color-secondary-mid);
+  color: var(--color-primary-lightest);
+  padding: 2px 4px;
+  opacity: 0.8;
+  font-size: 0.8em;
+  border-radius: 50%;
+  min-width: 16px;
+  text-align: center;
+}

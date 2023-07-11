@@ -32,8 +32,6 @@ limitations under the License.
   let canUndo: boolean
   let canRedo: boolean
   let canRevert: boolean
-  let redoText: string
-  let undoText: string
   let startOffset: number = 0
   let length: number = 0
 
@@ -94,8 +92,6 @@ limitations under the License.
     canUndo = $fileMetrics.changeCount > 0
     canRedo = $fileMetrics.undoCount > 0
     canRevert = $fileMetrics.undoCount + $fileMetrics.changeCount > 0
-    redoText = canRedo ? '(' + $fileMetrics.undoCount + ')' : ''
-    undoText = canUndo ? '(' + $fileMetrics.changeCount + ')' : ''
     length = length <= 0 ? viewport.offsetMax - startOffset : length
   }
 
@@ -173,16 +169,18 @@ limitations under the License.
     <FlexContainer --dir="column" --align-items="center">
       <FlexContainer --dir="row">
         <Button disabledBy={!canRedo} fn={redo}>
-          <span slot="left" class="btn-icon material-symbols-outlined"
-            >redo</span
-          >
-          <span slot="default">&nbsp;Redo{redoText}</span>
+          <span slot="left" class="icon-container">
+            <span class="btn-icon material-symbols-outlined">redo</span>
+            <div class="icon-badge">{$fileMetrics.undoCount}</div>
+          </span>
+          <span slot="default">&nbsp;Redo</span>
         </Button>
         <Button disabledBy={!canUndo} fn={undo}>
-          <span slot="left" class="btn-icon material-symbols-outlined"
-            >undo</span
-          >
-          <span slot="default">&nbsp;Undo{undoText}</span>
+          <span slot="left" class="icon-container">
+            <span class="btn-icon material-symbols-outlined">undo</span>
+            <div class="icon-badge">{$fileMetrics.changeCount}</div>
+          </span>
+          <span slot="default">&nbsp;Undo</span>
         </Button>
         <Button disabledBy={!canRevert} fn={clearChangeStack}>
           <span slot="left" class="btn-icon material-symbols-outlined"
