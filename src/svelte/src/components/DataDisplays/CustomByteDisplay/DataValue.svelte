@@ -173,5 +173,6 @@ limitations under the License.
   div.disabled {
     background-color: var(--color-primary-darkest);
     color: var(--color-primary-darkest);
+    cursor: default;
   }
 </style>

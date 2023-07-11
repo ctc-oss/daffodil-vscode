@@ -92,6 +92,7 @@ export const rawEditorSelectionTxt = writable('')
 export const searchCaseInsensitive = writable(false)
 
 export const dataFeedLineTop = writable(0)
+export const dataFeedAwaitRefresh = writable(false)
 // data in the viewport
 // export const viewportData = writable(new Uint8Array(0))
 

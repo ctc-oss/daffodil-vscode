@@ -36,6 +36,8 @@ limitations under the License.
     viewportNumLinesDisplayed,
     viewportStartOffset,
     dataFeedLineTop,
+    SelectionData,
+    dataFeedAwaitRefresh,
   } from '../stores'
   import {
     CSSThemeClass,
@@ -78,6 +80,8 @@ limitations under the License.
   function seek(offsetArg?: number) {
     if (!offsetArg) offsetArg = $seekOffset
 
+    const viewportBoundary =
+      $viewport.length + $viewport.fileOffset - 20 * $bytesPerRow
     const offset =
       offsetArg > 0 &&
       offsetArg < viewport.offsetMax &&
@@ -85,29 +89,33 @@ limitations under the License.
         ? offsetArg + 1
         : offsetArg
 
+    const relativeFileLine = Math.floor(offset / $bytesPerRow)
+    const relativeFileOffset = relativeFileLine * $bytesPerRow
+
+    let relativeTargetLine = relativeFileLine
+    let viewportStartOffset = $viewport.fileOffset
+
     // make sure that the offset is within the loaded viewport
-    if (
-      offset < $viewport.fileOffset ||
-      offset > $viewport.fileOffset + $viewport.length
-    ) {
+    if (offset < $viewport.fileOffset || offset > viewportBoundary) {
+      const adjustedFileOffset = Math.max(0, relativeFileOffset - 512)
+      viewportStartOffset = adjustedFileOffset
+      relativeTargetLine =
+        (relativeFileOffset - viewportStartOffset) / $bytesPerRow
+      $dataFeedAwaitRefresh = true
+
       // NOTE: Scrolling the viewport will make the display bounce until it goes to the correct offset
       vscode.postMessage({
         command: MessageCommand.scrollViewport,
         data: {
           // scroll the viewport with the offset in the middle
-          scrollOffset: Math.max(offset - Math.floor($viewport.length / 2), 0),
+          scrollOffset: viewportStartOffset,
           bytesPerRow: $bytesPerRow,
           numLinesDisplayed: $viewportNumLinesDisplayed,
         },
       })
     }
 
-    // relative offset from viewport start
-    const relativeOffset = offset - $viewportStartOffset
-    // relative line number from viewport start
-    const relativeTargetLine = Math.floor(relativeOffset / $bytesPerRow)
     $dataFeedLineTop = relativeTargetLine
-
     clearDataDisplays()
   }
 
@@ -219,10 +227,7 @@ limitations under the License.
   }
 
   function clearDataDisplays() {
-    $selectionData.startOffset = 0
-    $selectionData.endOffset = 0
-    $selectionData.originalEndOffset = 0
-    $selectionData.active = false
+    $selectionData = new SelectionData()
     $editorSelection = ''
     $editedDataSegment = new Uint8Array(0)
   }
