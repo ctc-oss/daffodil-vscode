@@ -54,6 +54,7 @@ export default {
       exportConditions: ['svelte'],
       extensions: ['.svelte'],
       dedupe: ['svelte'],
+      browser: true,
     }),
     typescript({
       sourceMap: !production,

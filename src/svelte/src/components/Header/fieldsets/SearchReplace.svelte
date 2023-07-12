@@ -306,7 +306,7 @@ limitations under the License.
         <span slot="left" class="btn-icon material-symbols-outlined"
           >find_replace</span
         >
-        <span slot="default">&nbsp;Replace&nbsp;...</span>
+        <span slot="default">&nbsp;Replace&hellip;</span>
       </Button>
     </FlexContainer>
 
@@ -358,10 +358,10 @@ limitations under the License.
           fn={skipReplace}
           disabledBy={$searchQuery.searchResults.length <= 1}
         >
-          <span slot="left" class="btn-icon material-symbols-outlined"
+          <span slot="default">Next&nbsp;</span>
+          <span slot="right" class="btn-icon material-symbols-outlined"
             >skip_next</span
           >
-          <span slot="default">Next&nbsp;</span>
         </Button>
       </FlexContainer>
     {/if}

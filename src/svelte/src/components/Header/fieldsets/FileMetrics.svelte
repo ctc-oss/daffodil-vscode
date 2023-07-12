@@ -143,7 +143,7 @@ limitations under the License.
     {:else}
       <Button fn={toggleSaveDisplay}>
         <span slot="left" class="btn-icon material-symbols-outlined">save</span>
-        <span slot="default">Save ...</span>
+        <span slot="default">Save&hellip;</span>
       </Button>
     {/if}
   </FlexContainer>
