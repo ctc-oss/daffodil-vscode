@@ -56,6 +56,12 @@ limitations under the License.
     viewport,
     ViewportData_t,
   } from './DataDisplays/CustomByteDisplay/BinaryData'
+  import { fileMetrics } from './Header/fieldsets/FileMetrics'
+  import {
+    DISPLAYED_DATA_LINES,
+    byte_count_divisible_offset,
+    viewport_offset_to_line_num,
+  } from '../utilities/display'
 
   $: $rawEditorSelectionTxt = $editorSelection
   $: $UIThemeCSSClass = $darkUITheme ? CSSThemeClass.Dark : CSSThemeClass.Light
@@ -80,6 +86,7 @@ limitations under the License.
   function seek(offsetArg?: number) {
     if (!offsetArg) offsetArg = $seekOffset
 
+    const fileSize = $fileMetrics.computedSize
     const viewportBoundary =
       $viewport.length + $viewport.fileOffset - 20 * $bytesPerRow
     const offset =
@@ -97,10 +104,24 @@ limitations under the License.
 
     // make sure that the offset is within the loaded viewport
     if (offset < $viewport.fileOffset || offset > viewportBoundary) {
-      const adjustedFileOffset = Math.max(0, relativeFileOffset - 512)
+      let adjustedFileOffset = Math.max(0, relativeFileOffset - 512)
+      const fetchPastFileBoundary = fileSize - adjustedFileOffset < 1024
+      if (fetchPastFileBoundary)
+        adjustedFileOffset = byte_count_divisible_offset(
+          fileSize - 1024,
+          $bytesPerRow,
+          1
+        )
+
       viewportStartOffset = adjustedFileOffset
-      relativeTargetLine =
-        (relativeFileOffset - viewportStartOffset) / $bytesPerRow
+      relativeTargetLine = fetchPastFileBoundary
+        ? viewport_offset_to_line_num(
+            offset,
+            viewportStartOffset,
+            $bytesPerRow
+          ) -
+          (DISPLAYED_DATA_LINES - 1)
+        : viewport_offset_to_line_num(offset, viewportStartOffset, $bytesPerRow)
       $dataFeedAwaitRefresh = true
 
       // NOTE: Scrolling the viewport will make the display bounce until it goes to the correct offset

@@ -13,7 +13,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { EditByteModes, type RadixValues } from '../stores/configuration'
+import {
+  EditByteModes,
+  type BytesPerRow,
+  type RadixValues,
+} from '../stores/configuration'
 
 export type ViewportReferences = {
   physical: HTMLTextAreaElement
@@ -38,6 +42,8 @@ const ByteDivWidths = {
   8: '24px' as ByteDivWidth,
   2: '64px' as ByteDivWidth,
 }
+
+export const DISPLAYED_DATA_LINES = 20
 
 export function viewport_references(
   viewport?: Viewport
@@ -181,4 +187,22 @@ function isEncodedTextEditable(text: string, encoding: string): boolean {
       break
   }
   return true
+}
+
+export function byte_count_divisible_offset(
+  offset: number,
+  bytesPerRow: BytesPerRow,
+  addLineNum: number = 0
+): number {
+  return (
+    Math.floor(offset / bytesPerRow) * bytesPerRow + bytesPerRow * addLineNum
+  )
+}
+
+export function viewport_offset_to_line_num(
+  offset: number,
+  vpStartOffset: number,
+  bytesPerRow: BytesPerRow
+): number {
+  return Math.floor((offset - vpStartOffset) / bytesPerRow)
 }

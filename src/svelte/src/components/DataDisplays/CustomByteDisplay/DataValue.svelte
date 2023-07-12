@@ -81,7 +81,6 @@ limitations under the License.
   function mouse_enter_handle(event: MouseEvent) {
     if (!makingSelection) return
     selectionData.endOffset = byte.offset
-    console.log(selectionData)
   }
   function mouse_leave_handle(event: MouseEvent) {
     if (!makingSelection) return

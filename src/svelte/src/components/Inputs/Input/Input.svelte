@@ -29,6 +29,7 @@ limitations under the License.
   export let inputType: InputTypes = 'search' // default to search for the clear button
   export let value: string = ''
   export let width: string = '100%'
+  export let errMsg: string = ''
 
   let containerClass: string
   let inlineClass: string
@@ -61,6 +62,8 @@ limitations under the License.
 
   function handleKeyPress(event: KeyboardEvent) {
     // if the user presses enter, and the input is not empty, and the input has changed, then dispatch an event
+    if (errMsg.length > 0) return
+
     if (
       event.key === 'Enter' &&
       (allowDefaultInputBool ||
