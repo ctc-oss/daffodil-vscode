@@ -24,8 +24,15 @@ limitations under the License.
     seekOffsetInput,
     seekable,
   } from '../../../stores'
-  import { replaceErr, searchErr, searchable, replaceable, seekErr } from '..'
-  import { searchQuery, replaceQuery } from './SearchReplace'
+  import {
+    seekErr,
+    searchErr,
+    replaceErr,
+    searchable,
+    replaceable,
+    searchQuery,
+    replaceQuery,
+  } from './SearchReplace'
   import { vscode } from '../../../utilities/vscode'
   import { MessageCommand, ReplaceStrategy } from '../../../utilities/message'
 
@@ -172,7 +179,6 @@ limitations under the License.
           if ($searchQuery.searchResults.length > 0) {
             showReplaceOptions = true
             startOffset = $searchQuery.searchResults[0]
-
           }
         }
         break
@@ -335,7 +341,9 @@ limitations under the License.
         <Button fn={replaceAll}>
           <span slot="left" class="icon-container">
             <span class="btn-icon material-symbols-outlined">find_replace</span>
-            <div class="icon-badge">{$searchQuery.searchResults.length + $replaceQuery.skipCount}</div>
+            <div class="icon-badge">
+              {$searchQuery.searchResults.length + $replaceQuery.skipCount}
+            </div>
           </span>
           <span slot="default">&nbsp;All</span></Button
         >
@@ -346,7 +354,10 @@ limitations under the License.
           </span>
           <span slot="default">&nbsp;Rest</span></Button
         >
-        <Button fn={skipReplace} disabledBy={$searchQuery.searchResults.length <= 1}>
+        <Button
+          fn={skipReplace}
+          disabledBy={$searchQuery.searchResults.length <= 1}
+        >
           <span slot="left" class="btn-icon material-symbols-outlined"
             >skip_next</span
           >
