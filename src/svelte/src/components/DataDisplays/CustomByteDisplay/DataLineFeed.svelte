@@ -426,9 +426,9 @@
       {bytesPerRow}
     />
     <FlexContainer --dir="row">
-      <Button fn={INCREMENT_LINE} disabledBy={disableIncrement} width="30pt">
+      <Button fn={SCROLL_TO_END} disabledBy={disableIncrement} width="30pt">
         <span slot="default" class="btn-icon material-symbols-outlined"
-          >keyboard_arrow_down</span
+        >stat_minus_3</span
         >
       </Button>
       <Button fn={INCREMENT_SEGMENT} disabledBy={disableIncrement} width="30pt">
@@ -436,9 +436,9 @@
           >keyboard_double_arrow_down</span
         >
       </Button>
-      <Button fn={SCROLL_TO_END} disabledBy={disableIncrement} width="30pt">
+      <Button fn={INCREMENT_LINE} disabledBy={disableIncrement} width="30pt">
         <span slot="default" class="btn-icon material-symbols-outlined"
-          >stat_minus_3</span
+        >keyboard_arrow_down</span
         >
       </Button>
       <Button fn={DECREMENT_LINE} disabledBy={disableDecrement} width="30pt">
