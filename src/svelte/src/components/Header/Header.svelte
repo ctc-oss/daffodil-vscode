@@ -88,5 +88,6 @@ limitations under the License.
   button.minmax-icon {
     min-width: 14px;
     font-weight: bold;
+    width: fit-content;
   }
 </style>
