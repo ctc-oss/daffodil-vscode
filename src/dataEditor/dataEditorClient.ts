@@ -81,6 +81,7 @@ export const DATA_EDITOR_COMMAND: string = 'extension.data.edit'
 export const OMEGA_EDIT_HOST: string = '127.0.0.1'
 export const SERVER_START_TIMEOUT: number = 15 // in seconds
 export const APP_DATA_PATH: string = XDGAppPaths({ name: 'omega_edit' }).data()
+export const VIEWPORT_CAPACITY_MAX: number = 16 * 64 // 1024, Ωedit maximum viewport size is 1048576 (1024 * 1024)
 
 // *****************************************************************************
 // file-scoped constants
@@ -91,10 +92,6 @@ const HEARTBEAT_INTERVAL_MS: number = 1000 // 1 second (1000 ms)
 const MAX_LOG_FILES: number = 5 // Maximum number of log files to keep TODO: make this configurable
 const OMEGA_EDIT_MAX_PORT: number = 65535
 const OMEGA_EDIT_MIN_PORT: number = 1024
-
-// TODO: use a smaller capacity once scrolling becomes tolerable
-//const VIEWPORT_CAPACITY_MAX: number = 1024 * 1000 // 10240, Ωedit maximum viewport size is 1048576 (1024 * 1024)
-const VIEWPORT_CAPACITY_MAX: number = 16 * 64 // 1024, Ωedit maximum viewport size is 1048576 (1024 * 1024)
 
 // *****************************************************************************
 // file-scoped types

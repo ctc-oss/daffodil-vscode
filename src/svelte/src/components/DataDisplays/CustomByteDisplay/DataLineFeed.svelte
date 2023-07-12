@@ -1,3 +1,19 @@
+<!--
+Licensed to the Apache Software Foundation (ASF) under one or more
+contributor license agreements.  See the NOTICE file distributed with
+this work for additional information regarding copyright ownership.
+The ASF licenses this file to You under the Apache License, Version 2.0
+(the "License"); you may not use this file except in compliance with
+the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
 <script lang="ts">
   import {
     displayRadix,
@@ -30,6 +46,7 @@
   import Button from '../../Inputs/Buttons/Button.svelte'
   import FlexContainer from '../../layouts/FlexContainer.svelte'
   import FileTraversalIndicator from './FileTraversalIndicator.svelte'
+  import { VIEWPORT_CAPACITY_MAX } from '../../../../../dataEditor/dataEditorClient'
   import { byteDivWidthFromRadix } from '../../../utilities/display'
 
   export let lineTop
@@ -44,17 +61,18 @@
 
   function OFFSET_FETCH_ADJUSTMENT(direction: ViewportScrollDirection) {
     if (direction === ViewportScrollDirection.INCREMENT) {
-      const fetchBound = viewportData.fileOffset + 512
+      const fetchBound = viewportData.fileOffset + VIEWPORT_CAPACITY_MAX / 2
       if (fetchBound > $fileMetrics.computedSize)
         return (
           (fetchBound - $fileMetrics.computedSize / bytesPerRow) * bytesPerRow
         )
       return fetchBound
     } else {
-      const validBytesRemaining = viewportData.fileOffset - 512 > 0
+      const validBytesRemaining =
+        viewportData.fileOffset - VIEWPORT_CAPACITY_MAX / 2 > 0
       if (!validBytesRemaining) return 0
       else {
-        return viewportData.fileOffset - 512
+        return viewportData.fileOffset - VIEWPORT_CAPACITY_MAX / 2
       }
     }
   }
@@ -72,13 +90,14 @@
     handle_navigation(ViewportScrollDirection.DECREMENT, -NUM_LINES_DISPLAYED)
   }
   const SCROLL_TO_END = () => {
-    if ($fileMetrics.computedSize > 1024) {
+    if ($fileMetrics.computedSize > VIEWPORT_CAPACITY_MAX) {
       vscode.postMessage({
         command: MessageCommand.scrollViewport,
         data: {
           scrollOffset:
-            Math.ceil(($fileMetrics.computedSize - 1024) / bytesPerRow) *
-            bytesPerRow,
+            Math.ceil(
+              ($fileMetrics.computedSize - VIEWPORT_CAPACITY_MAX) / bytesPerRow
+            ) * bytesPerRow,
           bytesPerRow: bytesPerRow,
         },
       })
@@ -111,6 +130,7 @@
   let lineTopOnRefresh = 0
   let height = `calc(${NUM_LINES_DISPLAYED} * 20)px`
   let scrollDebounce: NodeJS.Timeout | null = null
+  let percentageTraversed = 0.0
 
   let disableIncrement = false
   let disableDecrement = false
@@ -345,6 +365,30 @@
     })
   }
 
+  function handleClickedIndicator(e: CustomEvent) {
+    // the offset will be the offset of the byte at the start of the line
+    const offset =
+      Math.ceil(
+        ($fileMetrics.computedSize * (percentageTraversed / 100.0)) /
+          bytesPerRow
+      ) * bytesPerRow
+    if (offset > bytesPerRow * NUM_LINES_DISPLAYED) {
+      // scroll to the offset since it is not in the first page
+      vscode.postMessage({
+        command: MessageCommand.scrollViewport,
+        data: {
+          scrollOffset: offset,
+          bytesPerRow: bytesPerRow,
+        },
+      })
+      lineTopOnRefresh = lineTopMaxViewport
+      awaitViewportScroll = true
+    } else {
+      // scroll to the top because we are somewhere in the first page
+      SCROLL_TO_TOP()
+    }
+  }
+
   $: {
     tick()
     if ($selectionData.active) {
@@ -423,12 +467,14 @@
       totalLines={totalLinesPerFilesize}
       currentLine={lineTop}
       fileOffset={viewportData.fileOffset}
+      bind:percentageTraversed
+      on:indicatorClicked={handleClickedIndicator}
       {bytesPerRow}
     />
     <FlexContainer --dir="row">
       <Button fn={SCROLL_TO_END} disabledBy={disableIncrement} width="30pt">
         <span slot="default" class="btn-icon material-symbols-outlined"
-        >stat_minus_3</span
+          >stat_minus_3</span
         >
       </Button>
       <Button fn={INCREMENT_SEGMENT} disabledBy={disableIncrement} width="30pt">
@@ -438,7 +484,7 @@
       </Button>
       <Button fn={INCREMENT_LINE} disabledBy={disableIncrement} width="30pt">
         <span slot="default" class="btn-icon material-symbols-outlined"
-        >keyboard_arrow_down</span
+          >keyboard_arrow_down</span
         >
       </Button>
       <Button fn={DECREMENT_LINE} disabledBy={disableDecrement} width="30pt">
@@ -458,6 +504,9 @@
       </Button>
     </FlexContainer>
   </FlexContainer>
+  <!-- DEBUG START TODO: Remove once this is completely working -->
+  Percentage traversed: {percentageTraversed}%
+  <!-- DEBUG END -->
 </div>
 
 <style lang="scss">
