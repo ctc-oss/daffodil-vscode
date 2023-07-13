@@ -288,11 +288,6 @@ limitations under the License.
   }
 
   function mouseup(event: CustomEvent<ByteSelectionEvent>) {
-    if (!$selectionDataStore.isValid()) {
-      selectionDataStore.reset()
-      return
-    }
-
     selectionDataStore.update((selections) => {
       selections.active = true
       selections.endOffset = event.detail.targetByte.offset
@@ -300,6 +295,12 @@ limitations under the License.
       adjust_event_offsets()
       return selections
     })
+
+    if (!$selectionDataStore.isValid()) {
+      console.log($selectionDataStore)
+      selectionDataStore.reset()
+      return
+    }
 
     set_byte_selection(event.detail)
   }

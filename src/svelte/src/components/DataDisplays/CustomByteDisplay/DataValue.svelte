@@ -164,7 +164,7 @@ limitations under the License.
   div.byte::selection {
     background-color: transparent;
   }
-  div.latin1Undefined::after {
+  div.latin1Undefined {
     content: '?';
     font-size: 16px;
     filter: brightness(0.75);
