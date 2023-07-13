@@ -6,6 +6,8 @@
   "scripts": {
     "build": "rollup -c",
     "dev": "rollup -c -w",
+    "webpack": "webpack --mode=production --config ./webpack.config.cjs",
+    "serve": "webpack serve --config ./webpack.config.cjs",
     "check": "svelte-check --tsconfig ./tsconfig.json",
     "lint": "yarn prettier src -c && yarn eslint .",
     "lint:fix": "yarn prettier src -w && yarn eslint . --fix"
@@ -30,7 +32,11 @@
     "sass": "^1.63.6",
     "svelte": "^4.0.5",
     "svelte-check": "^3.4.5",
+    "svelte-loader": "^3.1.9",
     "svelte-preprocess": "^5.0.4",
+    "copy-webpack-plugin": "^11.0.0",
+    "mini-css-extract-plugin": "^2.7.6",
+    "terser-webpack-plugin": "^5.3.9",
     "typescript": "^5.1.6"
   },
   "eslintConfig": {
