@@ -156,12 +156,22 @@ limitations under the License.
   function CSSThemeClass(selectors?: string) {
     return selectors + ' ' + $UIThemeCSSClass
   }
+
+  function scrollSearchFirst() {
+    $searchQuery.searchIndex = 0
+    searchQuery.updateSearchResults($searchQuery.searchIndex)
+    eventDispatcher('seek')
+  }
   function scrollSearchNext() {
     searchQuery.updateSearchResults(++$searchQuery.searchIndex)
     eventDispatcher('seek')
   }
   function scrollSearchPrev() {
     searchQuery.updateSearchResults(--$searchQuery.searchIndex)
+    eventDispatcher('seek')
+  }
+  function scrollSearchLast() {
+    searchQuery.updateSearchResults($searchQuery.searchResults.length - 1)
     eventDispatcher('seek')
   }
 
@@ -312,18 +322,32 @@ limitations under the License.
 
     {#if !showReplaceOptions && $searchQuery.searchResults.length > 0}
       <FlexContainer --dir="row">
+        <Button fn={scrollSearchFirst}>
+          <span slot="left" class="btn-icon material-symbols-outlined"
+          >first_page</span
+          >
+          <span slot="default">&nbsp;First</span></Button
+        >
         <Button fn={scrollSearchPrev}>
           <span slot="left" class="btn-icon material-symbols-outlined"
-            >navigate_before</span
+          >navigate_before</span
           >
           <span slot="default">&nbsp;Prev</span></Button
         >
         <Button fn={scrollSearchNext}>
           <span slot="default">Next&nbsp;</span>
           <span slot="right" class="btn-icon material-symbols-outlined"
-            >navigate_next</span
+          >navigate_next</span
           ></Button
         >
+        <Button fn={scrollSearchLast}>
+          <span slot="default">Last&nbsp;</span>
+          <span slot="right" class="btn-icon material-symbols-outlined"
+          >last_page</span
+          ></Button
+        >
+      </FlexContainer>
+      <FlexContainer --dir="row">
         <sub
           >{$searchQuery.searchIndex + 1} / {$searchQuery.searchResults.length} Results</sub
         >
