@@ -21,10 +21,11 @@ limitations under the License.
     editedDataSegment,
     editorEncoding,
     focusedViewportId,
+    seekOffsetInput,
     selectionDataStore,
     selectionSize,
   } from '../../../stores'
-  import { onMount, tick } from 'svelte'
+  import { createEventDispatcher, onMount, tick } from 'svelte'
   import {
     byte_value_string,
     selectedByte,
@@ -47,10 +48,12 @@ limitations under the License.
   import FlexContainer from '../../layouts/FlexContainer.svelte'
   import FileTraversalIndicator from './FileTraversalIndicator.svelte'
 
+  const eventDispatcher = createEventDispatcher()
   // TODO: Share this with the extension
   const VIEWPORT_CAPACITY_MAX = 1024
 
-  export let lineTop
+  export let lineTop: number
+  export let awaitViewportScroll: boolean
   export let bytesPerRow: BytesPerRow = 16
   export let dataRadix: RadixValues = 16
   export let addressRadix: RadixValues = 16
@@ -91,31 +94,12 @@ limitations under the License.
     handle_navigation(ViewportScrollDirection.DECREMENT, -NUM_LINES_DISPLAYED)
   }
   const SCROLL_TO_END = () => {
-    if ($fileMetrics.computedSize > VIEWPORT_CAPACITY_MAX) {
-      vscode.postMessage({
-        command: MessageCommand.scrollViewport,
-        data: {
-          scrollOffset:
-            Math.ceil(
-              ($fileMetrics.computedSize - VIEWPORT_CAPACITY_MAX) / bytesPerRow
-            ) * bytesPerRow,
-          bytesPerRow: bytesPerRow,
-        },
-      })
-      lineTopOnRefresh = lineTopMaxViewport
-      awaitViewportScroll = true
-    } else lineTop = lineTopMaxViewport
+    $seekOffsetInput = $fileMetrics.computedSize.toString(addressRadix)
+    eventDispatcher('seek')
   }
   const SCROLL_TO_TOP = () => {
-    vscode.postMessage({
-      command: MessageCommand.scrollViewport,
-      data: {
-        scrollOffset: 0,
-        bytesPerRow: bytesPerRow,
-      },
-    })
-    lineTopOnRefresh = 0
-    awaitViewportScroll = true
+    $seekOffsetInput = '0'
+    eventDispatcher('seek')
   }
 
   let totalLinesPerFilesize = 0
@@ -127,7 +111,6 @@ limitations under the License.
   let atViewportTail = false
   let atFileHead = true
   let atFileTail = false
-  let awaitViewportScroll = $dataFeedAwaitRefresh
   let lineTopOnRefresh = 0
   let height = `calc(${NUM_LINES_DISPLAYED} * 20)px`
   let scrollDebounce: NodeJS.Timeout | null = null
@@ -173,8 +156,10 @@ limitations under the License.
     atFileHead = viewportData.fileOffset === 0
     atFileTail = viewportData.bytesLeft === 0
 
-    disableDecrement = $selectionDataStore.active || (atViewportHead && atFileHead)
-    disableIncrement = $selectionDataStore.active || (atViewportTail && atFileTail)
+    disableDecrement =
+      $selectionDataStore.active || (atViewportHead && atFileHead)
+    disableIncrement =
+      $selectionDataStore.active || (atViewportTail && atFileTail)
   }
 
   $: {
@@ -264,19 +249,13 @@ limitations under the License.
       const lineTopOffset = viewportLines[0].bytes[0].offset
       const nextViewportOffset = OFFSET_FETCH_ADJUSTMENT(direction)
 
-      vscode.postMessage({
-        command: MessageCommand.scrollViewport,
-        data: {
-          scrollOffset: nextViewportOffset,
-          bytesPerRow: bytesPerRow,
-        },
+      eventDispatcher('traverse-file', {
+        nextViewportOffset: nextViewportOffset,
+        lineTopOnRefresh:
+          Math.floor(
+            (viewportOffset + lineTopOffset - nextViewportOffset) / bytesPerRow
+          ) + linesToMove,
       })
-      awaitViewportScroll = true
-
-      lineTopOnRefresh =
-        Math.floor(
-          (viewportOffset + lineTopOffset - nextViewportOffset) / bytesPerRow
-        ) + linesToMove
       return
     }
 
@@ -309,11 +288,11 @@ limitations under the License.
   }
 
   function mouseup(event: CustomEvent<ByteSelectionEvent>) {
-    if(!$selectionDataStore.isValid()) {
+    if (!$selectionDataStore.isValid()) {
       selectionDataStore.reset()
       return
     }
-    
+
     selectionDataStore.update((selections) => {
       selections.active = true
       selections.endOffset = event.detail.targetByte.offset
@@ -422,10 +401,7 @@ limitations under the License.
       case MessageCommand.viewportRefresh:
         if (awaitViewportScroll) {
           awaitViewportScroll = false
-          lineTop = Math.max(
-            0,
-            Math.min(lineTopOnRefresh, lineTopMaxViewport, lineTop)
-          )
+          lineTop = Math.max(0, Math.min(lineTopMaxViewport, lineTop))
         }
         break
     }

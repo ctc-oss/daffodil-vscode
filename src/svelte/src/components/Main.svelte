@@ -29,6 +29,8 @@ limitations under the License.
     on:commitChanges
     on:handleEditorEvent
     on:scrollBoundary
+    on:traverse-file
+    on:seek
   />
   <DataEditor on:commitChanges on:handleEditorEvent />
 </main>

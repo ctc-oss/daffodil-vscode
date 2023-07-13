@@ -185,6 +185,21 @@ limitations under the License.
     seek($seekOffset)
   }
 
+  function traversalEventHandler(navigationEvent: CustomEvent) {
+    const navigationData = navigationEvent.detail
+    $dataFeedAwaitRefresh = true
+
+    vscode.postMessage({
+      command: MessageCommand.scrollViewport,
+      data: {
+        scrollOffset: navigationData.nextViewportOffset,
+        bytesPerRow: $bytesPerRow,
+      },
+    })
+
+    $dataFeedLineTop = navigationData.lineTopOnRefresh
+  }
+
   function handleEditorEvent(_: Event) {
     if ($selectionSize < 0) {
       clearDataDisplays()
@@ -327,6 +342,8 @@ limitations under the License.
     on:scrolledToTop={scrolledToTop}
     on:scrolledToEnd={scrolledToEnd}
     on:scrollBoundary={scrollBoundaryEventHandler}
+    on:traverse-file={traversalEventHandler}
+    on:seek={seekEventHandler}
   />
 
   <hr />

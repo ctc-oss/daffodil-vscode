@@ -30,6 +30,7 @@ limitations under the License.
     viewportLength,
     displayRadix,
     dataFeedLineTop,
+    dataFeedAwaitRefresh,
   } from '../../stores'
   import { UIThemeCSSClass } from '../../utilities/colorScheme'
   import {
@@ -106,11 +107,14 @@ limitations under the License.
 />
 
 <DataLineFeed
+  on:traverse-file
+  on:seek
   viewportData={$viewport}
   lineTop={$dataFeedLineTop}
   bytesPerRow={$bytesPerRow}
   dataRadix={$displayRadix}
   addressRadix={$addressRadix}
+  bind:awaitViewportScroll={$dataFeedAwaitRefresh}
 />
 
 <style lang="scss">

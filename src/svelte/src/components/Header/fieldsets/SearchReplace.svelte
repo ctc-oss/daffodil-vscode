@@ -324,26 +324,26 @@ limitations under the License.
       <FlexContainer --dir="row">
         <Button fn={scrollSearchFirst}>
           <span slot="left" class="btn-icon material-symbols-outlined"
-          >first_page</span
+            >first_page</span
           >
           <span slot="default">&nbsp;First</span></Button
         >
         <Button fn={scrollSearchPrev}>
           <span slot="left" class="btn-icon material-symbols-outlined"
-          >navigate_before</span
+            >navigate_before</span
           >
           <span slot="default">&nbsp;Prev</span></Button
         >
         <Button fn={scrollSearchNext}>
           <span slot="default">Next&nbsp;</span>
           <span slot="right" class="btn-icon material-symbols-outlined"
-          >navigate_next</span
+            >navigate_next</span
           ></Button
         >
         <Button fn={scrollSearchLast}>
           <span slot="default">Last&nbsp;</span>
           <span slot="right" class="btn-icon material-symbols-outlined"
-          >last_page</span
+            >last_page</span
           ></Button
         >
       </FlexContainer>

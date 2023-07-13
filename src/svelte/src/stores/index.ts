@@ -43,9 +43,12 @@ export class SelectionData_t {
   originalEndOffset = -1
   active = false
   public isValid(): boolean {
-    return (this.startOffset >= 0 && this.originalEndOffset >= this.startOffset)
-      && this.endOffset >= 0
-      && this.originalEndOffset >= 0
+    return (
+      this.startOffset >= 0 &&
+      this.originalEndOffset >= this.startOffset &&
+      this.endOffset >= 0 &&
+      this.originalEndOffset >= 0
+    )
   }
 }
 
