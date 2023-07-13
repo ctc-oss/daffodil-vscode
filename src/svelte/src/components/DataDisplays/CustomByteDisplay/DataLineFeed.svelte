@@ -16,6 +16,7 @@ limitations under the License.
 -->
 <script lang="ts">
   import {
+    dataFeedAwaitRefresh,
     editMode,
     editedDataSegment,
     editorEncoding,
@@ -126,7 +127,7 @@ limitations under the License.
   let atViewportTail = false
   let atFileHead = true
   let atFileTail = false
-  let awaitViewportScroll = false
+  let awaitViewportScroll = $dataFeedAwaitRefresh
   let lineTopOnRefresh = 0
   let height = `calc(${NUM_LINES_DISPLAYED} * 20)px`
   let scrollDebounce: NodeJS.Timeout | null = null
@@ -416,7 +417,10 @@ limitations under the License.
       case MessageCommand.viewportRefresh:
         if (awaitViewportScroll) {
           awaitViewportScroll = false
-          lineTop = Math.max(0, Math.min(lineTopOnRefresh, lineTopMaxViewport))
+          lineTop = Math.max(
+            0,
+            Math.min(lineTopOnRefresh, lineTopMaxViewport, lineTop)
+          )
         }
         break
     }
