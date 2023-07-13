@@ -325,7 +325,7 @@ limitations under the License.
       <span slot="left" class="btn-icon material-symbols-outlined"
         >download</span
       >
-      <span slot="default">Profile as CSV</span></Button
+      <span slot="default">Profile&nbsp;as&nbsp;CSV</span></Button
     >
   </div>
   <hr />

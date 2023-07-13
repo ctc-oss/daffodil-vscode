@@ -66,7 +66,7 @@ limitations under the License.
   }
   div.traversal-container,
   div.traversal-thumb {
-    height: 4px;
+    height: 8px;
   }
   div.traversal-container:hover {
     cursor: pointer;

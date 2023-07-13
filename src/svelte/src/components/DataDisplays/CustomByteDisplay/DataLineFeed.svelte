@@ -16,7 +16,6 @@ limitations under the License.
 -->
 <script lang="ts">
   import {
-    displayRadix,
     editMode,
     editedDataSegment,
     editorEncoding,
@@ -46,8 +45,9 @@ limitations under the License.
   import Button from '../../Inputs/Buttons/Button.svelte'
   import FlexContainer from '../../layouts/FlexContainer.svelte'
   import FileTraversalIndicator from './FileTraversalIndicator.svelte'
-  import { VIEWPORT_CAPACITY_MAX } from '../../../../../dataEditor/dataEditorClient'
-  import { byteDivWidthFromRadix } from '../../../utilities/display'
+
+  // TODO: Share this with the extension
+  const VIEWPORT_CAPACITY_MAX = 1024
 
   export let lineTop
   export let bytesPerRow: BytesPerRow = 16
