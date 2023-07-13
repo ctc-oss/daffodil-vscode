@@ -31,7 +31,7 @@ limitations under the License.
     editByte,
     editMode,
     editorSelection,
-    selectionData,
+    selectionDataStore,
   } from '../../../stores'
   import {
     radixBytePad,
@@ -60,7 +60,7 @@ limitations under the License.
   })
 
   $: styleOffsets = $byteActionPxOffsets
-  $: active = $selectionData.active
+  $: active = $selectionDataStore.active
   $: $editorSelection = byte.text
   $: {
     if (

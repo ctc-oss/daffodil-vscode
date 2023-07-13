@@ -20,7 +20,7 @@ import { addressRadix, seekOffsetInput } from '../../../stores'
 import { get } from 'svelte/store'
 import { validateEncodingStr } from '../../../utilities/display'
 import { ErrorStore, ErrorComponentType } from '../../Error/Error'
-import { editorEncoding, selectionData } from '../../../stores'
+import { editorEncoding, selectionDataStore } from '../../../stores'
 import { derived } from 'svelte/store'
 
 interface QueryableData {
@@ -107,7 +107,7 @@ export const searchable = derived(
 )
 
 export const replaceable = derived(
-  [replaceQuery, editorEncoding, searchable, selectionData],
+  [replaceQuery, editorEncoding, searchable, selectionDataStore],
   ([$replaceData, $editorEncoding, $searchable, $selectionData]) => {
     if (
       $replaceData.input.length < 0 ||

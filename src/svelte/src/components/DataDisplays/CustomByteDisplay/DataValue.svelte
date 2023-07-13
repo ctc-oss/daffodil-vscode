@@ -27,7 +27,7 @@ limitations under the License.
     type ByteValue,
     type ViewportDataType,
   } from './BinaryData'
-  import { SelectionData } from '../../../stores'
+  import { SelectionData_t } from '../../../stores'
   import {
     byteDivWidthFromRadix,
     type ByteDivWidth,
@@ -36,7 +36,7 @@ limitations under the License.
   export let id: ViewportDataType
   export let byte: ByteValue
   export let editMode: EditByteModes
-  export let selectionData: SelectionData
+  export let selectionData: SelectionData_t
   export let selectedByte: ByteValue
   export let radix: RadixValues
   export let disabled = false

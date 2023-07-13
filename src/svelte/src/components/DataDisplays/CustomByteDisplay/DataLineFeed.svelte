@@ -21,7 +21,7 @@ limitations under the License.
     editedDataSegment,
     editorEncoding,
     focusedViewportId,
-    selectionData,
+    selectionDataStore,
     selectionSize,
   } from '../../../stores'
   import { onMount, tick } from 'svelte'
@@ -173,8 +173,8 @@ limitations under the License.
     atFileHead = viewportData.fileOffset === 0
     atFileTail = viewportData.bytesLeft === 0
 
-    disableDecrement = $selectionData.active || (atViewportHead && atFileHead)
-    disableIncrement = $selectionData.active || (atViewportTail && atFileTail)
+    disableDecrement = $selectionDataStore.active || (atViewportHead && atFileHead)
+    disableIncrement = $selectionDataStore.active || (atViewportTail && atFileTail)
   }
 
   $: {
@@ -299,7 +299,7 @@ limitations under the License.
   }
 
   function mousedown(event: CustomEvent<ByteSelectionEvent>) {
-    selectionData.update((selections) => {
+    selectionDataStore.update((selections) => {
       selections.active = false
       selections.startOffset = event.detail.targetByte.offset
       selections.endOffset = -1
@@ -309,7 +309,12 @@ limitations under the License.
   }
 
   function mouseup(event: CustomEvent<ByteSelectionEvent>) {
-    selectionData.update((selections) => {
+    if(!$selectionDataStore.isValid()) {
+      selectionDataStore.reset()
+      return
+    }
+    
+    selectionDataStore.update((selections) => {
       selections.active = true
       selections.endOffset = event.detail.targetByte.offset
       selections.originalEndOffset = event.detail.targetByte.offset
@@ -321,13 +326,13 @@ limitations under the License.
   }
 
   function adjust_event_offsets() {
-    const start = $selectionData.startOffset
-    const end = $selectionData.endOffset
+    const start = $selectionDataStore.startOffset
+    const end = $selectionDataStore.endOffset
 
     if (start > end) {
-      $selectionData.startOffset = end
-      $selectionData.originalEndOffset = start
-      $selectionData.endOffset = start
+      $selectionDataStore.startOffset = end
+      $selectionDataStore.originalEndOffset = start
+      $selectionDataStore.endOffset = start
     }
   }
 
@@ -343,8 +348,8 @@ limitations under the License.
 
     editedDataSegment.update(() => {
       return viewportData.data.slice(
-        $selectionData.startOffset,
-        $selectionData.originalEndOffset + 1
+        $selectionDataStore.startOffset,
+        $selectionDataStore.originalEndOffset + 1
       )
     })
 
@@ -357,7 +362,7 @@ limitations under the License.
     vscode.postMessage({
       command: MessageCommand.editorOnChange,
       data: {
-        fileOffset: $selectionData.startOffset + viewportData.fileOffset,
+        fileOffset: $selectionDataStore.startOffset + viewportData.fileOffset,
         selectionData: $editedDataSegment,
         encoding: forcedEncoding ? forcedEncoding : $editorEncoding,
         selectionSize: $selectionSize,
@@ -397,7 +402,7 @@ limitations under the License.
 
   $: {
     tick()
-    if ($selectionData.active) {
+    if ($selectionDataStore.active) {
       window.removeEventListener('keydown', navigation_keydown_event)
       if (viewportDataContainer)
         viewportDataContainer.removeEventListener(
@@ -443,7 +448,7 @@ limitations under the License.
             {byte}
             id={'physical'}
             selectedByte={$selectedByte}
-            selectionData={$selectionData}
+            selectionData={$selectionDataStore}
             radix={dataRadix}
             editMode={$editMode}
             disabled={byte.offset > viewportData.length}
@@ -459,7 +464,7 @@ limitations under the License.
             {byte}
             id={'logical'}
             selectedByte={$selectedByte}
-            selectionData={$selectionData}
+            selectionData={$selectionDataStore}
             radix={dataRadix}
             editMode={$editMode}
             disabled={byte.offset > viewportData.length}

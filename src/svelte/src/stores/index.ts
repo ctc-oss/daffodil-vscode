@@ -37,16 +37,24 @@ import {
   viewport,
 } from '../components/DataDisplays/CustomByteDisplay/BinaryData'
 
-export class SelectionData {
+export class SelectionData_t {
   startOffset = -1
   endOffset = -1
   originalEndOffset = -1
   active = false
+  public isValid(): boolean {
+    return (this.startOffset >= 0 && this.originalEndOffset >= this.startOffset)
+      && this.endOffset >= 0
+      && this.originalEndOffset >= 0
+  }
 }
 
-class SelectionDataStore extends SimpleWritable<SelectionData> {
-  protected init(): SelectionData {
-    return new SelectionData()
+class SelectionData extends SimpleWritable<SelectionData_t> {
+  protected init(): SelectionData_t {
+    return new SelectionData_t()
+  }
+  public reset() {
+    this.store.set(new SelectionData_t())
   }
 }
 
@@ -107,11 +115,11 @@ export const viewportCapacity = writable(0)
 export const viewportLineHeight = writable(0)
 
 // tracks the start and end offsets of the current selection
-export const selectionData = new SelectionDataStore()
+export const selectionDataStore = new SelectionData()
 
 // derived readable enumeration that indicates the edit mode (single byte or multiple bytes)
 export const editMode = derived(
-  selectionData,
+  selectionDataStore,
   ($selectionData) => {
     return $selectionData.originalEndOffset - $selectionData.startOffset === 0
       ? EditByteModes.Single
@@ -157,7 +165,7 @@ export const viewportScrolledToEnd = derived(
 
 // derived readable number whose value is the size of the current data selection
 export const selectionSize = derived(
-  [selectionData, editorSelection],
+  [selectionDataStore, editorSelection],
   ([$selectionData, $editorSelection]) => {
     return $editorSelection !== ''
       ? $selectionData.endOffset - $selectionData.startOffset + 1
@@ -177,7 +185,7 @@ export const seekOffset = derived(
 
 // derived readable string whose value is the selected encoded byte value with respect to the current focused viewport
 export const editByte = derived(
-  [displayRadix, focusedViewportId, viewport, selectionData],
+  [displayRadix, focusedViewportId, viewport, selectionDataStore],
   ([$displayRadix, $focusedViewportId, $viewport, $selectionData]) => {
     // TODO: I think there is a cleaner way to do this given that we already have the encoded data in the respective viewports
     if ($viewport.data[$selectionData.startOffset] !== undefined) {
@@ -253,7 +261,7 @@ export const requestable = derived(
 )
 
 export const originalDataSegment = derived(
-  [viewport, selectionData],
+  [viewport, selectionDataStore],
   ([$viewport, $selectionData]) => {
     return !$viewport.data
       ? []
@@ -270,7 +278,7 @@ export const committable = derived(
     requestable,
     viewport,
     editedDataSegment,
-    selectionData,
+    selectionDataStore,
     selectionSize,
     editMode,
     editedByteIsOriginalByte,
@@ -331,7 +339,7 @@ function typedArrayToBuffer(
 }
 
 export const dataView = derived(
-  [selectionData, viewport],
+  [selectionDataStore, viewport],
   ([$selectionData, $viewport]) => {
     return new DataView(
       typedArrayToBuffer($viewport.data, $selectionData.startOffset, 8)
@@ -360,7 +368,7 @@ function validRequestableData(
 }
 
 export const dvOffset = derived(
-  [selectionData, addressRadix],
+  [selectionDataStore, addressRadix],
   ([$selectionData, $addressRadix]) => {
     return $selectionData.active
       ? $selectionData.startOffset.toString($addressRadix).toUpperCase()
@@ -369,7 +377,7 @@ export const dvOffset = derived(
 )
 
 export const dvLatin1 = derived(
-  [selectionData, dataView],
+  [selectionDataStore, dataView],
   ([$selectionData, $dataView]) => {
     return $selectionData.active && $dataView.byteLength >= 1
       ? String.fromCharCode($dataView.getUint8(0))
@@ -378,7 +386,7 @@ export const dvLatin1 = derived(
 )
 
 export const dvInt8 = derived(
-  [selectionData, dataView, displayRadix],
+  [selectionDataStore, dataView, displayRadix],
   ([$selectionData, $dataView, $displayRadix]) => {
     const value =
       $selectionData.active && $dataView.byteLength >= 1
@@ -389,7 +397,7 @@ export const dvInt8 = derived(
 )
 
 export const dvUint8 = derived(
-  [selectionData, dataView, displayRadix],
+  [selectionDataStore, dataView, displayRadix],
   ([$selectionData, $dataView, $displayRadix]) => {
     const value =
       $selectionData.active && $dataView.byteLength >= 1
@@ -400,7 +408,7 @@ export const dvUint8 = derived(
 )
 
 export const dvInt16 = derived(
-  [selectionData, dataView, displayRadix, dataViewEndianness],
+  [selectionDataStore, dataView, displayRadix, dataViewEndianness],
   ([$selectionData, $dataView, $displayRadix, $dataViewEndianness]) => {
     const value =
       $selectionData.active && $dataView.byteLength >= 2
@@ -414,7 +422,7 @@ export const dvInt16 = derived(
 )
 
 export const dvUint16 = derived(
-  [selectionData, dataView, displayRadix, dataViewEndianness],
+  [selectionDataStore, dataView, displayRadix, dataViewEndianness],
   ([$selectionData, $dataView, $displayRadix, $dataViewEndianness]) => {
     const value =
       $selectionData.active && $dataView.byteLength >= 2
@@ -428,7 +436,7 @@ export const dvUint16 = derived(
 )
 
 export const dvInt32 = derived(
-  [selectionData, dataView, displayRadix, dataViewEndianness],
+  [selectionDataStore, dataView, displayRadix, dataViewEndianness],
   ([$selectionData, $dataView, $displayRadix, $dataViewEndianness]) => {
     const value =
       $selectionData.active && $dataView.byteLength >= 4
@@ -442,7 +450,7 @@ export const dvInt32 = derived(
 )
 
 export const dvUint32 = derived(
-  [selectionData, dataView, displayRadix, dataViewEndianness],
+  [selectionDataStore, dataView, displayRadix, dataViewEndianness],
   ([$selectionData, $dataView, $displayRadix, $dataViewEndianness]) => {
     const value =
       $selectionData.active && $dataView.byteLength >= 4
@@ -456,7 +464,7 @@ export const dvUint32 = derived(
 )
 
 export const dvInt64 = derived(
-  [selectionData, dataView, displayRadix, dataViewEndianness],
+  [selectionDataStore, dataView, displayRadix, dataViewEndianness],
   ([$selectionData, $dataView, $displayRadix, $dataViewEndianness]) => {
     const value =
       $selectionData.active && $dataView.byteLength >= 8
@@ -470,7 +478,7 @@ export const dvInt64 = derived(
 )
 
 export const dvUint64 = derived(
-  [selectionData, dataView, displayRadix, dataViewEndianness],
+  [selectionDataStore, dataView, displayRadix, dataViewEndianness],
   ([$selectionData, $dataView, $displayRadix, $dataViewEndianness]) => {
     const value =
       $selectionData.active && $dataView.byteLength >= 8

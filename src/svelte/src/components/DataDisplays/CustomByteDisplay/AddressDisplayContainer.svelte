@@ -15,7 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
-  import { selectionData } from '../../../stores'
+  import { selectionDataStore } from '../../../stores'
   import FlexContainer from '../../layouts/FlexContainer.svelte'
   import { onMount } from 'svelte'
 

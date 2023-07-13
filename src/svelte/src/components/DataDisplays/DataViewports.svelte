@@ -21,7 +21,7 @@ limitations under the License.
     editMode,
     editedDataSegment,
     editorEncoding,
-    selectionData,
+    selectionDataStore,
     selectionSize,
     viewportClientHeight,
     viewportLineHeight,
@@ -83,7 +83,7 @@ limitations under the License.
     vscode.postMessage({
       command: MessageCommand.editorOnChange,
       data: {
-        fileOffset: $selectionData.startOffset,
+        fileOffset: $selectionDataStore.startOffset,
         selectionData: $editedDataSegment,
         encoding: forcedEncoding ? forcedEncoding : $editorEncoding,
         selectionSize: $selectionSize,

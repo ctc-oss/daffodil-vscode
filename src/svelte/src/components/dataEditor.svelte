@@ -28,7 +28,7 @@ limitations under the License.
     originalDataSegment,
     rawEditorSelectionTxt,
     requestable,
-    selectionData,
+    selectionDataStore,
     selectionSize,
     viewportCapacity,
     viewportEndOffset,
@@ -36,7 +36,7 @@ limitations under the License.
     viewportNumLinesDisplayed,
     viewportStartOffset,
     dataFeedLineTop,
-    SelectionData,
+    SelectionData_t,
     dataFeedAwaitRefresh,
   } from '../stores'
   import {
@@ -71,7 +71,7 @@ limitations under the License.
       vscode.postMessage({
         command: MessageCommand.requestEditedData,
         data: {
-          selectionToFileOffset: $selectionData.startOffset,
+          selectionToFileOffset: $selectionDataStore.startOffset,
           editedContent: $rawEditorSelectionTxt,
           viewport: $focusedViewportId,
           selectionSize: $selectionSize,
@@ -198,7 +198,7 @@ limitations under the License.
 
     let editedData: Uint8Array
     let originalData = $originalDataSegment
-    let editedOffset = $selectionData.startOffset + $viewport.fileOffset
+    let editedOffset = $selectionDataStore.startOffset + $viewport.fileOffset
 
     // noinspection FallThroughInSwitchStatementJS
     switch (action) {
@@ -248,7 +248,7 @@ limitations under the License.
   }
 
   function clearDataDisplays() {
-    $selectionData = new SelectionData()
+    $selectionDataStore = new SelectionData_t()
     $editorSelection = ''
     $editedDataSegment = new Uint8Array(0)
   }
@@ -281,8 +281,8 @@ limitations under the License.
         } else {
           $editedDataSegment[0] = msg.data.data.data
         }
-        $selectionData.endOffset =
-          $selectionData.startOffset + $editedDataSegment.byteLength - 1
+        $selectionDataStore.endOffset =
+          $selectionDataStore.startOffset + $editedDataSegment.byteLength - 1
         break
 
       case MessageCommand.setUITheme:

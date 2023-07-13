@@ -29,7 +29,7 @@ limitations under the License.
     dvUint32,
     dvUint64,
     dvUint8,
-    selectionData,
+    selectionDataStore,
   } from '../../../stores'
   import { ENDIANNESS_OPTIONS } from '../../../stores/configuration'
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
@@ -119,7 +119,7 @@ limitations under the License.
       vscode.postMessage({
         command: MessageCommand.commit,
         data: {
-          offset: $selectionData.startOffset,
+          offset: $selectionDataStore.startOffset,
           originalSegment: new Uint8Array($dataView.buffer, 0, byteSize),
           editedSegment: new Uint8Array(dv.buffer, 0, byteSize),
         },
@@ -188,7 +188,7 @@ limitations under the License.
       {/each}
     </select>
   </div>
-  {#if $selectionData.active && $dvInt8}
+  {#if $selectionDataStore.active && $dvInt8}
     {#if isEditing === 'latin1'}
       <div class="input-container">
         <label for="latin1_dv">latin-1: </label>

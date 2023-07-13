@@ -21,7 +21,7 @@ limitations under the License.
     editedDataSegment,
     editorEncoding,
     focusedViewportId,
-    selectionData,
+    selectionDataStore,
     selectionSize,
     viewportScrollTop,
   } from '../../../stores'
@@ -55,7 +55,7 @@ limitations under the License.
   const rowNumber = 20
 
   function mousedown(event: CustomEvent<ByteSelectionEvent>) {
-    selectionData.update((selections) => {
+    selectionDataStore.update((selections) => {
       selections.active = false
       selections.startOffset = event.detail.targetByte.offset
       selections.endOffset = -1
@@ -65,7 +65,7 @@ limitations under the License.
   }
 
   function mouseup(event: CustomEvent<ByteSelectionEvent>) {
-    selectionData.update((selections) => {
+    selectionDataStore.update((selections) => {
       selections.active = true
       selections.endOffset = event.detail.targetByte.offset
       selections.originalEndOffset = event.detail.targetByte.offset
@@ -77,13 +77,13 @@ limitations under the License.
   }
 
   function adjust_event_offsets() {
-    const start = $selectionData.startOffset
-    const end = $selectionData.endOffset
+    const start = $selectionDataStore.startOffset
+    const end = $selectionDataStore.endOffset
 
     if (start > end) {
-      $selectionData.startOffset = end
-      $selectionData.originalEndOffset = start
-      $selectionData.endOffset = start
+      $selectionDataStore.startOffset = end
+      $selectionDataStore.originalEndOffset = start
+      $selectionDataStore.endOffset = start
     }
   }
 
@@ -99,8 +99,8 @@ limitations under the License.
 
     editedDataSegment.update(() => {
       return viewport.slice(
-        $selectionData.startOffset,
-        $selectionData.endOffset + 1
+        $selectionDataStore.startOffset,
+        $selectionDataStore.endOffset + 1
       )
     })
 
@@ -113,7 +113,7 @@ limitations under the License.
     vscode.postMessage({
       command: MessageCommand.editorOnChange,
       data: {
-        fileOffset: $selectionData.startOffset + $viewport.fileOffset,
+        fileOffset: $selectionDataStore.startOffset + $viewport.fileOffset,
         selectionData: $editedDataSegment,
         encoding: forcedEncoding ? forcedEncoding : $editorEncoding,
         selectionSize: $selectionSize,
@@ -127,7 +127,7 @@ limitations under the License.
 <div
   id={dataType}
   class="byte-container hide-scrollbar {dataType}"
-  class:locked={$selectionData.active}
+  class:locked={$selectionDataStore.active}
   style="width: calc({bytesPerRow} * {BYTE_VALUE_DIV_OFFSET}px);"
 >
   {#if dataType === 'physical'}

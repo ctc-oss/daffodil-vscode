@@ -21,7 +21,7 @@ limitations under the License.
     editMode,
     seekOffset,
     seekOffsetInput,
-    selectionData,
+    selectionDataStore,
     selectionSize,
   } from '../../../stores'
   import {
@@ -60,8 +60,8 @@ limitations under the License.
 
   $: selectionOffsetText = setSelectionOffsetInfo(
     'Selection',
-    $selectionData.startOffset,
-    $selectionData.endOffset,
+    $selectionDataStore.startOffset,
+    $selectionDataStore.endOffset,
     $selectionSize
   )
 
@@ -148,7 +148,7 @@ limitations under the License.
 </div>
 
 <div class={$UIThemeCSSClass + ' measure selection'}>
-  {#if $selectionData.active && $editMode !== EditByteModes.Single}
+  {#if $selectionDataStore.active && $editMode !== EditByteModes.Single}
     <!-- svelte-ignore a11y-no-static-element-interactions -->
     <div
       class="clear-selection"
