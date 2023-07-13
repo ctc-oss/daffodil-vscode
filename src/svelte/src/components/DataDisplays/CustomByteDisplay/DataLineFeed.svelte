@@ -372,8 +372,16 @@ limitations under the License.
         ($fileMetrics.computedSize * (percentageTraversed / 100.0)) /
           bytesPerRow
       ) * bytesPerRow
-    if (offset > bytesPerRow * NUM_LINES_DISPLAYED) {
-      // scroll to the offset since it is not in the first page
+    const firstPageThreshold = bytesPerRow * NUM_LINES_DISPLAYED
+    const lastPageThreshold = $fileMetrics.computedSize - firstPageThreshold
+    if (offset <= firstPageThreshold) {
+      // scroll to the top because we are somewhere in the first page
+      SCROLL_TO_TOP()
+    } else if (offset >= lastPageThreshold) {
+      // scroll to the end because we are somewhere in the last page
+      SCROLL_TO_END()
+    } else {
+      // scroll to the offset since we are not in the first or last page
       vscode.postMessage({
         command: MessageCommand.scrollViewport,
         data: {
@@ -383,9 +391,6 @@ limitations under the License.
       })
       lineTopOnRefresh = lineTopMaxViewport
       awaitViewportScroll = true
-    } else {
-      // scroll to the top because we are somewhere in the first page
-      SCROLL_TO_TOP()
     }
   }
 
