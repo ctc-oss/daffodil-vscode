@@ -22,6 +22,7 @@ limitations under the License.
     type EditAction,
     selectedByte,
     type ByteActionPxOffsets,
+    BYTE_ACTION_DIV_OFFSET,
   } from './BinaryData'
   import { enterKeypressEvents } from '../../../utilities/enterKeypressEvents'
   import {
@@ -31,6 +32,7 @@ limitations under the License.
     editByte,
     editMode,
     editorSelection,
+    focusedViewportId,
     selectionDataStore,
   } from '../../../stores'
   import {
@@ -83,7 +85,10 @@ limitations under the License.
     }
   }
   $: {
-    inputWidth = byteDivWidthFromRadix($displayRadix)
+    inputWidth =
+      $focusedViewportId === 'physical'
+        ? byteDivWidthFromRadix($displayRadix)
+        : '20px'
   }
   function update_selectedByte(editByte: ByteValue) {
     if (invalid) return

@@ -191,6 +191,7 @@ export function update_byte_action_offsets(
   offsetLeftBy: number = 0
 ) {
   const targetWidth = parseInt(targetDiv.style.width.replace('px', '')) + 4
+  console.log(targetWidth)
   byteActionPxOffsets.update((currentOffsets) => {
     currentOffsets.delete = {
       left: targetDiv.offsetLeft + offsetLeftBy,

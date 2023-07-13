@@ -138,7 +138,7 @@ limitations under the License.
     on:mouseup={mouse_event_handle}
     on:mousedown={mouse_event_handle}
   >
-    {String.fromCharCode(byte.value)}
+    {latin1Undefined(byte.value) ? '' : String.fromCharCode(byte.value)}
   </div>
 {/if}
 
@@ -164,7 +164,7 @@ limitations under the License.
   div.byte::selection {
     background-color: transparent;
   }
-  div.latin1Undefined {
+  div.latin1Undefined::after {
     content: '?';
     font-size: 16px;
     filter: brightness(0.75);
