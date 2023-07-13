@@ -24,5 +24,15 @@
     "lib": ["es6", "es2021", "DOM"]
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules/*"]
+  "exclude": ["node_modules/*"],
+  "strict": true,   /* enable all strict type-checking options */
+  "noImplicitAny": false,
+  "removeComments": false,
+  "noUnusedLocals": true,
+  "noImplicitThis": true,
+  "inlineSourceMap": false,
+  "preserveConstEnums": true,
+  "strictNullChecks": true,
+  "noUnusedParameters": false,
+  "esModuleInterop": true
 }
