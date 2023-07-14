@@ -97,8 +97,6 @@ export const focusedViewportId = writable('')
 // writeable string input for the seek offset
 export const seekOffsetInput = writable('')
 
-export const rawEditorSelectionTxt = writable('')
-
 // writeable boolean, true indicates that the search is case insensitive for character sets that support it
 export const searchCaseInsensitive = writable(false)
 
@@ -235,22 +233,16 @@ export const saveable = derived([fileMetrics], ([$fileMetrics]) => {
 })
 
 export const requestable = derived(
-  [
-    rawEditorSelectionTxt,
-    focusedViewportId,
-    editorEncoding,
-    editMode,
-    displayRadix,
-  ],
+  [editorSelection, focusedViewportId, editorEncoding, editMode, displayRadix],
   ([
-    $rawEditorSelectionTxt,
+    $editorSelection,
     $focusedViewportId,
     $editorEncoding,
     $editMode,
     $displayRadix,
   ]) => {
     const ret = validRequestableData(
-      $rawEditorSelectionTxt,
+      $editorSelection,
       $focusedViewportId,
       $editorEncoding,
       $editMode,

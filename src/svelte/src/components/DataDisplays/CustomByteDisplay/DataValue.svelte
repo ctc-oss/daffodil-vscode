@@ -113,6 +113,7 @@ limitations under the License.
   <!-- svelte-ignore a11y-no-static-element-interactions -->
   <div
     class="byte"
+    id={byte.offset.toString()}
     style:width
     style:background-color={bgColor}
     style:border-color={makingSelection ? borderColor : bgColor}

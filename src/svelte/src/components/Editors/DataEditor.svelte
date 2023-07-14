@@ -25,6 +25,21 @@ limitations under the License.
   const eventDispatcher = createEventDispatcher()
 
   function handleEditorEvent(event: Event) {
+    switch (event.type) {
+      case 'input':
+        {
+          const eventDetails = event as InputEvent
+          const editorElement = eventDetails.target as HTMLTextAreaElement
+          $editorSelection = editorElement.value
+        }
+
+        break
+      case 'click':
+        {
+          const eventDetails = event as MouseEvent
+        }
+        break
+    }
     eventDispatcher('handleEditorEvent', event)
   }
 </script>
@@ -35,10 +50,10 @@ limitations under the License.
       class={$UIThemeCSSClass}
       id="selectedContent"
       contenteditable="true"
-      bind:value={$editorSelection}
       on:keyup|nonpassive={handleEditorEvent}
       on:click={handleEditorEvent}
       on:input={handleEditorEvent}
+      bind:value={$editorSelection}
     />
 
     <FlexContainer>

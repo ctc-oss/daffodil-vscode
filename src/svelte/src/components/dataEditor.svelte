@@ -26,7 +26,6 @@ limitations under the License.
     focusedViewportId,
     seekOffset,
     originalDataSegment,
-    rawEditorSelectionTxt,
     requestable,
     selectionDataStore,
     selectionSize,
@@ -63,7 +62,6 @@ limitations under the License.
     viewport_offset_to_line_num,
   } from '../utilities/display'
 
-  $: $rawEditorSelectionTxt = $editorSelection
   $: $UIThemeCSSClass = $darkUITheme ? CSSThemeClass.Dark : CSSThemeClass.Light
 
   function requestEditedData() {
@@ -72,7 +70,7 @@ limitations under the License.
         command: MessageCommand.requestEditedData,
         data: {
           selectionToFileOffset: $selectionDataStore.startOffset,
-          editedContent: $rawEditorSelectionTxt,
+          editedContent: $editorSelection,
           viewport: $focusedViewportId,
           selectionSize: $selectionSize,
           encoding: $editorEncoding,
@@ -198,6 +196,7 @@ limitations under the License.
     })
 
     $dataFeedLineTop = navigationData.lineTopOnRefresh
+    clearDataDisplays()
   }
 
   function handleEditorEvent(_: Event) {

@@ -23,7 +23,7 @@ limitations under the License.
     focusedViewportId,
     seekOffsetInput,
     selectionDataStore,
-    selectionSize
+    selectionSize,
   } from '../../../stores'
   import {
     EditByteModes,
@@ -59,7 +59,7 @@ limitations under the License.
   const DEBOUNCE_TIMEOUT_MS = 20
   const CONTAINER_ID = 'viewportData-container'
   const eventDispatcher = createEventDispatcher()
-  
+
   function OFFSET_FETCH_ADJUSTMENT(direction: ViewportScrollDirection) {
     if (direction === ViewportScrollDirection.INCREMENT) {
       const fetchBound = viewportData.fileOffset + VIEWPORT_CAPACITY_MAX / 2
@@ -294,7 +294,6 @@ limitations under the License.
     })
 
     if (!$selectionDataStore.isValid()) {
-      console.log($selectionDataStore)
       selectionDataStore.reset()
       return
     }
