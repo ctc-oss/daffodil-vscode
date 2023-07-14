@@ -81,3 +81,9 @@ export const ADDRESS_RADIX_OPTIONS = [
 ]
 
 export const UNPRINTABLE_CHAR_STAND_IN = String.fromCharCode(9617)
+
+// Number of bytes to for the viewport to populate
+export const VIEWPORT_CAPACITY_MAX = 16 * 64 // 1024, Ωedit maximum viewport size is 1048576 (1024 * 1024)
+
+// Number of bytes to display in the viewport
+export const NUM_LINES_DISPLAYED = 20

@@ -69,7 +69,10 @@ import {
   MessageLevel,
   ReplaceStrategy,
 } from '../svelte/src/utilities/message'
-import { EditByteModes } from '../svelte/src/stores/configuration'
+import {
+  EditByteModes,
+  VIEWPORT_CAPACITY_MAX,
+} from '../svelte/src/stores/configuration'
 import net from 'net'
 import * as vscode from 'vscode'
 
@@ -81,7 +84,6 @@ export const DATA_EDITOR_COMMAND: string = 'extension.data.edit'
 export const OMEGA_EDIT_HOST: string = '127.0.0.1'
 export const SERVER_START_TIMEOUT: number = 15 // in seconds
 export const APP_DATA_PATH: string = XDGAppPaths({ name: 'omega_edit' }).data()
-export const VIEWPORT_CAPACITY_MAX: number = 16 * 64 // 1024, Ωedit maximum viewport size is 1048576 (1024 * 1024)
 
 // *****************************************************************************
 // file-scoped constants
@@ -264,7 +266,7 @@ export class DataEditorClient implements vscode.Disposable {
       this.currentViewportId = viewportDataResponse.getViewportId()
       assert(this.currentViewportId.length > 0, 'currentViewportId is not set')
       await viewportSubscribe(this.panel, this.currentViewportId)
-      sendViewportRefresh(this.panel, viewportDataResponse)
+      await sendViewportRefresh(this.panel, viewportDataResponse)
     } catch {
       vscode.window.showErrorMessage(
         `Failed to create viewport for ${this.fileToEdit}`
@@ -696,7 +698,7 @@ export class DataEditorClient implements vscode.Disposable {
     // start of the row containing the offset
     const startOffset = offset - (offset % bytesPerRow)
     try {
-      sendViewportRefresh(
+      await sendViewportRefresh(
         panel,
         await modifyViewport(viewportId, startOffset, VIEWPORT_CAPACITY_MAX)
       )
@@ -726,7 +728,7 @@ async function createDataEditorWebviewPanel(
 
   // only start uo the server if one is not already running
   if (!(await checkServerListening(omegaEditPort, OMEGA_EDIT_HOST))) {
-    setupLogging()
+    await setupLogging()
     setAutoFixViewportDataLength(true)
     await serverStart()
     client = getClient(omegaEditPort, OMEGA_EDIT_HOST)
@@ -909,7 +911,7 @@ async function viewportSubscribe(
       getLogger().debug(
         `viewport '${event.getViewportId()}' received event: ${event.getViewportEventKind()}`
       )
-      sendViewportRefresh(panel, await getViewportData(viewportId))
+      await sendViewportRefresh(panel, await getViewportData(viewportId))
     })
     .on('error', (err) => {
       // Call cancelled thrown sometimes when server is shutdown

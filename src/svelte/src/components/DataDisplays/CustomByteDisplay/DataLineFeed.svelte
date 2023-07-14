@@ -15,42 +15,39 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
+  import { createEventDispatcher, onMount, tick } from 'svelte'
   import {
-    dataFeedAwaitRefresh,
-    editMode,
     editedDataSegment,
+    editMode,
     editorEncoding,
     focusedViewportId,
     seekOffsetInput,
     selectionDataStore,
-    selectionSize,
+    selectionSize
   } from '../../../stores'
-  import { createEventDispatcher, onMount, tick } from 'svelte'
-  import {
-    byte_value_string,
-    selectedByte,
-    type ByteValue,
-    type ViewportData_t,
-    null_byte,
-    type ByteSelectionEvent,
-    update_byte_action_offsets,
-  } from './BinaryData'
-  import { fileMetrics } from '../../Header/fieldsets/FileMetrics'
   import {
     EditByteModes,
+    NUM_LINES_DISPLAYED,
+    VIEWPORT_CAPACITY_MAX,
     type BytesPerRow,
     type RadixValues,
   } from '../../../stores/configuration'
-  import DataValue from './DataValue.svelte'
-  import { vscode } from '../../../utilities/vscode'
   import { MessageCommand } from '../../../utilities/message'
+  import { vscode } from '../../../utilities/vscode'
+  import { fileMetrics } from '../../Header/fieldsets/FileMetrics'
   import Button from '../../Inputs/Buttons/Button.svelte'
   import FlexContainer from '../../layouts/FlexContainer.svelte'
+  import {
+    byte_value_string,
+    null_byte,
+    selectedByte,
+    update_byte_action_offsets,
+    type ByteSelectionEvent,
+    type ByteValue,
+    type ViewportData_t,
+  } from './BinaryData'
+  import DataValue from './DataValue.svelte'
   import FileTraversalIndicator from './FileTraversalIndicator.svelte'
-
-  const eventDispatcher = createEventDispatcher()
-  // TODO: Share this with the extension
-  const VIEWPORT_CAPACITY_MAX = 1024
 
   export let lineTop: number
   export let awaitViewportScroll: boolean
@@ -59,10 +56,10 @@ limitations under the License.
   export let addressRadix: RadixValues = 16
   export let viewportData: ViewportData_t
 
-  const NUM_LINES_DISPLAYED = 20
   const DEBOUNCE_TIMEOUT_MS = 20
   const CONTAINER_ID = 'viewportData-container'
-
+  const eventDispatcher = createEventDispatcher()
+  
   function OFFSET_FETCH_ADJUSTMENT(direction: ViewportScrollDirection) {
     if (direction === ViewportScrollDirection.INCREMENT) {
       const fetchBound = viewportData.fileOffset + VIEWPORT_CAPACITY_MAX / 2
