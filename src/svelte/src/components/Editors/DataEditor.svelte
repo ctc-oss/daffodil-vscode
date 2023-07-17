@@ -61,7 +61,7 @@ limitations under the License.
     </FlexContainer>
   {:else}
     <FlexContainer>
-      <DataView />
+      <DataView on:commitChanges />
     </FlexContainer>
   {/if}
 </div>

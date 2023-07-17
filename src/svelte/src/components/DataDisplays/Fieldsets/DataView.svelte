@@ -30,13 +30,18 @@ limitations under the License.
     dvUint64,
     dvUint8,
     selectionDataStore,
+    editedDataSegment,
+    originalDataSegment,
   } from '../../../stores'
   import { ENDIANNESS_OPTIONS } from '../../../stores/configuration'
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
   import { vscode } from '../../../utilities/vscode'
   import { MessageCommand } from '../../../utilities/message'
   import Input from '../../Inputs/Input/Input.svelte'
+  import { createEventDispatcher } from 'svelte'
+  import { selectedByte } from '../CustomByteDisplay/BinaryData'
 
+  const eventDispatcher = createEventDispatcher()
   const ERROR_MESSAGE_TIMEOUT = 5000
   const INPUT_WIDTH = '64ch'
 
@@ -114,15 +119,12 @@ limitations under the License.
           console.error('Invalid integer type: ' + intType)
           return false
       }
-
-      // Send edit to the extension
-      vscode.postMessage({
-        command: MessageCommand.commit,
-        data: {
-          offset: $selectionDataStore.startOffset,
-          originalSegment: new Uint8Array($dataView.buffer, 0, byteSize),
-          editedSegment: new Uint8Array(dv.buffer, 0, byteSize),
-        },
+      editedDataSegment.update(() => {
+        return new Uint8Array(dv.buffer, 0, byteSize)
+      })
+      eventDispatcher('commitChanges', {
+        byte: $selectedByte,
+        action: 'insert-replace',
       })
     } else {
       errorMessage = `Invalid value ${inputValue} (radix ${$displayRadix}) for ${intType}`
