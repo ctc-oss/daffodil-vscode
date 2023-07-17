@@ -48,6 +48,7 @@ limitations under the License.
   } from './BinaryData'
   import DataValue from './DataValue.svelte'
   import FileTraversalIndicator from './FileTraversalIndicator.svelte'
+  import { byteDivWidthFromRadix, type ByteDivWidth } from '../../../utilities/display'
 
   export let lineTop: number
   export let awaitViewportScroll: boolean
@@ -130,6 +131,7 @@ limitations under the License.
 
   let viewportLines: Array<ViewportLineData> = []
   let viewportDataContainer: HTMLDivElement
+  let byteElementWidth: ByteDivWidth
 
   onMount(() => {
     viewportDataContainer = document.getElementById(
@@ -168,6 +170,7 @@ limitations under the License.
         bytesPerRow
       )
   }
+  $: byteElementWidth = byteDivWidthFromRadix(dataRadix)
 
   function generate_line_data(
     startIndex: number,
@@ -420,11 +423,12 @@ limitations under the License.
           <DataValue
             {byte}
             id={'physical'}
-            selectedByte={$selectedByte}
-            selectionData={$selectionDataStore}
             radix={dataRadix}
+            width={byteElementWidth}
             editMode={$editMode}
             disabled={byte.offset > viewportData.length}
+            selectedByte={$selectedByte}
+            selectionData={$selectionDataStore}
             on:mouseup={mouseup}
             on:mousedown={mousedown}
           />
@@ -436,11 +440,12 @@ limitations under the License.
           <DataValue
             {byte}
             id={'logical'}
-            selectedByte={$selectedByte}
-            selectionData={$selectionDataStore}
             radix={dataRadix}
+            width={byteElementWidth}
             editMode={$editMode}
             disabled={byte.offset > viewportData.length}
+            selectedByte={$selectedByte}
+            selectionData={$selectionDataStore}
             on:mouseup={mouseup}
             on:mousedown={mousedown}
           />

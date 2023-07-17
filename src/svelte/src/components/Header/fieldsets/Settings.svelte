@@ -23,15 +23,6 @@ limitations under the License.
   import {
     displayRadix,
     editorEncoding,
-    viewportFollowingByteCount,
-    viewportLength,
-    viewportStartOffset,
-    viewportScrolledToTop,
-    viewportScrolledToEnd,
-    viewportScrollTop,
-    viewportScrollHeight,
-    viewportClientHeight,
-    viewportNumLinesDisplayed,
     editorActionsAllowed,
   } from '../../../stores'
   import FlexContainer from '../../layouts/FlexContainer.svelte'
@@ -82,18 +73,6 @@ limitations under the License.
     </FlexContainer>
 
     <hr />
-
-    <!-- Viewport diagnostic information.  TODO: remove once infinite scrolling is working -->
-    <FlexContainer --dir="row" --align-items="center">
-      <sub>
-        Viewport start offset: {$viewportStartOffset}, length: {$viewportLength},
-        following byte count: {$viewportFollowingByteCount}, lines: {$viewportNumLinesDisplayed}
-        <br />
-        Scroll top: {$viewportScrollTop}, scroll height: {$viewportScrollHeight},
-        client height: {$viewportClientHeight} <br />
-        Scrolled to the top: {$viewportScrolledToTop}, to the end: {$viewportScrolledToEnd}
-      </sub>
-    </FlexContainer>
   </FlexContainer>
 </fieldset>
 

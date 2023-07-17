@@ -63,7 +63,7 @@ limitations under the License.
   } from '../utilities/display'
 
   $: $UIThemeCSSClass = $darkUITheme ? CSSThemeClass.Dark : CSSThemeClass.Light
-
+  
   function requestEditedData() {
     if ($requestable) {
       vscode.postMessage({

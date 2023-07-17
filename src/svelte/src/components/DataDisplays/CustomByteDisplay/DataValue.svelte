@@ -29,7 +29,6 @@ limitations under the License.
   } from './BinaryData'
   import { SelectionData_t } from '../../../stores'
   import {
-    byteDivWidthFromRadix,
     type ByteDivWidth,
   } from '../../../utilities/display'
 
@@ -40,6 +39,7 @@ limitations under the License.
   export let selectedByte: ByteValue
   export let radix: RadixValues
   export let disabled = false
+  export let width: ByteDivWidth = '20px'
 
   const eventDispatcher = createEventDispatcher()
 
@@ -48,11 +48,9 @@ limitations under the License.
   let singleSelected,
     withinSelectionRange,
     makingSelection = false
-  let width: ByteDivWidth = '20px'
 
   $: makingSelection =
     selectionData.startOffset >= 0 && selectionData.active === false
-  $: width = byteDivWidthFromRadix(radix)
   $: singleSelected =
     selectionData.active && editMode === EditByteModes.Single
       ? selectedByte.offset === byte.offset
