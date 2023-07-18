@@ -24,14 +24,14 @@ limitations under the License.
   let hideChildren = false
 </script>
 
-<FlexContainer --height="150pt">
+<FlexContainer --height="fit-content">
   {#if hideChildren}
-    <FlexContainer --justify-content="space-between" --align-items="center">
+    <FlexContainer --justify-content="space-between" --align-items="left">
       <div class="filename-display">{$fileMetrics.name}</div>
       <button
         class={$UIThemeCSSClass + ' minmax-icon'}
         on:click={() => {
-          hideChildren = hideChildren ? false : true
+          hideChildren = !hideChildren
         }}><span class="material-symbols-outlined">expand_all</span></button
       >
     </FlexContainer>
@@ -47,7 +47,7 @@ limitations under the License.
       <button
         class={$UIThemeCSSClass + ' minmax-icon'}
         on:click={() => {
-          hideChildren = hideChildren ? false : true
+          hideChildren = !hideChildren
         }}><span class="material-symbols-outlined">expand_all</span></button
       >
     </div>
@@ -64,18 +64,6 @@ limitations under the License.
     transition: all 0.5s;
   }
 
-  header div.display-icons {
-    justify-content: space-between;
-    transition: all 0.4s ease 0s;
-    align-items: center;
-  }
-
-  header div.display-icons div {
-    margin-right: 10pt;
-    font-size: 10pt;
-    letter-spacing: 1pt;
-  }
-
   header div.display-icons button {
     width: 20px;
     height: 20px;
@@ -88,6 +76,5 @@ limitations under the License.
   button.minmax-icon {
     min-width: 14px;
     font-weight: bold;
-    width: fit-content;
   }
 </style>
