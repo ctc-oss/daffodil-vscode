@@ -15,7 +15,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
-  import { UIThemeCSSClass } from '../../../utilities/colorScheme'
+  import {
+    CSSThemeClass,
+    UIThemeCSSClass,
+  } from '../../../utilities/colorScheme'
   import { createEventDispatcher, onMount } from 'svelte'
   const eventDispatcher = createEventDispatcher()
 
@@ -30,6 +33,7 @@ limitations under the License.
   export let value: string = ''
   export let width: string = '100%'
   export let errMsg: string = ''
+  let themeClass: CSSThemeClass = $UIThemeCSSClass
 
   let containerClass: string
   let inlineClass: string
@@ -40,14 +44,18 @@ limitations under the License.
   // this is a reference to the input element
   let thisElement: HTMLInputElement
 
-  function CSSThemeClass(selectors?: string) {
-    return selectors + ' ' + $UIThemeCSSClass
+  function selectorCSSThemeClass(
+    selectors: string,
+    cssStoreTrigger: CSSThemeClass
+  ) {
+    return selectors + ' ' + cssStoreTrigger
   }
 
   $: {
-    containerClass = CSSThemeClass('input-actions')
-    inlineClass = CSSThemeClass('inline-container')
-    inputClass = CSSThemeClass('actionable')
+    themeClass = $UIThemeCSSClass
+    containerClass = selectorCSSThemeClass('input-actions', themeClass)
+    inlineClass = selectorCSSThemeClass('inline-container', themeClass)
+    inputClass = selectorCSSThemeClass('actionable', themeClass)
   }
 
   // need this to avoid 2-way type binding
@@ -120,7 +128,7 @@ limitations under the License.
     <span class={inlineClass}>
       <input
         use:setType={inputType}
-        class="{$UIThemeCSSClass} {inputType}"
+        class="{themeClass} {inputType}"
         bind:this={thisElement}
         bind:value
         {placeholder}
@@ -139,9 +147,9 @@ limitations under the License.
         on:mouseover
         on:paste
       />
+      <slot />
     </span>
   </span>
-  <slot />
 {/if}
 
 <style lang="scss">

@@ -347,6 +347,12 @@ limitations under the License.
 
   <hr />
   <ServerMetrics />
+  <!-- TODO: Remove after CSS Theme Completion -->
+  <button
+    on:click={() => {
+      $darkUITheme = $darkUITheme ? false : true
+    }}>Toggle Theme</button
+  >
 </body>
 
 <!-- svelte-ignore css-unused-selector -->

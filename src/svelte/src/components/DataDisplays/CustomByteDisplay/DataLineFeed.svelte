@@ -57,6 +57,10 @@ limitations under the License.
   } from '../../../utilities/display'
   import BinaryValueActions from './BinaryValueActions.svelte'
   import SelectedByteEdit from './SelectedByteEdit.svelte'
+  import {
+    UIThemeCSSClass,
+    type CSSThemeClass,
+  } from '../../../utilities/colorScheme'
 
   export let lineTop: number
   export let awaitViewportScroll: boolean
@@ -118,7 +122,6 @@ limitations under the License.
   let atFileHead = true
   let atFileTail = false
   let lineTopOnRefresh = 0
-  let height = `calc(${NUM_LINES_DISPLAYED} * 20)px`
   let scrollDebounce: NodeJS.Timeout | null = null
   let percentageTraversed = 0.0
 
@@ -137,9 +140,11 @@ limitations under the License.
     INCREMENT = 1,
   }
 
+  let height = `calc(${NUM_LINES_DISPLAYED} * 20)px`
   let viewportLines: Array<ViewportLineData> = []
   let viewportDataContainer: HTMLDivElement
   let selectedByteElement: HTMLDivElement
+  let themeClass: CSSThemeClass
 
   onMount(() => {
     viewportDataContainer = document.getElementById(
@@ -149,6 +154,7 @@ limitations under the License.
   })
 
   let lineTopFileOffset: number
+  $: themeClass = $UIThemeCSSClass
   $: {
     totalLinesPerFilesize = Math.ceil($fileMetrics.computedSize / bytesPerRow)
     totalLinesPerViewport = Math.ceil(viewportData.data.length / bytesPerRow)

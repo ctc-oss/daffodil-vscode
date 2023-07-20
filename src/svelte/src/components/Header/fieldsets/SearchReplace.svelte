@@ -42,6 +42,7 @@ limitations under the License.
   import FlexContainer from '../../layouts/FlexContainer.svelte'
   import { createEventDispatcher } from 'svelte'
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
+  import ToggleableButton from '../../Inputs/Buttons/ToggleableButton.svelte'
 
   const eventDispatcher = createEventDispatcher()
 
@@ -106,7 +107,9 @@ limitations under the License.
     })
   }
 
-  function searchAndReplace(strategy: ReplaceStrategy) {
+  function searchAndReplace(
+    strategy: ReplaceStrategy = ReplaceStrategy.ReplaceOne
+  ) {
     searchQuery.clear()
     $replaceQuery.count = -1
     $replaceQuery.replaceOneCount = 0
@@ -269,7 +272,21 @@ limitations under the License.
     </FlexContainer>
     <FlexContainer --dir="row" --align-items="center">
       {#if $allowCaseInsensitiveSearch}
-        <span class={containerClass}>
+        <Input
+          id="search"
+          placeholder="Search"
+          bind:value={$searchQuery.input}
+          on:inputEnter={handleInputEnter}
+        >
+          <ToggleableButton
+            --width="24px"
+            fn={case_sensitive_action}
+            active={$searchCaseInsensitive}
+          >
+            Aa
+          </ToggleableButton>
+        </Input>
+        <!-- <span class={containerClass}>
           <span class={inlineClass}>
             <input
               id="search"
@@ -285,7 +302,7 @@ limitations under the License.
               title="Toggle Case Sensitive Search"><u>Aa</u></button
             >
           </span>
-        </span>
+        </span> -->
       {:else}
         <Input
           id="search"

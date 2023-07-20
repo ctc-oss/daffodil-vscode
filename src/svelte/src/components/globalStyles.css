@@ -43,9 +43,11 @@ html {
   --container-height: auto;
   --color-primary-darkest: #02060b;
   --color-primary-dark: #101821;
+  --color-primary-dark-hover: #303644ff;
   --color-primary-mid: #2f3e4f;
   --color-primary-light: #687483;
   --color-primary-lightest: #e1e3e5;
+  --color-primary-light-hover: #cacaca;
   --color-secondary-darkest: #110b02;
   --color-secondary-dark: #322716;
   --color-secondary-mid: #796444;
@@ -99,13 +101,14 @@ fieldset label {
 /* Global INPUT / SELECT Styles */
 input,
 select {
-  padding-top: 2px;
-  padding-bottom: 2px;
+  width: 100%;
+  height: 100%;
+  padding-top: 1px;
+  padding-bottom: 1px;
   font-weight: bold;
   border-width: 1pt;
   border-style: solid;
   /*noinspection CssUnresolvedCustomProperty*/
-  width: var(--width, 100%);
 }
 input::placeholder {
   font-style: italic;
@@ -213,6 +216,9 @@ span.mirror {
   transform: scaleX(-1);
   display: inline-block;
 }
+span.input-actions {
+  height: 20px;
+}
 span.input-actions input {
   flex-grow: 1;
   border-style: none;
@@ -229,39 +235,34 @@ span.input-actions button {
   /*noinspection CssUnresolvedCustomProperty*/
   font-family: 'Red Hat Mono';
 }
+span.input-actions button.dark {
+  background-color: var(--color-primary-dark);
+  border-color: #687483;
+}
+span.input-actions button.light {
+  background-color: var(--color-primary-lightest);
+  border-color: #2f3e4f;
+}
 span.input-actions button.dark:hover {
-  opacity: 1;
-  background-color: #303644ff;
+  background-color: var(--color-primary-dark-hover);
   font-weight: bolder;
 }
 span.input-actions button.light:hover {
-  opacity: 1;
-  background-color: #101821;
+  background-color: var(--color-primary-light-hover);
   font-weight: bolder;
-}
-span.input-actions button.dark {
-  background-color: #101821;
-  border-color: #687483;
-  opacity: 0.5;
-}
-span.input-actions button.light {
-  background-color: #e1e3e5;
-  border-color: #2f3e4f;
-  opacity: 0.5;
 }
 span.input-actions button.active {
   outline-style: inset;
   outline-offset: -1px;
   outline-width: 2px;
-  opacity: 1;
 }
 span.input-actions button.active.dark {
-  background-color: var(--color-primary-light);
+  background-color: var(--color-primary-dark-hover);
   outline-color: var(--color-primary-lightest);
 }
 span.input-actions button.active.light {
-  background-color: var(--color-primary-dark);
-  outline-color: var(--color-primary-darkest);
+  background-color: var(--color-primary-light-hover);
+  outline-color: var(--color-primary-mid);
 }
 span.input-actions span.inline-container {
   display: flex;
@@ -273,21 +274,13 @@ span.input-actions.dark {
   display: flex;
   flex-direction: column;
   width: 100%;
-  background-color: #101821;
-  border-color: #687483;
-  border-style: solid;
-  border-width: 1pt;
-  padding: 0 2px 0 2px;
+  background-color: var(--color-primary-dark);
 }
 span.input-actions.light {
   display: flex;
   flex-direction: column;
   width: 100%;
-  background-color: #e1e3e5;
-  border-color: #2f3e4f;
-  border-style: solid;
-  border-width: 1pt;
-  padding: 0 2px 0 2px;
+  background-color: var(--color-primary-light);
 }
 
 /* Hide scrollbar by default on webkit-based browsers */
@@ -310,6 +303,26 @@ div.hide-scrollbar::-webkit-scrollbar {
 }
 .dataEditor div {
   resize: none;
+}
+.dataEditor div.byte.dark {
+  background-color: var(--color-primary-dark);
+  border-color: var(--color-primary-dark);
+}
+.dataEditor div.byte.light {
+  background-color: var(--color-primary-lightest);
+  border-color: var(--color-primary-lightest);
+}
+.dataEditor div.byte.selected.dark {
+  background-color: var(--color-secondary-mid);
+}
+.dataEditor div.byte.selecting.dark {
+  border-color: var(--color-secondary-mid);
+}
+.dataEditor div.byte.selected.light {
+  background-color: var(--color-secondary-light);
+}
+.dataEditor div.byte.selecting.light {
+  border-color: var(--color-secondary-light);
 }
 .dataEditor div.hd {
   text-align: center;

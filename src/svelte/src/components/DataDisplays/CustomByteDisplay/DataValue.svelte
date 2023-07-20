@@ -29,6 +29,7 @@ limitations under the License.
   } from './BinaryData'
   import { SelectionData_t } from '../../../stores'
   import { type ByteDivWidth } from '../../../utilities/display'
+  import { UIThemeCSSClass } from '../../../utilities/colorScheme'
 
   export let id: ViewportDataType
   export let byte: ByteValue
@@ -41,6 +42,7 @@ limitations under the License.
 
   const eventDispatcher = createEventDispatcher()
 
+  let selected = false
   let bgColor: string
   let borderColor: string
   let singleSelected,
@@ -61,15 +63,16 @@ limitations under the License.
   }
   $: {
     if ((singleSelected || withinSelectionRange) && selectionData.active)
-      bgColor = 'var(--color-secondary-mid)'
+      selected = true
     else if (
       makingSelection &&
       (byte.offset === selectionData.startOffset ||
         byte.offset === selectionData.endOffset)
-    )
+    ) {
+      selected = false
       borderColor = 'var(--color-secondary-mid)'
-    else {
-      bgColor = 'var(--color-primary-dark)'
+    } else {
+      selected = false
       borderColor = 'var(--color-primary-dark)'
     }
   }
@@ -108,10 +111,10 @@ limitations under the License.
 {:else if id === 'physical'}
   <!-- svelte-ignore a11y-no-static-element-interactions -->
   <div
-    class="byte"
+    class="byte {$UIThemeCSSClass}"
+    class:selected
     id={id + '-' + byte.offset.toString()}
     style:width
-    style:background-color={bgColor}
     style:border-color={makingSelection ? borderColor : bgColor}
     on:mouseup={mouse_event_handle}
     on:mousedown={mouse_event_handle}
@@ -127,11 +130,11 @@ limitations under the License.
 {:else}
   <!-- svelte-ignore a11y-no-static-element-interactions -->
   <div
-    class="byte"
+    class="byte {$UIThemeCSSClass}"
+    class:selected
     id={id + '-' + byte.offset.toString()}
     style:width={'20px'}
     class:latin1Undefined={latin1Undefined(byte.value)}
-    style:background-color={bgColor}
     style:border-color={makingSelection ? borderColor : bgColor}
     on:mouseup={mouse_event_handle}
     on:mousedown={mouse_event_handle}
