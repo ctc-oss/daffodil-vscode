@@ -100,15 +100,11 @@ limitations under the License.
   })
 </script>
 
-<BinaryValueActions
-  byte={$selectedByte}
-  on:commitChanges
-  on:handleEditorEvent
-/>
-
 <DataLineFeed
   on:traverse-file
   on:seek
+  on:commitChanges
+  on:handleEditorEvent
   viewportData={$viewport}
   lineTop={$dataFeedLineTop}
   bytesPerRow={$bytesPerRow}

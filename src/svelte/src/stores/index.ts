@@ -102,6 +102,7 @@ export const searchCaseInsensitive = writable(false)
 
 export const dataFeedLineTop = writable(0)
 export const dataFeedAwaitRefresh = writable(false)
+export const rerenderActionElements = writable(false)
 // data in the viewport
 // export const viewportData = writable(new Uint8Array(0))
 

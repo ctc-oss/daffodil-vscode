@@ -28,9 +28,7 @@ limitations under the License.
     type ViewportDataType,
   } from './BinaryData'
   import { SelectionData_t } from '../../../stores'
-  import {
-    type ByteDivWidth,
-  } from '../../../utilities/display'
+  import { type ByteDivWidth } from '../../../utilities/display'
 
   export let id: ViewportDataType
   export let byte: ByteValue

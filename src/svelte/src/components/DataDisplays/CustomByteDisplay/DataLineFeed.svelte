@@ -21,6 +21,7 @@ limitations under the License.
     editMode,
     editorEncoding,
     focusedViewportId,
+    rerenderActionElements,
     seekOffsetInput,
     selectionDataStore,
     selectionSize,
@@ -48,7 +49,14 @@ limitations under the License.
   } from './BinaryData'
   import DataValue from './DataValue.svelte'
   import FileTraversalIndicator from './FileTraversalIndicator.svelte'
-  import { byteDivWidthFromRadix, type ByteDivWidth } from '../../../utilities/display'
+  import {
+    byteDivWidthFromRadix,
+    type ByteDivWidth,
+    byte_count_divisible_offset,
+    viewport_offset_to_line_num,
+  } from '../../../utilities/display'
+  import BinaryValueActions from './BinaryValueActions.svelte'
+  import SelectedByteEdit from './SelectedByteEdit.svelte'
 
   export let lineTop: number
   export let awaitViewportScroll: boolean
@@ -131,7 +139,7 @@ limitations under the License.
 
   let viewportLines: Array<ViewportLineData> = []
   let viewportDataContainer: HTMLDivElement
-  let byteElementWidth: ByteDivWidth
+  let selectedByteElement: HTMLDivElement
 
   onMount(() => {
     viewportDataContainer = document.getElementById(
@@ -140,6 +148,7 @@ limitations under the License.
     viewportDataContainer.addEventListener('wheel', navigation_wheel_event)
   })
 
+  let lineTopFileOffset: number
   $: {
     totalLinesPerFilesize = Math.ceil($fileMetrics.computedSize / bytesPerRow)
     totalLinesPerViewport = Math.ceil(viewportData.data.length / bytesPerRow)
@@ -159,16 +168,29 @@ limitations under the License.
       $selectionDataStore.active || (atViewportHead && atFileHead)
     disableIncrement =
       $selectionDataStore.active || (atViewportTail && atFileTail)
+    lineTopFileOffset = lineTop * bytesPerRow
   }
 
   $: {
-    if (viewportData.fileOffset >= 0 && !awaitViewportScroll)
+    if (viewportData.fileOffset >= 0 && !awaitViewportScroll && lineTop >= 0) {
+      if (
+        viewportLines.length !== 0 &&
+        bytesPerRow !== viewportLines[0].bytes.length
+      ) {
+        lineTop = viewport_offset_to_line_num(
+          parseInt(viewportLines[0].offset, addressRadix),
+          viewportData.fileOffset,
+          bytesPerRow
+        )
+      }
+
       viewportLines = generate_line_data(
         lineTop,
         dataRadix,
         addressRadix,
         bytesPerRow
       )
+    }
   }
   $: byteElementWidth = byteDivWidthFromRadix(dataRadix)
 
@@ -323,7 +345,8 @@ limitations under the License.
         ? selectionEvent.targetByte
         : null_byte()
 
-    update_byte_action_offsets(selectionEvent.targetElement)
+    // update_byte_action_offsets(selectionEvent.targetElement)
+    selectedByteElement = selectionEvent.targetElement
 
     editedDataSegment.update(() => {
       return viewportData.data.slice(
@@ -380,7 +403,7 @@ limitations under the License.
   }
 
   $: {
-    tick()
+    // tick()
     if ($selectionDataStore.active) {
       window.removeEventListener('keydown', navigation_keydown_event)
       if (viewportDataContainer)
@@ -402,14 +425,29 @@ limitations under the License.
         if (awaitViewportScroll) {
           awaitViewportScroll = false
           lineTop = Math.max(0, Math.min(lineTopMaxViewport, lineTop))
+          if ($selectionDataStore.active)
+            selectedByteElement = document.getElementById(
+              $selectedByte.offset.toString()
+            ) as HTMLDivElement
         }
         break
     }
   })
 </script>
 
+{#if $selectionDataStore.active && $editMode == EditByteModes.Single}
+  {#key $selectedByte || selectedByteElement || dataRadix}
+    <SelectedByteEdit
+      byte={$selectedByte}
+      on:seek
+      on:commitChanges
+      on:handleEditorEvent
+    />
+  {/key}
+{/if}
+
 <div class="container" style:height id={CONTAINER_ID}>
-  {#each viewportLines as viewportLine}
+  {#each viewportLines as viewportLine, i}
     <div
       class={`line ${viewportLine.highlight}`}
       title={`file line #${viewportLine.fileLine}`}
@@ -418,7 +456,10 @@ limitations under the License.
         <b>{viewportLine.offset}</b>
       </div>
 
-      <div class="byte-line">
+      <div
+        class="byte-line"
+        id="physical-line-{i.toString(16).padStart(2, '0')}"
+      >
         {#each viewportLine.bytes as byte}
           <DataValue
             {byte}
@@ -435,7 +476,10 @@ limitations under the License.
         {/each}
       </div>
 
-      <div class="byte-line">
+      <div
+        class="byte-line"
+        id="logical-line-{i.toString(16).padStart(2, '0')}"
+      >
         {#each viewportLine.bytes as byte}
           <DataValue
             {byte}
