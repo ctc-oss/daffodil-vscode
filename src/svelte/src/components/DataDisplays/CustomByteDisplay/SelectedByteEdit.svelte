@@ -32,6 +32,7 @@ limitations under the License.
     seekOffsetInput,
     addressRadix,
     rerenderActionElements,
+    focusedViewportId,
   } from '../../../stores'
   import { enterKeypressEvents } from '../../../utilities/enterKeypressEvents'
   import {
@@ -40,9 +41,6 @@ limitations under the License.
     type ByteValue,
     type EditAction,
   } from './BinaryData'
-  import type { BytesPerRow } from '../../../stores/configuration'
-  import AddressDisplayContainer from './AddressDisplayContainer.svelte'
-  import { fileMetrics } from '../../Header/fieldsets/FileMetrics'
 
   const eventDispatcher = createEventDispatcher()
 
@@ -56,7 +54,6 @@ limitations under the License.
     position: ActionElementPosition
     HTMLRef: HTMLDivElement | HTMLInputElement
   }
-
   type ActionElements = {
     [k in Actions]: ActionElement
   }
@@ -94,9 +91,9 @@ limitations under the License.
   export let byte: ByteValue
   let target: HTMLDivElement
   let targetParent: HTMLDivElement
+  let targetElementId: string
   let BPR = $bytesPerRow
 
-  // let targetParent = document.getElementById(target.parentElement.id) as HTMLDivElement
   let editedByteText: string
   let invalid: boolean
   let inProgress: boolean
@@ -108,7 +105,11 @@ limitations under the License.
   $: {
     active = $selectionDataStore.active
     BPR = $bytesPerRow
-    elementDivWidth = byteDivWidthFromRadix($displayRadix)
+    elementDivWidth =
+      $focusedViewportId === 'physical'
+        ? byteDivWidthFromRadix($displayRadix)
+        : '20px'
+    targetElementId = byteOffsetToElementId(byte.offset)
   }
   $: {
     if (
@@ -132,7 +133,7 @@ limitations under the License.
   }
 
   onMount(() => {
-    target = document.getElementById(byte.offset.toString()) as HTMLDivElement
+    target = document.getElementById(targetElementId) as HTMLDivElement
     if (target) targetParent = target.parentElement as HTMLDivElement
     else {
       // if byte.offset within viewport but outside of display
@@ -141,7 +142,7 @@ limitations under the License.
       return
     }
 
-    $editorSelection = byte_value_string(byte.value, $displayRadix)
+    $editorSelection = byte.text
     grab_action_element_refs()
     initialize_action_elements()
     return restore_original_target
@@ -192,7 +193,7 @@ limitations under the License.
 
       case 'insert-before':
         {
-          const previousByteId = (byte.offset - 1).toString()
+          const previousByteId = byteOffsetToElementId(byte.offset - 1)
           const insertBeforeElement = document.getElementById(
             actionElements['insert-before'].id
           ) as HTMLDivElement
@@ -224,7 +225,7 @@ limitations under the License.
 
       case 'insert-after':
         {
-          const nextByteId = (byte.offset + 1).toString()
+          const nextByteId = byteOffsetToElementId(byte.offset + 1)
           const insertAfterElement = document.getElementById(
             actionElements['insert-after'].id
           ) as HTMLDivElement
@@ -297,7 +298,9 @@ limitations under the License.
   function handleEditorEvent() {
     eventDispatcher('handleEditorEvent')
   }
-
+  function byteOffsetToElementId(byteOffset: number): string {
+    return $focusedViewportId + '-' + byteOffset.toString()
+  }
   function element_byteline_position(
     targetElement: HTMLDivElement
   ): number | undefined {

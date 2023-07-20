@@ -503,6 +503,7 @@ limitations under the License.
       totalLines={totalLinesPerFilesize}
       currentLine={lineTop}
       fileOffset={viewportData.fileOffset}
+      maxDisplayLines={NUM_LINES_DISPLAYED}
       bind:percentageTraversed
       on:indicatorClicked={handleClickedIndicator}
       {bytesPerRow}
@@ -540,9 +541,6 @@ limitations under the License.
       </Button>
     </FlexContainer>
   </FlexContainer>
-  <!-- DEBUG START TODO: Remove once this is completely working -->
-  Percentage traversed: {percentageTraversed}%
-  <!-- DEBUG END -->
 </div>
 
 <style lang="scss">

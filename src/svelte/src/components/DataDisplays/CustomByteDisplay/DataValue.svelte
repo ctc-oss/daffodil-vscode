@@ -109,7 +109,7 @@ limitations under the License.
   <!-- svelte-ignore a11y-no-static-element-interactions -->
   <div
     class="byte"
-    id={byte.offset.toString()}
+    id={id + '-' + byte.offset.toString()}
     style:width
     style:background-color={bgColor}
     style:border-color={makingSelection ? borderColor : bgColor}
@@ -128,6 +128,7 @@ limitations under the License.
   <!-- svelte-ignore a11y-no-static-element-interactions -->
   <div
     class="byte"
+    id={id + '-' + byte.offset.toString()}
     style:width={'20px'}
     class:latin1Undefined={latin1Undefined(byte.value)}
     style:background-color={bgColor}

@@ -24,12 +24,27 @@ limitations under the License.
   export let fileOffset = 0
   export let bytesPerRow = 16
   export let percentageTraversed
+  export let maxDisplayLines = 20
 
   let indicatorContainer: HTMLElement
+  let indicatorClickDisabled: boolean = false
 
   $: {
-    percentageTraversed =
-      ((currentLine + (fileOffset / bytesPerRow + 20)) / totalLines) * 100.0
+    if (totalLines <= maxDisplayLines) {
+      percentageTraversed = 100.0
+      indicatorClickDisabled = true
+      if (indicatorContainer)
+        indicatorContainer.removeEventListener(
+          'click',
+          updatePercentageTraversed
+        )
+    } else {
+      indicatorClickDisabled = false
+      percentageTraversed =
+        ((currentLine + (fileOffset / bytesPerRow + 20)) / totalLines) * 100.0
+      if (indicatorContainer)
+        indicatorContainer.addEventListener('click', updatePercentageTraversed)
+    }
   }
 
   function updatePercentageTraversed(e: MouseEvent) {
@@ -48,11 +63,7 @@ limitations under the License.
   }
 </script>
 
-<div
-  class="traversal-container"
-  bind:this={indicatorContainer}
-  on:click={(e) => updatePercentageTraversed(e)}
->
+<div class="traversal-container" bind:this={indicatorContainer}>
   <div class="traversal-thumb" style:width="{percentageTraversed}%" />
 </div>
 
