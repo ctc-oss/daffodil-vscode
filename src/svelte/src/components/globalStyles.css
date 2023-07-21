@@ -146,12 +146,19 @@ body {
 }
 
 body.light {
-  color: #02060b;
+  color: var(--color-primary-darkest);
 }
 body.dark {
-  color: #e1e3e5;
+  color: var(--color-primary-lightest);
 }
-
+div.light,
+span.light {
+  background-color: var(--color-primary-light);
+}
+div.dark,
+span.dark {
+  background-color: var(--color-primary-dark);
+}
 label {
   white-space: nowrap;
   overflow-wrap: break-word;
@@ -312,18 +319,7 @@ div.hide-scrollbar::-webkit-scrollbar {
   background-color: var(--color-primary-lightest);
   border-color: var(--color-primary-lightest);
 }
-.dataEditor div.byte.selected.dark {
-  background-color: var(--color-secondary-mid);
-}
-.dataEditor div.byte.selecting.dark {
-  border-color: var(--color-secondary-mid);
-}
-.dataEditor div.byte.selected.light {
-  background-color: var(--color-secondary-light);
-}
-.dataEditor div.byte.selecting.light {
-  border-color: var(--color-secondary-light);
-}
+
 .dataEditor div.hd {
   text-align: center;
   font-weight: bold;

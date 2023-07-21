@@ -41,7 +41,6 @@ limitations under the License.
   import { onMount, tick } from 'svelte'
   import { vscode } from '../../utilities/vscode'
   import { EditByteModes } from '../../stores/configuration'
-  import BinaryValueActions from './CustomByteDisplay/BinaryValueActions.svelte'
   import { selectedByte, viewport } from './CustomByteDisplay/BinaryData'
   import DataLineFeed from './CustomByteDisplay/DataLineFeed.svelte'
 

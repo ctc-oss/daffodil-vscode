@@ -41,6 +41,10 @@ limitations under the License.
     type ByteValue,
     type EditAction,
   } from './BinaryData'
+  import {
+    UIThemeCSSClass,
+    type CSSThemeClass,
+  } from '../../../utilities/colorScheme'
 
   const eventDispatcher = createEventDispatcher()
 
@@ -101,7 +105,9 @@ limitations under the License.
 
   let elementDivWidth: ByteDivWidth
   let restorationFns: Array<() => void> = []
+  let themeClass: CSSThemeClass
 
+  $: themeClass = $UIThemeCSSClass
   $: {
     active = $selectionDataStore.active
     BPR = $bytesPerRow
@@ -186,73 +192,59 @@ limitations under the License.
   function setup_action_element(element: Actions) {
     switch (element) {
       case 'input':
-        const inputContainer = document.getElementById(actionElements.input.id)
-          .parentElement as HTMLInputElement
+        const inputContainer = actionElements[element].HTMLRef
+          .parentElement as HTMLDivElement
         apply_element_replacements(targetParent, target, inputContainer)
         break
 
       case 'insert-before':
         {
           const previousByteId = byteOffsetToElementId(byte.offset - 1)
-          const insertBeforeElement = document.getElementById(
-            actionElements['insert-before'].id
-          ) as HTMLDivElement
+          const insertBeforeElement = actionElements[element]
+            .HTMLRef as HTMLDivElement
           let elementToReplace = document.getElementById(
             previousByteId
           ) as HTMLDivElement
+
           if (!elementToReplace) break
 
-          if (targetParent.contains(elementToReplace))
-            apply_element_replacements(
-              targetParent,
-              elementToReplace,
-              insertBeforeElement
-            )
-          else {
-            const targetOffset = byte.offset - 1
-            elementToReplace = document.getElementById(
-              targetOffset.toString()
-            ) as HTMLDivElement
-            if (elementToReplace)
-              apply_element_replacements(
+          targetParent.contains(elementToReplace)
+            ? apply_element_replacements(
+                targetParent,
+                elementToReplace,
+                insertBeforeElement
+              )
+            : apply_element_replacements(
                 elementToReplace.parentElement,
                 elementToReplace,
                 insertBeforeElement
               )
-          }
         }
         break
 
       case 'insert-after':
         {
           const nextByteId = byteOffsetToElementId(byte.offset + 1)
-          const insertAfterElement = document.getElementById(
-            actionElements['insert-after'].id
-          ) as HTMLDivElement
+          const insertAfterElement = actionElements[element]
+            .HTMLRef as HTMLDivElement
 
           let elementToReplace = document.getElementById(
             nextByteId
           ) as HTMLDivElement
+
           if (!elementToReplace) break
 
-          if (targetParent.contains(elementToReplace))
-            apply_element_replacements(
-              targetParent,
-              elementToReplace,
-              insertAfterElement
-            )
-          else {
-            const targetOffset = byte.offset + 1
-            elementToReplace = document.getElementById(
-              targetOffset.toString()
-            ) as HTMLDivElement
-            if (elementToReplace)
-              apply_element_replacements(
+          targetParent.contains(elementToReplace)
+            ? apply_element_replacements(
+                targetParent,
+                elementToReplace,
+                insertAfterElement
+              )
+            : apply_element_replacements(
                 elementToReplace.parentElement,
                 elementToReplace,
                 insertAfterElement
               )
-          }
         }
         break
     }
@@ -312,7 +304,7 @@ limitations under the License.
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <div
-  class="insert-before"
+  class="insert-before {themeClass}"
   id={actionElements['insert-before'].id}
   style:width={elementDivWidth}
   on:click={send_insert}
@@ -323,7 +315,7 @@ limitations under the License.
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <div
-  class="insert-after"
+  class="insert-after {themeClass}"
   id={actionElements['insert-after'].id}
   style:width={elementDivWidth}
   on:click={send_insert}
@@ -333,7 +325,7 @@ limitations under the License.
 
 <span>
   <input
-    class="insert"
+    class="insert {themeClass}"
     id={actionElements['input'].id}
     class:invalid
     class:inProgress
@@ -346,7 +338,7 @@ limitations under the License.
   <!-- svelte-ignore a11y-click-events-have-key-events -->
   <!-- svelte-ignore a11y-no-static-element-interactions -->
   <div
-    class="delete"
+    class="delete {themeClass}"
     id={actionElements['delete'].id}
     style:width={elementDivWidth}
     on:click={send_delete}
@@ -384,9 +376,15 @@ limitations under the License.
     outline: none;
   }
   input {
-    background-color: var(--color-primary-mid);
-    color: var(--color-secondary-lightest);
     padding: 0;
+  }
+  input.light {
+    background-color: var(--color-secondary-mid);
+    color: var(--color-secondary-lightest);
+  }
+  input.dark {
+    background-color: var(--color-secondary-dark);
+    color: var(--color-secondary-lightest);
   }
   input.invalid {
     border-color: crimson;
@@ -407,7 +405,7 @@ limitations under the License.
     font-size: 20px;
     border-style: dashed;
     border-color: var(--color-secondary-mid);
-    background-color: var(--color-primary-dark);
+    background-color: transparent;
   }
   div.insert-before:hover,
   div.insert-after:hover {

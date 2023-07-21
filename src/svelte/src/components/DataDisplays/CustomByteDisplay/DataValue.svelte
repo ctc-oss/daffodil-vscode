@@ -43,6 +43,7 @@ limitations under the License.
   const eventDispatcher = createEventDispatcher()
 
   let selected = false
+  let consideredForSelection = false
   let bgColor: string
   let borderColor: string
   let singleSelected,
@@ -62,19 +63,25 @@ limitations under the License.
         : false
   }
   $: {
-    if ((singleSelected || withinSelectionRange) && selectionData.active)
-      selected = true
-    else if (
-      makingSelection &&
-      (byte.offset === selectionData.startOffset ||
-        byte.offset === selectionData.endOffset)
-    ) {
-      selected = false
-      borderColor = 'var(--color-secondary-mid)'
+    if (selectionData.active) {
+      selected = singleSelected || withinSelectionRange
+      consideredForSelection = false
+    } else if (makingSelection) {
+      consideredForSelection = byte_within_selection_range(
+        selectionData.startOffset,
+        selectionData.endOffset
+      )
     } else {
       selected = false
-      borderColor = 'var(--color-primary-dark)'
+      consideredForSelection = false
     }
+    // if ((singleSelected || withinSelectionRange) && selectionData.active){
+    //   hoveredWhileSelecting = false
+    //   selected = true
+    // }
+    // else {
+    //   selected = false
+    // }
   }
 
   function mouse_enter_handle(event: MouseEvent) {
@@ -83,8 +90,7 @@ limitations under the License.
   }
   function mouse_leave_handle(event: MouseEvent) {
     if (!makingSelection) return
-    if (byte.offset != selectionData.startOffset)
-      borderColor = 'var(--color-primary-dark)'
+    selectionData.endOffset = -1
   }
   function mouse_event_handle(event: MouseEvent) {
     const type = event.type
@@ -96,12 +102,12 @@ limitations under the License.
       fromViewport: id,
     } as ByteSelectionEvent)
   }
-
-  function byte_within_selection_range(): boolean {
-    return (
-      byte.offset >= selectionData.startOffset &&
-      byte.offset <= selectionData.originalEndOffset
-    )
+  // function curried_within_range(start: number = selectionData.startOffset, end: number = selectionData.originalEndOffset) : ()
+  function byte_within_selection_range(
+    start: number = selectionData.startOffset,
+    end: number = selectionData.originalEndOffset
+  ): boolean {
+    return byte.offset >= start && byte.offset <= end
   }
 </script>
 
@@ -111,31 +117,29 @@ limitations under the License.
 {:else if id === 'physical'}
   <!-- svelte-ignore a11y-no-static-element-interactions -->
   <div
-    class="byte {$UIThemeCSSClass}"
+    class="byte"
     class:selected
+    class:selecting={consideredForSelection}
     id={id + '-' + byte.offset.toString()}
     style:width
-    style:border-color={makingSelection ? borderColor : bgColor}
     on:mouseup={mouse_event_handle}
     on:mousedown={mouse_event_handle}
     on:mouseenter={mouse_enter_handle}
     on:mouseleave={mouse_leave_handle}
   >
     {#if radix === RADIX_OPTIONS.Hexadecimal}
-      {byte.text.toUpperCase()}
-    {:else}
       {byte.text}
     {/if}
   </div>
 {:else}
   <!-- svelte-ignore a11y-no-static-element-interactions -->
   <div
-    class="byte {$UIThemeCSSClass}"
+    class="byte"
     class:selected
+    class:selecting={consideredForSelection}
     id={id + '-' + byte.offset.toString()}
     style:width={'20px'}
     class:latin1Undefined={latin1Undefined(byte.value)}
-    style:border-color={makingSelection ? borderColor : bgColor}
     on:mouseup={mouse_event_handle}
     on:mousedown={mouse_event_handle}
   >
@@ -145,6 +149,7 @@ limitations under the License.
 
 <style>
   div.byte {
+    background-color: transparent;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -153,13 +158,19 @@ limitations under the License.
     border-radius: 5px;
     border-style: solid;
     border-width: 2px;
+    border-color: transparent;
     height: 20px;
     text-align: center;
-    border-color: var(--color-primary-dark);
     transition: all 0.25s;
   }
+  div.byte.selected {
+    background-color: var(--color-secondary-mid);
+  }
+  div.byte.selecting {
+    border-color: var(--color-secondary-light);
+  }
   div.byte:hover {
-    border-color: var(--color-primary-mid);
+    border-color: var(--color-secondary-mid);
     cursor: pointer;
   }
   div.byte::selection {

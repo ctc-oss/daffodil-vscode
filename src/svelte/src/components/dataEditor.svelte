@@ -61,6 +61,7 @@ limitations under the License.
     byte_count_divisible_offset,
     viewport_offset_to_line_num,
   } from '../utilities/display'
+  import { activeSelectionHighlights } from '../utilities/highlights'
 
   $: $UIThemeCSSClass = $darkUITheme ? CSSThemeClass.Dark : CSSThemeClass.Light
 

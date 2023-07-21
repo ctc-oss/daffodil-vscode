@@ -55,12 +55,15 @@ limitations under the License.
     byte_count_divisible_offset,
     viewport_offset_to_line_num,
   } from '../../../utilities/display'
-  import BinaryValueActions from './BinaryValueActions.svelte'
   import SelectedByteEdit from './SelectedByteEdit.svelte'
   import {
     UIThemeCSSClass,
     type CSSThemeClass,
   } from '../../../utilities/colorScheme'
+  import {
+    activeSelectionHighlights,
+    processingSelectionHighlights,
+  } from '../../../utilities/highlights'
 
   export let lineTop: number
   export let awaitViewportScroll: boolean
@@ -455,7 +458,7 @@ limitations under the License.
 <div class="container" style:height id={CONTAINER_ID}>
   {#each viewportLines as viewportLine, i}
     <div
-      class={`line ${viewportLine.highlight}`}
+      class={`line ${viewportLine.highlight} ${themeClass}`}
       title={`file line #${viewportLine.fileLine}`}
     >
       <div class="address" id="address">
@@ -574,12 +577,6 @@ limitations under the License.
     display: flex;
     align-items: center;
   }
-  div.container div.line.even {
-    background-color: var(--color-primary-mid);
-  }
-  div.container div.line.odd {
-    background-color: var(--color-primary-dark);
-  }
   div.container div.line div.address {
     width: 110px;
     direction: rtl;
@@ -590,21 +587,27 @@ limitations under the License.
     background-color: transparent;
   }
   div.container .line .byte-line {
-    background-color: var(--color-primary-dark);
     display: flex;
     flex-direction: row;
-    // width: 100%;
     border-width: 0px 2px 0px 2px;
-    border-color: var(--color-primary-mid);
+    border-color: var(--color-primary-darkest);
     border-style: solid;
-  }
-  div.byte {
-    width: 24px;
-    height: 100%;
   }
   div.file-traversal-indicator {
     width: 100%;
     height: 100%;
     background-color: var(--color-secondary-dark);
+  }
+  div.line.light.even {
+    background-color: var(--color-primary-light-hover);
+  }
+  div.line.light.odd {
+    background-color: var(--color-primary-lightest);
+  }
+  div.line.dark.even {
+    background-color: var(--color-primary-mid);
+  }
+  div.line.dark.odd {
+    background-color: var(--color-primary-dark);
   }
 </style>
