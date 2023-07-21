@@ -148,7 +148,7 @@ limitations under the License.
   let viewportDataContainer: HTMLDivElement
   let selectedByteElement: HTMLDivElement
   let themeClass: CSSThemeClass
-
+  let activeSelection = []
   onMount(() => {
     viewportDataContainer = document.getElementById(
       CONTAINER_ID
@@ -202,7 +202,7 @@ limitations under the License.
     }
   }
   $: byteElementWidth = byteDivWidthFromRadix(dataRadix)
-
+  $: activeSelection = $activeSelectionHighlights
   function generate_line_data(
     startIndex: number,
     dataRadix: RadixValues,
@@ -472,12 +472,11 @@ limitations under the License.
         {#each viewportLine.bytes as byte}
           <DataValue
             {byte}
+            isSelected={activeSelection[byte.offset]}
             id={'physical'}
             radix={dataRadix}
             width={byteElementWidth}
-            editMode={$editMode}
             disabled={byte.offset > viewportData.length}
-            selectedByte={$selectedByte}
             selectionData={$selectionDataStore}
             on:mouseup={mouseup}
             on:mousedown={mousedown}
@@ -492,12 +491,11 @@ limitations under the License.
         {#each viewportLine.bytes as byte}
           <DataValue
             {byte}
+            isSelected={activeSelection[byte.offset]}
             id={'logical'}
             radix={dataRadix}
             width={byteElementWidth}
-            editMode={$editMode}
             disabled={byte.offset > viewportData.length}
-            selectedByte={$selectedByte}
             selectionData={$selectionDataStore}
             on:mouseup={mouseup}
             on:mousedown={mousedown}

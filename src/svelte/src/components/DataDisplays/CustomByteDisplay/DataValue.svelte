@@ -29,60 +29,22 @@ limitations under the License.
   } from './BinaryData'
   import { SelectionData_t } from '../../../stores'
   import { type ByteDivWidth } from '../../../utilities/display'
-  import { UIThemeCSSClass } from '../../../utilities/colorScheme'
 
   export let id: ViewportDataType
   export let byte: ByteValue
-  export let editMode: EditByteModes
   export let selectionData: SelectionData_t
-  export let selectedByte: ByteValue
   export let radix: RadixValues
   export let disabled = false
   export let width: ByteDivWidth = '20px'
+  export let isSelected: boolean = false
 
   const eventDispatcher = createEventDispatcher()
 
-  let selected = false
   let consideredForSelection = false
-  let bgColor: string
-  let borderColor: string
-  let singleSelected,
-    withinSelectionRange,
-    makingSelection = false
+  let makingSelection = false
 
   $: makingSelection =
     selectionData.startOffset >= 0 && selectionData.active === false
-  $: singleSelected =
-    selectionData.active && editMode === EditByteModes.Single
-      ? selectedByte.offset === byte.offset
-      : false
-  $: {
-    withinSelectionRange =
-      selectionData.active && editMode === EditByteModes.Multiple
-        ? byte_within_selection_range()
-        : false
-  }
-  $: {
-    if (selectionData.active) {
-      selected = singleSelected || withinSelectionRange
-      consideredForSelection = false
-    } else if (makingSelection) {
-      consideredForSelection = byte_within_selection_range(
-        selectionData.startOffset,
-        selectionData.endOffset
-      )
-    } else {
-      selected = false
-      consideredForSelection = false
-    }
-    // if ((singleSelected || withinSelectionRange) && selectionData.active){
-    //   hoveredWhileSelecting = false
-    //   selected = true
-    // }
-    // else {
-    //   selected = false
-    // }
-  }
 
   function mouse_enter_handle(event: MouseEvent) {
     if (!makingSelection) return
@@ -102,13 +64,6 @@ limitations under the License.
       fromViewport: id,
     } as ByteSelectionEvent)
   }
-  // function curried_within_range(start: number = selectionData.startOffset, end: number = selectionData.originalEndOffset) : ()
-  function byte_within_selection_range(
-    start: number = selectionData.startOffset,
-    end: number = selectionData.originalEndOffset
-  ): boolean {
-    return byte.offset >= start && byte.offset <= end
-  }
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -118,7 +73,7 @@ limitations under the License.
   <!-- svelte-ignore a11y-no-static-element-interactions -->
   <div
     class="byte"
-    class:selected
+    class:isSelected
     class:selecting={consideredForSelection}
     id={id + '-' + byte.offset.toString()}
     style:width
@@ -135,7 +90,7 @@ limitations under the License.
   <!-- svelte-ignore a11y-no-static-element-interactions -->
   <div
     class="byte"
-    class:selected
+    class:isSelected
     class:selecting={consideredForSelection}
     id={id + '-' + byte.offset.toString()}
     style:width={'20px'}
@@ -163,7 +118,7 @@ limitations under the License.
     text-align: center;
     transition: all 0.25s;
   }
-  div.byte.selected {
+  div.byte.isSelected {
     background-color: var(--color-secondary-mid);
   }
   div.byte.selecting {
