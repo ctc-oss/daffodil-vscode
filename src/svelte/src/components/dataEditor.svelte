@@ -97,12 +97,16 @@ limitations under the License.
 
     const relativeFileLine = Math.floor(offset / $bytesPerRow)
     const relativeFileOffset = relativeFileLine * $bytesPerRow
-
+    const lineTopBoundary = Math.floor($viewport.length / $bytesPerRow) - 20
     let relativeTargetLine = relativeFileLine
     let viewportStartOffset = $viewport.fileOffset
 
     // make sure that the offset is within the loaded viewport
-    if (offset < $viewport.fileOffset || offset > viewportBoundary) {
+    if (
+      offset < $viewport.fileOffset ||
+      offset > viewportBoundary ||
+      relativeTargetLine > lineTopBoundary
+    ) {
       let adjustedFileOffset = Math.max(0, relativeFileOffset - 512)
       const fetchPastFileBoundary = fileSize - adjustedFileOffset < 1024
       if (fetchPastFileBoundary)
@@ -311,6 +315,7 @@ limitations under the License.
           length: msg.data.data.viewportLength,
           bytesLeft: msg.data.data.viewportFollowingByteCount,
         } as ViewportData_t
+
         break
     }
   })

@@ -62,7 +62,7 @@ limitations under the License.
   } from '../../../utilities/colorScheme'
   import {
     activeSelectionHighlights,
-    processingSelectionHighlights,
+    searchResultsHighlights,
   } from '../../../utilities/highlights'
 
   export let lineTop: number
@@ -148,7 +148,10 @@ limitations under the License.
   let viewportDataContainer: HTMLDivElement
   let selectedByteElement: HTMLDivElement
   let themeClass: CSSThemeClass
-  let activeSelection = []
+  let activeSelection: Uint8Array
+  let lineTopFileOffset: number
+  let searchResults: Uint8Array
+
   onMount(() => {
     viewportDataContainer = document.getElementById(
       CONTAINER_ID
@@ -156,7 +159,6 @@ limitations under the License.
     viewportDataContainer.addEventListener('wheel', navigation_wheel_event)
   })
 
-  let lineTopFileOffset: number
   $: themeClass = $UIThemeCSSClass
   $: {
     totalLinesPerFilesize = Math.ceil($fileMetrics.computedSize / bytesPerRow)
@@ -202,7 +204,11 @@ limitations under the License.
     }
   }
   $: byteElementWidth = byteDivWidthFromRadix(dataRadix)
-  $: activeSelection = $activeSelectionHighlights
+  $: {
+    activeSelection = $activeSelectionHighlights
+    searchResults = $searchResultsHighlights
+  }
+
   function generate_line_data(
     startIndex: number,
     dataRadix: RadixValues,
@@ -473,6 +479,8 @@ limitations under the License.
           <DataValue
             {byte}
             isSelected={activeSelection[byte.offset]}
+            isSearchResult={searchResults[byte.offset] >>
+              activeSelection[byte.offset]}
             id={'physical'}
             radix={dataRadix}
             width={byteElementWidth}
@@ -492,6 +500,8 @@ limitations under the License.
           <DataValue
             {byte}
             isSelected={activeSelection[byte.offset]}
+            isSearchResult={searchResults[byte.offset] >>
+              activeSelection[byte.offset]}
             id={'logical'}
             radix={dataRadix}
             width={byteElementWidth}

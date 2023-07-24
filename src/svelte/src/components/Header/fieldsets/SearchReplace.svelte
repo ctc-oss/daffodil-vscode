@@ -43,6 +43,8 @@ limitations under the License.
   import { createEventDispatcher } from 'svelte'
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
   import ToggleableButton from '../../Inputs/Buttons/ToggleableButton.svelte'
+  import { updateSearchResultsHighlights } from '../../../utilities/highlights'
+  import { viewport } from '../../DataDisplays/CustomByteDisplay/BinaryData'
 
   const eventDispatcher = createEventDispatcher()
 
@@ -56,6 +58,8 @@ limitations under the License.
   let replaceStarted: boolean = false
   let showReplaceOptions: boolean = false
 
+  let searchReplaceButtonWidth = '85pt'
+  let searchNavButtonWidth = '55pt'
   $: {
     containerClass = CSSThemeClass('input-actions')
     inlineClass = CSSThemeClass('inline-container')
@@ -69,6 +73,7 @@ limitations under the License.
     $searchCaseInsensitive = !$searchCaseInsensitive
     caseInsensitiveToggled = !caseInsensitiveToggled
   }
+
   function search() {
     searchQuery.clear()
     showReplaceOptions = false
@@ -156,6 +161,7 @@ limitations under the License.
         break
     }
   }
+
   function CSSThemeClass(selectors?: string) {
     return selectors + ' ' + $UIThemeCSSClass
   }
@@ -165,14 +171,17 @@ limitations under the License.
     searchQuery.updateSearchResults($searchQuery.searchIndex)
     eventDispatcher('seek')
   }
+
   function scrollSearchNext() {
     searchQuery.updateSearchResults(++$searchQuery.searchIndex)
     eventDispatcher('seek')
   }
+
   function scrollSearchPrev() {
     searchQuery.updateSearchResults(--$searchQuery.searchIndex)
     eventDispatcher('seek')
   }
+
   function scrollSearchLast() {
     searchQuery.updateSearchResults($searchQuery.searchResults.length - 1)
     eventDispatcher('seek')
@@ -194,6 +203,12 @@ limitations under the License.
             startOffset = $searchQuery.searchResults[0]
           }
         }
+        updateSearchResultsHighlights(
+          $searchQuery.searchResults,
+          $viewport.fileOffset,
+          $searchQuery.input.length
+        )
+
         break
 
       case MessageCommand.replaceResults:
@@ -240,6 +255,12 @@ limitations under the License.
             break
         }
         break
+      case MessageCommand.viewportRefresh:
+        updateSearchResultsHighlights(
+          $searchQuery.searchResults,
+          $viewport.fileOffset,
+          $searchQuery.input.length
+        )
     }
   })
 </script>
@@ -264,6 +285,7 @@ limitations under the License.
         fn={() => {
           eventDispatcher('seek')
         }}
+        --width={searchReplaceButtonWidth}
       >
         <span slot="left" class="btn-icon material-symbols-outlined">start</span
         >
@@ -286,23 +308,6 @@ limitations under the License.
             Aa
           </ToggleableButton>
         </Input>
-        <!-- <span class={containerClass}>
-          <span class={inlineClass}>
-            <input
-              id="search"
-              type="search"
-              class={inputClass}
-              placeholder="Search"
-              bind:value={$searchQuery.input}
-            />
-            <button
-              class="{$UIThemeCSSClass} case-btn"
-              on:click={case_sensitive_action}
-              class:active={$searchCaseInsensitive}
-              title="Toggle Case Sensitive Search"><u>Aa</u></button
-            >
-          </span>
-        </span> -->
       {:else}
         <Input
           id="search"
@@ -312,7 +317,11 @@ limitations under the License.
         />
       {/if}
       <Error err={searchErr} display={searchErrDisplay} />
-      <Button disabledBy={!$searchable} fn={search}>
+      <Button
+        disabledBy={!$searchable}
+        fn={search}
+        --width={searchReplaceButtonWidth}
+      >
         <span slot="left" class="btn-icon material-symbols-outlined"
           >search</span
         >
@@ -329,7 +338,11 @@ limitations under the License.
         on:inputEnter={handleInputEnter}
       />
       <Error err={replaceErr} display={replaceErrDisplay} />
-      <Button disabledBy={!$replaceable} fn={startReplace}>
+      <Button
+        disabledBy={!$replaceable}
+        fn={startReplace}
+        --width={searchReplaceButtonWidth}
+      >
         <span slot="left" class="btn-icon material-symbols-outlined"
           >find_replace</span
         >
@@ -337,27 +350,27 @@ limitations under the License.
       </Button>
     </FlexContainer>
 
-    {#if !showReplaceOptions && $searchQuery.searchResults.length > 0}
+    {#if !showReplaceOptions && $searchQuery.searchResults.length > 1}
       <FlexContainer --dir="row">
-        <Button fn={scrollSearchFirst}>
+        <Button --width={searchNavButtonWidth} fn={scrollSearchFirst}>
           <span slot="left" class="btn-icon material-symbols-outlined"
             >first_page</span
           >
           <span slot="default">&nbsp;First</span></Button
         >
-        <Button fn={scrollSearchPrev}>
+        <Button --width={searchNavButtonWidth} fn={scrollSearchPrev}>
           <span slot="left" class="btn-icon material-symbols-outlined"
             >navigate_before</span
           >
           <span slot="default">&nbsp;Prev</span></Button
         >
-        <Button fn={scrollSearchNext}>
+        <Button --width={searchNavButtonWidth} fn={scrollSearchNext}>
           <span slot="default">Next&nbsp;</span>
           <span slot="right" class="btn-icon material-symbols-outlined"
             >navigate_next</span
           ></Button
         >
-        <Button fn={scrollSearchLast}>
+        <Button --width={searchNavButtonWidth} fn={scrollSearchLast}>
           <span slot="default">Last&nbsp;</span>
           <span slot="right" class="btn-icon material-symbols-outlined"
             >last_page</span

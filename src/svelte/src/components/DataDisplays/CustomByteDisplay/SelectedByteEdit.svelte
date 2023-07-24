@@ -378,13 +378,9 @@ limitations under the License.
   input {
     padding: 0;
   }
-  input.light {
-    background-color: var(--color-secondary-mid);
-    color: var(--color-secondary-lightest);
-  }
-  input.dark {
-    background-color: var(--color-secondary-dark);
-    color: var(--color-secondary-lightest);
+  input {
+    background-color: var(--color-secondary-light);
+    color: var(--color-secondary-darkest);
   }
   input.invalid {
     border-color: crimson;

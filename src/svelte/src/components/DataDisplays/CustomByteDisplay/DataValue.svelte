@@ -36,7 +36,8 @@ limitations under the License.
   export let radix: RadixValues
   export let disabled = false
   export let width: ByteDivWidth = '20px'
-  export let isSelected: boolean = false
+  export let isSelected = 0
+  export let isSearchResult = 0
 
   const eventDispatcher = createEventDispatcher()
 
@@ -74,6 +75,7 @@ limitations under the License.
   <div
     class="byte"
     class:isSelected
+    class:isSearchResult
     class:selecting={consideredForSelection}
     id={id + '-' + byte.offset.toString()}
     style:width
@@ -91,6 +93,7 @@ limitations under the License.
   <div
     class="byte"
     class:isSelected
+    class:isSearchResult
     class:selecting={consideredForSelection}
     id={id + '-' + byte.offset.toString()}
     style:width={'20px'}
@@ -119,7 +122,12 @@ limitations under the License.
     transition: all 0.25s;
   }
   div.byte.isSelected {
-    background-color: var(--color-secondary-mid);
+    background-color: var(--color-secondary-light);
+    color: var(--color-secondary-darkest);
+  }
+  div.byte.isSearchResult {
+    background-color: aquamarine;
+    color: var(--color-secondary-darkest);
   }
   div.byte.selecting {
     border-color: var(--color-secondary-light);

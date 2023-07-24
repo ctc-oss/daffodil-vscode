@@ -57,6 +57,24 @@ export const ENCODING_GROUPS = [
   },
 ]
 
+export type AvailableStrEncodings =
+  | 'hex'
+  | 'binary'
+  | 'ascii'
+  | 'latin1'
+  | 'utf-8'
+  | 'utf-16'
+
+export type StrEncodingByteWidths = { [k in AvailableStrEncodings]: number }
+export const StrEncodingByteWidths: StrEncodingByteWidths = {
+  hex: 1,
+  binary: 1,
+  ascii: 1,
+  latin1: 1,
+  'utf-8': 1 | 2 | 4,
+  'utf-16': 2 | 4,
+}
+
 export const EDIT_ACTIONS = [
   { name: 'Delete, Insert, and Overwrite', value: 'delete-insert-overwrite' },
   { name: 'Overwrite Only', value: 'overwrite-only' },

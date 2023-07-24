@@ -15,14 +15,21 @@
  * limitations under the License.
  */
 
-import { derived, get, writable } from 'svelte/store'
+import { derived, get, readable, writable } from 'svelte/store'
 import { selectionDataStore } from '../stores'
 import { viewport } from '../components/DataDisplays/CustomByteDisplay/BinaryData'
+import { searchQuery } from '../components/Header/fieldsets/SearchReplace'
 
-export type ViewportByteHightlightLUT = Array<boolean>
+let activeSelectionHighlightLUT = new Uint8Array(1024)
 
-let activeSelectionHighlightLUT = Array(1024) as ViewportByteHightlightLUT
-let processingSelectionHighlightLUT = Array(1024) as ViewportByteHightlightLUT
+let searchResultsHighlightLUT = new Uint8Array(1024).fill(0)
+
+export enum HightlightCategoryMasks {
+  None = 0,
+  ActiveSelection = 1,
+  ConsideredForSelection = 2,
+  SearchResult = 4,
+}
 
 export const activeSelectionHighlights = derived(
   [selectionDataStore],
@@ -31,23 +38,30 @@ export const activeSelectionHighlights = derived(
     const end = $selectionData.originalEndOffset
 
     for (let i = 0; i < 1024; i++) {
-      activeSelectionHighlightLUT[i] = i >= start && i <= end ? true : false
+      activeSelectionHighlightLUT[i] = i >= start && i <= end ? 1 : 0
     }
 
     return activeSelectionHighlightLUT
   }
 )
 
-export const processingSelectionHighlights = derived(
-  [selectionDataStore],
-  ([$selectionData]) => {
-    const start = $selectionData.startOffset
-    const end = $selectionData.endOffset
-    console.log(start, end)
-    for (let i = 0; i < 1024; i++) {
-      processingSelectionHighlightLUT[i] = i >= start && i <= end ? true : false
-    }
+export const searchResultsHighlights = readable(searchResultsHighlightLUT)
+export function updateSearchResultsHighlights(
+  data: number[],
+  viewportFileOffset: number,
+  byteWidth: number
+) {
+  const criteriaStart = data.findIndex((x) => x >= viewportFileOffset)
+  const criteriaEnd = data.findIndex((x) => x >= viewportFileOffset + 1024)
+  const searchCriteria = data.slice(
+    criteriaStart,
+    criteriaEnd >= 0 ? criteriaEnd : data.length
+  )
 
-    return processingSelectionHighlightLUT
-  }
-)
+  searchResultsHighlightLUT.fill(0)
+
+  searchCriteria.forEach((offset) => {
+    for (let i = 0; i < byteWidth; i++)
+      searchResultsHighlightLUT[offset - viewportFileOffset + i] = 1
+  })
+}
