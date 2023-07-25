@@ -113,7 +113,7 @@ limitations under the License.
     align-items: center;
     flex-direction: row;
     font-family: var(--monospace-font);
-    border-radius: 5px;
+    /* border-radius: 5px; */
     border-style: solid;
     border-width: 2px;
     border-color: transparent;
@@ -126,7 +126,7 @@ limitations under the License.
     color: var(--color-secondary-darkest);
   }
   div.byte.isSearchResult {
-    background-color: aquamarine;
+    background-color: var(--color-tertiary-light);
     color: var(--color-secondary-darkest);
   }
   div.byte.selecting {

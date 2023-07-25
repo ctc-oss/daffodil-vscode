@@ -53,6 +53,12 @@ html {
   --color-secondary-mid: #796444;
   --color-secondary-light: #c8b69b;
   --color-secondary-lightest: #fffdfa;
+  --color-tertiary-lightest: #d0dcd4;
+  --color-tertiary-light: #adc2b4;
+  --color-tertiary-mid: #95b19f;
+  --color-tertiary-dark: #5f816b;
+  --color-tertiary-darkest: #232f27;
+  --color-alternate-grey: #bbb5bd;
 }
 
 /* Global LEGEND Styles */
@@ -215,6 +221,7 @@ button.light {
 
 span.btn-icon {
   font-size: large;
+  font-weight: 700;
 }
 span.errMsg {
   color: red;
@@ -222,14 +229,6 @@ span.errMsg {
 span.mirror {
   transform: scaleX(-1);
   display: inline-block;
-}
-span.input-actions {
-  height: 20px;
-}
-span.input-actions input {
-  flex-grow: 1;
-  border-style: none;
-  border: 0;
 }
 span.input-actions button {
   height: 100%;
@@ -271,25 +270,6 @@ span.input-actions button.active.light {
   background-color: var(--color-primary-light-hover);
   outline-color: var(--color-primary-mid);
 }
-span.input-actions span.inline-container {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  height: 100%;
-}
-span.input-actions.dark {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  background-color: var(--color-primary-dark);
-}
-span.input-actions.light {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  background-color: var(--color-primary-light);
-}
-
 /* Hide scrollbar by default on webkit-based browsers */
 div.hide-scrollbar::-webkit-scrollbar {
   display: none;

@@ -190,7 +190,7 @@ limitations under the License.
         </Button>
       </FlexContainer>
     </FlexContainer>
-    <FlexContainer --dir="column" --align-items="center">
+    <FlexContainer --dir="column" --align-items="end">
       <Button fn={toggleDataProfiler}>
         <span slot="left" class="btn-icon material-symbols-outlined"
           >functions</span

@@ -156,4 +156,39 @@ limitations under the License.
   .checkbox {
     width: auto;
   }
+  span.input-actions {
+    height: 20px;
+    border: 2px solid var(--color-secondary-mid);
+  }
+  span.input-actions input {
+    flex-grow: 1;
+    border: none;
+  }
+  span.input-actions input {
+    flex-grow: 1;
+    border: none;
+  }
+  span.input-actions input:focus {
+    outline: none;
+    border-color: var(--color-alternate-grey);
+    border: 1px solid;
+  }
+  span.input-actions span.inline-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    height: 100%;
+  }
+  span.input-actions.dark {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    background-color: var(--color-primary-dark);
+  }
+  span.input-actions.light {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    background-color: var(--color-primary-light);
+  }
 </style>

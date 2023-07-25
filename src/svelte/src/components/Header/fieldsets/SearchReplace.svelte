@@ -244,6 +244,11 @@ limitations under the License.
             } else {
               showReplaceOptions = false
             }
+            updateSearchResultsHighlights(
+              $searchQuery.searchResults,
+              $viewport.fileOffset,
+              $searchQuery.input.length
+            )
             // reset replace query count after 5 seconds
             setTimeout(() => {
               $replaceQuery.count = -1
@@ -254,6 +259,11 @@ limitations under the License.
             showReplaceOptions = false
             $searchQuery.searchResults = []
             $replaceQuery.count = msg.data.data.replacementsCount
+            updateSearchResultsHighlights(
+              $searchQuery.searchResults,
+              $viewport.fileOffset,
+              $searchQuery.input.length
+            )
             // reset replace query count after 5 seconds
             setTimeout(() => {
               $replaceQuery.count = -1
@@ -291,7 +301,7 @@ limitations under the License.
         fn={() => {
           eventDispatcher('seek')
         }}
-        --width={searchReplaceButtonWidth}
+        width={searchReplaceButtonWidth}
       >
         <span slot="left" class="btn-icon material-symbols-outlined">start</span
         >
@@ -326,7 +336,7 @@ limitations under the License.
       <Button
         disabledBy={!$searchable}
         fn={search}
-        --width={searchReplaceButtonWidth}
+        width={searchReplaceButtonWidth}
       >
         <span slot="left" class="btn-icon material-symbols-outlined"
           >search</span
@@ -347,7 +357,7 @@ limitations under the License.
       <Button
         disabledBy={!$replaceable}
         fn={startReplace}
-        --width={searchReplaceButtonWidth}
+        width={searchReplaceButtonWidth}
       >
         <span slot="left" class="btn-icon material-symbols-outlined"
           >find_replace</span
@@ -358,25 +368,25 @@ limitations under the License.
 
     {#if !showReplaceOptions && $searchQuery.searchResults.length > 1}
       <FlexContainer --dir="row">
-        <Button --width={searchNavButtonWidth} fn={scrollSearchFirst}>
+        <Button width={searchNavButtonWidth} fn={scrollSearchFirst}>
           <span slot="left" class="btn-icon material-symbols-outlined"
             >first_page</span
           >
           <span slot="default">&nbsp;First</span></Button
         >
-        <Button --width={searchNavButtonWidth} fn={scrollSearchPrev}>
+        <Button width={searchNavButtonWidth} fn={scrollSearchPrev}>
           <span slot="left" class="btn-icon material-symbols-outlined"
             >navigate_before</span
           >
           <span slot="default">&nbsp;Prev</span></Button
         >
-        <Button --width={searchNavButtonWidth} fn={scrollSearchNext}>
+        <Button width={searchNavButtonWidth} fn={scrollSearchNext}>
           <span slot="default">Next&nbsp;</span>
           <span slot="right" class="btn-icon material-symbols-outlined"
             >navigate_next</span
           ></Button
         >
-        <Button --width={searchNavButtonWidth} fn={scrollSearchLast}>
+        <Button width={searchNavButtonWidth} fn={scrollSearchLast}>
           <span slot="default">Last&nbsp;</span>
           <span slot="right" class="btn-icon material-symbols-outlined"
             >last_page</span

@@ -15,27 +15,66 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
+  import { onMount } from 'svelte'
   export let fn: (event?: Event) => void
   export let disabledBy = false
   export let width = ''
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
   import FlexContainer from '../../layouts/FlexContainer.svelte'
+
+  onMount(() => {
+    collapseContent = document.body.clientWidth <= 1600
+  })
+
+  let collapseContentFn: NodeJS.Timeout
+  let collapseContent = false
+  window.addEventListener('resize', () => {
+    clearTimeout(collapseContentFn)
+    collapseContentFn = setTimeout(() => {
+      collapseContent = document.body.clientWidth <= 1700
+      console.log(document.body.clientWidth)
+    }, 100)
+  })
 </script>
 
-<button
-  class={$UIThemeCSSClass}
-  disabled={disabledBy}
-  on:click={!disabledBy ? fn : () => {}}
-  style:width
->
-  <FlexContainer --dir="row" --align-items="center" --justify-content="center">
-    <svelte:fragment>
-      <slot name="left" />
-      <slot />
-      <slot name="right" />
-    </svelte:fragment>
-  </FlexContainer>
-</button>
+{#if collapseContent}
+  <button
+    class={$UIThemeCSSClass}
+    disabled={disabledBy}
+    on:click={!disabledBy ? fn : () => {}}
+    style:width="25pt"
+  >
+    <FlexContainer
+      --dir="row"
+      --align-items="center"
+      --justify-content="center"
+    >
+      <svelte:fragment>
+        <slot name="left" />
+        <slot name="right" />
+      </svelte:fragment>
+    </FlexContainer>
+  </button>
+{:else}
+  <button
+    class={$UIThemeCSSClass}
+    disabled={disabledBy}
+    on:click={!disabledBy ? fn : () => {}}
+    style:width
+  >
+    <FlexContainer
+      --dir="row"
+      --align-items="center"
+      --justify-content="center"
+    >
+      <svelte:fragment>
+        <slot name="left" />
+        <slot />
+        <slot name="right" />
+      </svelte:fragment>
+    </FlexContainer>
+  </button>
+{/if}
 
 <style lang="scss">
   button {

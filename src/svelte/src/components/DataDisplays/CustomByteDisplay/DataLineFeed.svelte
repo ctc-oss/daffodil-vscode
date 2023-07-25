@@ -527,32 +527,32 @@ limitations under the License.
     />
     <FlexContainer --dir="row">
       <Button fn={SCROLL_TO_END} disabledBy={disableIncrement} width="30pt">
-        <span slot="default" class="btn-icon material-symbols-outlined"
+        <span slot="left" class="btn-icon material-symbols-outlined"
           >stat_minus_3</span
         >
       </Button>
       <Button fn={INCREMENT_SEGMENT} disabledBy={disableIncrement} width="30pt">
-        <span slot="default" class="btn-icon material-symbols-outlined"
+        <span slot="left" class="btn-icon material-symbols-outlined"
           >keyboard_double_arrow_down</span
         >
       </Button>
       <Button fn={INCREMENT_LINE} disabledBy={disableIncrement} width="30pt">
-        <span slot="default" class="btn-icon material-symbols-outlined"
+        <span slot="left" class="btn-icon material-symbols-outlined"
           >keyboard_arrow_down</span
         >
       </Button>
       <Button fn={DECREMENT_LINE} disabledBy={disableDecrement} width="30pt">
-        <span slot="default" class="btn-icon material-symbols-outlined"
+        <span slot="left" class="btn-icon material-symbols-outlined"
           >keyboard_arrow_up</span
         >
       </Button>
       <Button fn={DECREMENT_SEGMENT} disabledBy={disableDecrement} width="30pt">
-        <span slot="default" class="btn-icon material-symbols-outlined"
+        <span slot="left" class="btn-icon material-symbols-outlined"
           >keyboard_double_arrow_up</span
         >
       </Button>
       <Button fn={SCROLL_TO_TOP} disabledBy={disableDecrement} width="30pt">
-        <span slot="default" class="btn-icon material-symbols-outlined"
+        <span slot="left" class="btn-icon material-symbols-outlined"
           >stat_3</span
         >
       </Button>
