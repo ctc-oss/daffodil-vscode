@@ -84,9 +84,7 @@ limitations under the License.
     on:mouseenter={mouse_enter_handle}
     on:mouseleave={mouse_leave_handle}
   >
-    {#if radix === RADIX_OPTIONS.Hexadecimal}
-      {byte.text}
-    {/if}
+    {byte.text}
   </div>
 {:else}
   <!-- svelte-ignore a11y-no-static-element-interactions -->
