@@ -21,17 +21,17 @@ limitations under the License.
     editorActionsAllowed,
     editorEncoding,
     searchCaseInsensitive,
-    seekOffsetInput,
     seekable,
+    seekOffsetInput,
   } from '../../../stores'
   import {
-    seekErr,
-    searchErr,
-    replaceErr,
-    searchable,
     replaceable,
-    searchQuery,
+    replaceErr,
     replaceQuery,
+    searchable,
+    searchErr,
+    searchQuery,
+    seekErr,
   } from './SearchReplace'
   import { vscode } from '../../../utilities/vscode'
   import { MessageCommand, ReplaceStrategy } from '../../../utilities/message'
@@ -45,6 +45,7 @@ limitations under the License.
   import ToggleableButton from '../../Inputs/Buttons/ToggleableButton.svelte'
   import { updateSearchResultsHighlights } from '../../../utilities/highlights'
   import { viewport } from '../../DataDisplays/CustomByteDisplay/BinaryData'
+  import { SEARCH_AND_REPLACE_MAX_RESULTS } from '../../../stores/configuration'
 
   const eventDispatcher = createEventDispatcher()
 
@@ -86,6 +87,7 @@ limitations under the License.
         searchData: $searchQuery.input,
         caseInsensitive: $searchCaseInsensitive,
         encoding: $editorEncoding,
+        limit: SEARCH_AND_REPLACE_MAX_RESULTS,
       },
     })
     $searchQuery.processing = true
@@ -108,6 +110,7 @@ limitations under the License.
         encoding: $editorEncoding,
         startOffset: startOffset + 1,
         replaceStrategy: ReplaceStrategy.searchNext,
+        limit: SEARCH_AND_REPLACE_MAX_RESULTS,
       },
     })
   }
@@ -129,6 +132,7 @@ limitations under the License.
         overwriteOnly: $editorActionsAllowed === 'overwrite-only',
         startOffset: startOffset,
         replaceStrategy: strategy,
+        limit: SEARCH_AND_REPLACE_MAX_RESULTS,
       },
     })
     $replaceQuery.processing = true
@@ -191,6 +195,7 @@ limitations under the License.
     switch (msg.data.command) {
       case MessageCommand.searchResults:
         $searchQuery.searchResults = msg.data.data.searchResults
+        $searchQuery.overflow = msg.data.data.overflow
         $searchQuery.processing = false
         if ($searchQuery.searchResults.length > 0) {
           searchQuery.updateSearchResults($searchQuery.searchIndex)
@@ -214,6 +219,7 @@ limitations under the License.
       case MessageCommand.replaceResults:
         $searchQuery.processing = false
         $replaceQuery.processing = false
+        $replaceQuery.overflow = msg.data.data.overflow
         switch (msg.data.data.replaceStrategy) {
           case ReplaceStrategy.searchNext:
             ++$replaceQuery.skipCount
@@ -379,7 +385,9 @@ limitations under the License.
       </FlexContainer>
       <FlexContainer --dir="row">
         <sub
-          >{$searchQuery.searchIndex + 1} / {$searchQuery.searchResults.length} Results</sub
+          >{$searchQuery.overflow ? 'top ' : ''}{$searchQuery.searchIndex + 1} /
+          {$searchQuery.searchResults.length}{$searchQuery.overflow ? '+' : ''}
+          Results</sub
         >
       </FlexContainer>
     {/if}
@@ -396,7 +404,12 @@ limitations under the License.
           <span slot="left" class="icon-container">
             <span class="btn-icon material-symbols-outlined">find_replace</span>
             <div class="icon-badge">
-              {$searchQuery.searchResults.length + $replaceQuery.skipCount}
+              {#if $searchQuery.overflow}
+                {$searchQuery.overflow ? 'top ' : ''}{$searchQuery.searchResults
+                  .length}
+              {:else}
+                {$searchQuery.searchResults.length + $replaceQuery.skipCount}
+              {/if}
             </div>
           </span>
           <span slot="default">&nbsp;All</span></Button
@@ -404,7 +417,10 @@ limitations under the License.
         <Button fn={replaceRest}>
           <span slot="left" class="icon-container">
             <span class="btn-icon material-symbols-outlined">find_replace</span>
-            <div class="icon-badge">{$searchQuery.searchResults.length}</div>
+            <div class="icon-badge">
+              {$searchQuery.overflow ? 'top ' : ''}{$searchQuery.searchResults
+                .length}
+            </div>
           </span>
           <span slot="default">&nbsp;Rest</span></Button
         >
@@ -435,6 +451,7 @@ limitations under the License.
   fieldset {
     width: 100%;
   }
+
   button.case-btn {
     margin-right: 5px;
     width: fit-content;

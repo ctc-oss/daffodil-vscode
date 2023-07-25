@@ -34,6 +34,7 @@ class SearchData implements QueryableData {
   isValid: boolean = false
   searchIndex: number = 0
   searchResults: Array<number> = []
+  overflow: boolean = false
 }
 class SearchQuery extends SimpleWritable<SearchData> {
   protected init(): SearchData {
@@ -75,6 +76,7 @@ class ReplaceData implements QueryableData {
   count: number = -1
   replaceOneCount: number = 0
   skipCount: number = 0
+  overflow: boolean = false
 }
 export class ReplaceQuery extends SimpleWritable<ReplaceData> {
   protected init(): ReplaceData {

@@ -485,12 +485,13 @@ export class DataEditorClient implements vscode.Disposable {
               {
                 // pause viewport events before replacing, then resume after replacing
                 await pauseViewportEvents(this.omegaSessionId)
+                const searchDataBytes = encodedStrToData(
+                  message.data.searchData,
+                  message.data.encoding
+                )
                 const replacementsCount = await replaceSession(
                   this.omegaSessionId,
-                  encodedStrToData(
-                    message.data.searchData,
-                    message.data.encoding
-                  ),
+                  searchDataBytes,
                   encodedStrToData(
                     message.data.replaceData,
                     message.data.encoding
@@ -498,9 +499,18 @@ export class DataEditorClient implements vscode.Disposable {
                   message.data.caseInsensitive,
                   message.data.startOffset,
                   0,
-                  0,
+                  message.data.limit,
                   true,
                   message.data.overwriteOnly
+                )
+                // check for overflow
+                const searchResults = await searchSession(
+                  this.omegaSessionId,
+                  searchDataBytes,
+                  message.data.caseInsensitive,
+                  message.data.startOffset,
+                  0,
+                  1
                 )
                 await resumeViewportEvents(this.omegaSessionId)
                 await notifyChangedViewports(this.omegaSessionId)
@@ -509,6 +519,7 @@ export class DataEditorClient implements vscode.Disposable {
                   data: {
                     replaceStrategy: ReplaceStrategy.ReplaceAll,
                     replacementsCount: replacementsCount,
+                    overflow: searchResults.length > 0,
                   },
                 })
                 await this.sendChangesInfo()
@@ -555,12 +566,17 @@ export class DataEditorClient implements vscode.Disposable {
                     message.data.caseInsensitive,
                     nextOffset,
                     0,
-                    0
+                    message.data.limit + 1
                   )
                   if (searchResults.length === 0) {
                     vscode.window.showInformationMessage(
                       `No more matches found for '${message.data.searchData}'`
                     )
+                  }
+                  let overflow = false
+                  if (searchResults.length > message.data.limit) {
+                    overflow = true
+                    searchResults.pop()
                   }
                   await this.panel.webview.postMessage({
                     command: MessageCommand.replaceResults,
@@ -568,6 +584,7 @@ export class DataEditorClient implements vscode.Disposable {
                       replaceStrategy: ReplaceStrategy.ReplaceOne,
                       replacementsCount: 1,
                       searchResults: searchResults,
+                      overflow: overflow,
                     },
                   })
                 }
@@ -586,18 +603,24 @@ export class DataEditorClient implements vscode.Disposable {
                   message.data.caseInsensitive,
                   message.data.startOffset,
                   0,
-                  0
+                  message.data.limit + 1
                 )
                 if (searchResults.length === 0) {
                   vscode.window.showInformationMessage(
                     `No more matches found for '${message.data.searchData}'`
                   )
                 }
+                let overflow = false
+                if (searchResults.length > message.data.limit) {
+                  overflow = true
+                  searchResults.pop()
+                }
                 await this.panel.webview.postMessage({
                   command: MessageCommand.replaceResults,
                   data: {
                     replaceStrategy: ReplaceStrategy.searchNext,
                     searchResults: searchResults,
+                    overflow: overflow,
                   },
                 })
               }
@@ -618,17 +641,23 @@ export class DataEditorClient implements vscode.Disposable {
             message.data.caseInsensitive,
             0,
             0,
-            0
+            message.data.limit + 1
           )
           if (searchResults.length === 0) {
             vscode.window.showInformationMessage(
               `No matches found for '${message.data.searchData}'`
             )
           }
+          let overflow = false
+          if (searchResults.length > message.data.limit) {
+            overflow = true
+            searchResults.pop()
+          }
           await this.panel.webview.postMessage({
             command: MessageCommand.searchResults,
             data: {
               searchResults: searchResults,
+              overflow: overflow,
             },
           })
         }
