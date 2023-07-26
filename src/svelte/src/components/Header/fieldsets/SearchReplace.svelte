@@ -321,6 +321,7 @@ limitations under the License.
             --width="24px"
             fn={case_sensitive_action}
             active={$searchCaseInsensitive}
+            description="Case sensitive search: {$searchCaseInsensitive}"
           >
             Aa
           </ToggleableButton>

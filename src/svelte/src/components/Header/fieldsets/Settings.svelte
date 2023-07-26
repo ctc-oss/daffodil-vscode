@@ -28,7 +28,10 @@ limitations under the License.
   import FlexContainer from '../../layouts/FlexContainer.svelte'
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
   import Button from '../../Inputs/Buttons/Button.svelte'
-  import { tooltipsEnabled } from '../../../utilities/display'
+  import {
+    sizeHumanReadable,
+    tooltipsEnabled,
+  } from '../../../utilities/display'
   import ConfigurationToggle from '../../Inputs/Buttons/ConfigurationToggle.svelte'
 </script>
 
@@ -77,8 +80,12 @@ limitations under the License.
 
     <hr />
     <ConfigurationToggle
-      configItem="Show tooltips"
+      configItem="Show Tooltips"
       bind:toggleBind={$tooltipsEnabled}
+    />
+    <ConfigurationToggle
+      configItem="Shorthand Filesize"
+      bind:toggleBind={$sizeHumanReadable}
     />
   </FlexContainer>
 </fieldset>

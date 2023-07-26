@@ -22,7 +22,6 @@ limitations under the License.
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
   import FlexContainer from '../../layouts/FlexContainer.svelte'
   import Tooltip from '../../layouts/Tooltip.svelte'
-  import { tooltipsEnabled } from '../../../utilities/display'
 
   onMount(() => {
     collapseContent = document.body.clientWidth <= 1600
@@ -41,7 +40,7 @@ limitations under the License.
 </script>
 
 {#if collapseContent}
-  <Tooltip {description} enabledIf={$tooltipsEnabled}>
+  <Tooltip {description}>
     <button
       class={$UIThemeCSSClass + ' collapsed'}
       disabled={disabledBy}

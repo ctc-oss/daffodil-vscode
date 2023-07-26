@@ -332,6 +332,7 @@ div.hide-scrollbar::-webkit-scrollbar {
 }
 .dataEditor div.measure.selection {
   flex-direction: row;
+  overflow: scroll;
 }
 .dataEditor div.measure.selection sub {
   opacity: 0.6;

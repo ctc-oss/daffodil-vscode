@@ -15,10 +15,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
+  import { tooltipsEnabled } from '../../utilities/display'
+
   const NULL = () => {}
 
   export let description: string
-  export let enabledIf: boolean
 
   let showTooltip = false
   let left = 0,
@@ -40,7 +41,7 @@ limitations under the License.
   }
 </script>
 
-{#if enabledIf}
+{#if $tooltipsEnabled}
   <!-- svelte-ignore a11y-no-static-element-interactions -->
   <span
     on:mouseenter={showTooltip ? NULL : renderTooltip}

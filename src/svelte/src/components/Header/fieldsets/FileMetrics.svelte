@@ -25,6 +25,10 @@ limitations under the License.
   import SidePanel from '../../layouts/SidePanel.svelte'
   import ByteFrequencyGraph from '../../DataMetrics/ByteFrequencyGraph.svelte'
   import { viewport } from '../../DataDisplays/CustomByteDisplay/BinaryData'
+  import {
+    humanReadableByteLength,
+    sizeHumanReadable,
+  } from '../../../utilities/display'
   const eventDispatcher = createEventDispatcher()
 
   let displayOpts = false
@@ -151,12 +155,18 @@ limitations under the License.
   <FlexContainer --dir="row">
     <FlexContainer --dir="column">
       <label for="disk_file_size">Disk Size</label>
-      <span id="disk_file_size" class="nowrap">{$fileMetrics.diskSize}</span>
+      <span id="disk_file_size" class="nowrap"
+        >{$sizeHumanReadable
+          ? humanReadableByteLength($fileMetrics.diskSize)
+          : $fileMetrics.diskSize}</span
+      >
     </FlexContainer>
     <FlexContainer --dir="column">
       <label for="computed_file_size">Computed Size</label>
       <span id="computed_file_size" class="nowrap"
-        >{$fileMetrics.computedSize}</span
+        >{$sizeHumanReadable
+          ? humanReadableByteLength($fileMetrics.diskSize)
+          : $fileMetrics.diskSize}</span
       >
     </FlexContainer>
     <FlexContainer --dir="column">

@@ -21,23 +21,32 @@ limitations under the License.
   export let active = false
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
   import FlexContainer from '../../layouts/FlexContainer.svelte'
+  import Tooltip from '../../layouts/Tooltip.svelte'
+
+  export let description: string
 </script>
 
-<button
-  class={$UIThemeCSSClass}
-  disabled={disabledBy}
-  on:click={!disabledBy ? fn : () => {}}
-  style:width
-  class:active
->
-  <FlexContainer --dir="row" --align-items="center" --justify-content="center">
-    <svelte:fragment>
-      <slot name="left" />
-      <slot />
-      <slot name="right" />
-    </svelte:fragment>
-  </FlexContainer>
-</button>
+<Tooltip {description}>
+  <button
+    class={$UIThemeCSSClass}
+    disabled={disabledBy}
+    on:click={!disabledBy ? fn : () => {}}
+    style:width
+    class:active
+  >
+    <FlexContainer
+      --dir="row"
+      --align-items="center"
+      --justify-content="center"
+    >
+      <svelte:fragment>
+        <slot name="left" />
+        <slot />
+        <slot name="right" />
+      </svelte:fragment>
+    </FlexContainer>
+  </button>
+</Tooltip>
 
 <style lang="scss">
   button {

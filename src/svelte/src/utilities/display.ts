@@ -44,9 +44,14 @@ const ByteDivWidths = {
   2: '64px' as ByteDivWidth,
 }
 
+export type BinaryBytePrefix = 'B' | 'KB' | 'MB' | 'GB' | 'TB' | 'PB'
+export type BinaryBitPrefix = 'b' | 'Kb' | 'Mb' | 'Gb' | 'Tb' | 'Pb'
+type ValidByteOctetCount = 1 | 2 | 3 | 4
+
 export const DISPLAYED_DATA_LINES = 20
 
 export const tooltipsEnabled = writable(false)
+export const sizeHumanReadable = writable(false)
 
 export function viewport_references(
   viewport?: Viewport
@@ -104,8 +109,6 @@ export function regexEditDataTest(
   const decimal_regex = /^[0-9]*$/
   const octal_regex = /^[0-7]*$/
   const hex_regex = /^[0-9a-fA-F]*$/
-  // const base64_regex =
-  //   /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/
 
   switch (dataType) {
     case 'binary':
@@ -208,4 +211,29 @@ export function viewport_offset_to_line_num(
   bytesPerRow: BytesPerRow
 ): number {
   return Math.floor((offset - vpStartOffset) / bytesPerRow)
+}
+
+export enum BinaryBytePrefixes {
+  'B',
+  'KB',
+  'MB',
+  'GB',
+  'TB',
+}
+
+export function humanReadableByteLength(byteLength: number): string {
+  let ret = byteLength.toString(10)
+  const byteStrLen = ret.length
+  if (byteStrLen <= 3) return ret + BinaryBytePrefixes[0]
+
+  const octets = (Math.ceil(byteStrLen / 3) - 1) as ValidByteOctetCount
+  const deltaPad = Math.abs((byteStrLen % 3) - 3)
+
+  deltaPad === 3
+    ? (ret = ret.substring(0, 3))
+    : (ret = parseInt(
+        ret.padStart(deltaPad + byteStrLen, '0').substring(0, 3)
+      ).toString())
+
+  return ret + BinaryBytePrefixes[octets]
 }
