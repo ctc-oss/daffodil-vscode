@@ -24,10 +24,10 @@ limitations under the License.
   let hideChildren = false
 </script>
 
-<FlexContainer --height="150pt">
-  {#if hideChildren}
+{#if hideChildren}
+  <FlexContainer>
     <FlexContainer --justify-content="space-between" --align-items="center">
-      <div class="filename-display">{$fileMetrics.name}</div>
+      <div class="filename-display"><b>File:</b> {$fileMetrics.name}</div>
       <button
         class={$UIThemeCSSClass + ' minmax-icon'}
         on:click={() => {
@@ -35,7 +35,9 @@ limitations under the License.
         }}><span class="material-symbols-outlined">expand_all</span></button
       >
     </FlexContainer>
-  {:else}
+  </FlexContainer>
+{:else}
+  <FlexContainer --height="150pt">
     <header>
       <FlexContainer --height="fit-content">
         <FileMetrics on:clearChangeStack on:redo on:undo />
@@ -51,8 +53,8 @@ limitations under the License.
         }}><span class="material-symbols-outlined">expand_all</span></button
       >
     </div>
-  {/if}
-</FlexContainer>
+  </FlexContainer>
+{/if}
 
 <style>
   header {
@@ -89,5 +91,9 @@ limitations under the License.
     min-width: 14px;
     font-weight: bold;
     width: fit-content;
+  }
+  div.filename-display {
+    font-size: medium;
+    padding: 5px;
   }
 </style>

@@ -27,6 +27,9 @@ limitations under the License.
   } from '../../../stores'
   import FlexContainer from '../../layouts/FlexContainer.svelte'
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
+  import Button from '../../Inputs/Buttons/Button.svelte'
+  import { tooltipsEnabled } from '../../../utilities/display'
+  import ConfigurationToggle from '../../Inputs/Buttons/ConfigurationToggle.svelte'
 </script>
 
 <fieldset>
@@ -73,6 +76,10 @@ limitations under the License.
     </FlexContainer>
 
     <hr />
+    <ConfigurationToggle
+      configItem="Show tooltips"
+      bind:toggleBind={$tooltipsEnabled}
+    />
   </FlexContainer>
 </fieldset>
 

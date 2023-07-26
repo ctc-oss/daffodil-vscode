@@ -21,40 +21,44 @@ limitations under the License.
   export let width = ''
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
   import FlexContainer from '../../layouts/FlexContainer.svelte'
+  import Tooltip from '../../layouts/Tooltip.svelte'
+  import { tooltipsEnabled } from '../../../utilities/display'
 
   onMount(() => {
     collapseContent = document.body.clientWidth <= 1600
   })
+
+  export let description = ''
 
   let collapseContentFn: NodeJS.Timeout
   let collapseContent = false
   window.addEventListener('resize', () => {
     clearTimeout(collapseContentFn)
     collapseContentFn = setTimeout(() => {
-      collapseContent = document.body.clientWidth <= 1700
-      console.log(document.body.clientWidth)
+      collapseContent = document.body.clientWidth <= 1500
     }, 100)
   })
 </script>
 
 {#if collapseContent}
-  <button
-    class={$UIThemeCSSClass}
-    disabled={disabledBy}
-    on:click={!disabledBy ? fn : () => {}}
-    style:width="25pt"
-  >
-    <FlexContainer
-      --dir="row"
-      --align-items="center"
-      --justify-content="center"
+  <Tooltip {description} enabledIf={$tooltipsEnabled}>
+    <button
+      class={$UIThemeCSSClass + ' collapsed'}
+      disabled={disabledBy}
+      on:click={!disabledBy ? fn : () => {}}
     >
-      <svelte:fragment>
-        <slot name="left" />
-        <slot name="right" />
-      </svelte:fragment>
-    </FlexContainer>
-  </button>
+      <FlexContainer
+        --dir="row"
+        --align-items="center"
+        --justify-content="center"
+      >
+        <svelte:fragment>
+          <slot name="left" />
+          <slot name="right" />
+        </svelte:fragment>
+      </FlexContainer>
+    </button>
+  </Tooltip>
 {:else}
   <button
     class={$UIThemeCSSClass}
@@ -79,5 +83,10 @@ limitations under the License.
 <style lang="scss">
   button {
     width: var(--width, 80pt);
+  }
+  button.collapsed {
+    width: 25pt;
+    margin-left: 5px;
+    margin-right: 5px;
   }
 </style>

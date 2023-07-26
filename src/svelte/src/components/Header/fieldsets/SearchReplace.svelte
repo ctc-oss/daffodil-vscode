@@ -302,6 +302,7 @@ limitations under the License.
           eventDispatcher('seek')
         }}
         width={searchReplaceButtonWidth}
+        description="Seek to offset"
       >
         <span slot="left" class="btn-icon material-symbols-outlined">start</span
         >
@@ -337,6 +338,7 @@ limitations under the License.
         disabledBy={!$searchable}
         fn={search}
         width={searchReplaceButtonWidth}
+        description="Start search"
       >
         <span slot="left" class="btn-icon material-symbols-outlined"
           >search</span
@@ -358,6 +360,7 @@ limitations under the License.
         disabledBy={!$replaceable}
         fn={startReplace}
         width={searchReplaceButtonWidth}
+        description="Start replacement"
       >
         <span slot="left" class="btn-icon material-symbols-outlined"
           >find_replace</span
@@ -368,25 +371,41 @@ limitations under the License.
 
     {#if !showReplaceOptions && $searchQuery.searchResults.length > 1}
       <FlexContainer --dir="row">
-        <Button width={searchNavButtonWidth} fn={scrollSearchFirst}>
+        <Button
+          width={searchNavButtonWidth}
+          fn={scrollSearchFirst}
+          description="Seek to first result"
+        >
           <span slot="left" class="btn-icon material-symbols-outlined"
             >first_page</span
           >
           <span slot="default">&nbsp;First</span></Button
         >
-        <Button width={searchNavButtonWidth} fn={scrollSearchPrev}>
+        <Button
+          width={searchNavButtonWidth}
+          fn={scrollSearchPrev}
+          description="Previous result"
+        >
           <span slot="left" class="btn-icon material-symbols-outlined"
             >navigate_before</span
           >
           <span slot="default">&nbsp;Prev</span></Button
         >
-        <Button width={searchNavButtonWidth} fn={scrollSearchNext}>
+        <Button
+          width={searchNavButtonWidth}
+          fn={scrollSearchNext}
+          description="Next result"
+        >
           <span slot="default">Next&nbsp;</span>
           <span slot="right" class="btn-icon material-symbols-outlined"
             >navigate_next</span
           ></Button
         >
-        <Button width={searchNavButtonWidth} fn={scrollSearchLast}>
+        <Button
+          width={searchNavButtonWidth}
+          fn={scrollSearchLast}
+          description="Seek to last result"
+        >
           <span slot="default">Last&nbsp;</span>
           <span slot="right" class="btn-icon material-symbols-outlined"
             >last_page</span
@@ -403,14 +422,14 @@ limitations under the License.
     {/if}
     {#if showReplaceOptions}
       <FlexContainer --dir="row">
-        <Button fn={replaceOne}>
+        <Button fn={replaceOne} description="Replace one">
           <span slot="left" class="icon-container">
             <span class="btn-icon material-symbols-outlined">find_replace</span>
             <div class="icon-badge">1</div>
           </span>
           <span slot="default">&nbsp;One</span></Button
         >
-        <Button fn={replaceAll}>
+        <Button fn={replaceAll} description="Replace all results">
           <span slot="left" class="icon-container">
             <span class="btn-icon material-symbols-outlined">find_replace</span>
             <div class="icon-badge">
@@ -424,7 +443,7 @@ limitations under the License.
           </span>
           <span slot="default">&nbsp;All</span></Button
         >
-        <Button fn={replaceRest}>
+        <Button fn={replaceRest} description="Replace remaining results">
           <span slot="left" class="icon-container">
             <span class="btn-icon material-symbols-outlined">find_replace</span>
             <div class="icon-badge">
@@ -437,6 +456,7 @@ limitations under the License.
         <Button
           fn={skipReplace}
           disabledBy={$searchQuery.searchResults.length <= 1}
+          description="Skip this replacement"
         >
           <span slot="default">Next&nbsp;</span>
           <span slot="right" class="btn-icon material-symbols-outlined"

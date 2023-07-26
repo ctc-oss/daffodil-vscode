@@ -13,6 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import { writable } from 'svelte/store'
 import {
   EditByteModes,
   type BytesPerRow,
@@ -44,6 +45,8 @@ const ByteDivWidths = {
 }
 
 export const DISPLAYED_DATA_LINES = 20
+
+export const tooltipsEnabled = writable(false)
 
 export function viewport_references(
   viewport?: Viewport

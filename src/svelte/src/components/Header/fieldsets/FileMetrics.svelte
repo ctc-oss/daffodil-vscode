@@ -134,14 +134,14 @@ limitations under the License.
         <span slot="left" class="btn-icon material-symbols-outlined">save</span>
         <span slot="default">&nbsp;Save</span>
       </Button>
-      <Button fn={saveAs}>
+      <Button fn={saveAs} description="Save as">
         <span slot="left" class="btn-icon material-symbols-outlined"
           >save_as</span
         >
         <span slot="default">&nbsp;Save As</span>
       </Button>
     {:else}
-      <Button fn={toggleSaveDisplay}>
+      <Button fn={toggleSaveDisplay} description="Save to disk">
         <span slot="left" class="btn-icon material-symbols-outlined">save</span>
         <span slot="default">Save&hellip;</span>
       </Button>
@@ -168,21 +168,25 @@ limitations under the License.
   <FlexContainer>
     <FlexContainer --dir="column" --align-items="center">
       <FlexContainer --dir="row">
-        <Button disabledBy={!canRedo} fn={redo}>
+        <Button disabledBy={!canRedo} fn={redo} description="Redo commit">
           <span slot="left" class="icon-container">
             <span class="btn-icon material-symbols-outlined">redo</span>
             <div class="icon-badge">{$fileMetrics.undoCount}</div>
           </span>
           <span slot="default">&nbsp;Redo</span>
         </Button>
-        <Button disabledBy={!canUndo} fn={undo}>
+        <Button disabledBy={!canUndo} fn={undo} description="Undo commit">
           <span slot="left" class="icon-container">
             <span class="btn-icon material-symbols-outlined">undo</span>
             <div class="icon-badge">{$fileMetrics.changeCount}</div>
           </span>
           <span slot="default">&nbsp;Undo</span>
         </Button>
-        <Button disabledBy={!canRevert} fn={clearChangeStack}>
+        <Button
+          disabledBy={!canRevert}
+          fn={clearChangeStack}
+          description="Revert all commits"
+        >
           <span slot="left" class="btn-icon material-symbols-outlined"
             >restart_alt</span
           >
@@ -191,7 +195,7 @@ limitations under the License.
       </FlexContainer>
     </FlexContainer>
     <FlexContainer --dir="column" --align-items="end">
-      <Button fn={toggleDataProfiler}>
+      <Button fn={toggleDataProfiler} description="Open data profiler">
         <span slot="left" class="btn-icon material-symbols-outlined"
           >functions</span
         >
