@@ -61,7 +61,12 @@ limitations under the License.
     byte_count_divisible_offset,
     viewport_offset_to_line_num,
   } from '../utilities/display'
-  import { activeSelectionHighlights } from '../utilities/highlights'
+  import {
+    activeSelectionHighlights,
+    clearSearchResultsHighlights,
+    updateSearchResultsHighlights,
+  } from '../utilities/highlights'
+  import { replaceQuery, searchQuery } from './Header/fieldsets/SearchReplace'
 
   $: $UIThemeCSSClass = $darkUITheme ? CSSThemeClass.Dark : CSSThemeClass.Light
 
@@ -246,6 +251,7 @@ limitations under the License.
       },
     })
     clearDataDisplays()
+    clearQueryableData()
   }
 
   function undo() {
@@ -272,6 +278,10 @@ limitations under the License.
     $editedDataSegment = new Uint8Array(0)
   }
 
+  function clearQueryableData() {
+    searchQuery.clear()
+    clearSearchResultsHighlights()
+  }
   function handleKeyBind(event: Event) {
     const kbdEvent = event as KeyboardEvent
     if (kbdEvent.key === 'Enter') {

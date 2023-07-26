@@ -65,3 +65,6 @@ export function updateSearchResultsHighlights(
       searchResultsHighlightLUT[offset - viewportFileOffset + i] = 1
   })
 }
+export function clearSearchResultsHighlights() {
+  searchResultsHighlightLUT.fill(0)
+}
