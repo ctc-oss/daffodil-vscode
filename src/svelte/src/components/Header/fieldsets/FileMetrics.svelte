@@ -29,6 +29,7 @@ limitations under the License.
     humanReadableByteLength,
     sizeHumanReadable,
   } from '../../../utilities/display'
+  import { DATA_PROFILE_MAX_LENGTH } from "../../../stores/configuration";
   const eventDispatcher = createEventDispatcher()
 
   let displayOpts = false
@@ -123,7 +124,7 @@ limitations under the License.
   bind:open={isProfilerOpen}
 >
   {#if isProfilerOpen}
-    <ByteFrequencyGraph title="Byte Frequency Profile" {startOffset} {length} />
+    <ByteFrequencyGraph title="Byte Frequency Profile" {startOffset} length={Math.min(length, DATA_PROFILE_MAX_LENGTH)} />
   {/if}
 </SidePanel>
 

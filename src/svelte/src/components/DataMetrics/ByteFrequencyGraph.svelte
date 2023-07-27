@@ -21,6 +21,7 @@ limitations under the License.
   import { onMount } from 'svelte'
   import Input from '../Inputs/Input/Input.svelte'
   import { offsetMax } from '../DataDisplays/CustomByteDisplay/BinaryData'
+  import { DATA_PROFILE_MAX_LENGTH } from "../../stores/configuration";
 
   // title for the byte profile graph
   export let title: string
@@ -44,8 +45,12 @@ limitations under the License.
   let stdDev: number = 0
   let numAscii: number = 0
   let isEditing = ''
-  let message = ''
-  let messageTimeout: number | null = null
+  let statusMessage = ''
+  let warningMessage = ''
+  let errorMessage = ''
+  let statusMessageTimeout: number | null = null
+  let warningMessageTimeout: number | null = null
+  let errorMessageTimeout: number | null = null
   let asciiOverlay = true
 
   $: {
@@ -67,14 +72,36 @@ limitations under the License.
     scaledData = byteProfile.map((d) => Math.round((d / maxFrequency) * 300)) // 300 is the max height of the chart
   }
 
-  function setMessage(msg: string, timeout: number = 5000) {
-    // Clear timeout if it exists
-    if (messageTimeout) clearTimeout(messageTimeout)
-    message = msg
-    // Timeout message after 5 seconds
+  function setStatusMessage(msg: string, timeout: number = 5000) {
+    if (statusMessageTimeout) clearTimeout(statusMessageTimeout)
+    errorMessage = ''
+    statusMessage = msg
     if (timeout > 0) {
-      messageTimeout = setTimeout(() => {
-        message = ''
+      statusMessageTimeout = setTimeout(() => {
+        statusMessage = ''
+      }, timeout)
+    }
+  }
+
+  function setWarningMessage(msg: string, timeout: number = 7500) {
+    if (warningMessageTimeout) clearTimeout(warningMessageTimeout)
+    errorMessage = ''
+    warningMessage = msg
+    if (timeout > 0) {
+      warningMessageTimeout = setTimeout(() => {
+        warningMessage = ''
+      }, timeout)
+    }
+  }
+
+  function setErrorMessage(msg: string, timeout: number = 10000) {
+    if (errorMessageTimeout) clearTimeout(errorMessageTimeout)
+    statusMessage = ''
+    warningMessage = ''
+    errorMessage = msg
+    if (timeout > 0) {
+      errorMessageTimeout = setTimeout(() => {
+        errorMessage = ''
       }, timeout)
     }
   }
@@ -84,15 +111,14 @@ limitations under the License.
       'Byte,Frequency\n' +
       byteProfile.map((val, idx) => `${idx},${val}`).join('\n')
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-    const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
-    link.href = url
+    link.href = URL.createObjectURL(blob)
     link.download = 'profile-data.csv'
     link.click()
   }
 
   function requestSessionProfile(startOffset: number, length: number) {
-    setMessage(
+    setStatusMessage(
       `Profiling bytes from ${startOffset} to ${startOffset + length}...`,
       0
     )
@@ -109,51 +135,72 @@ limitations under the License.
     switch (e.detail.id) {
       case 'start-offset-input':
         {
-          const temp = parseInt(e.detail.value)
-          if (isNaN(temp)) {
-            setMessage('Start offset must be a decimal number')
-          } else if (temp < 0) {
-            setMessage('Start offset must be greater than or equal to 0')
+          const startOffsetTemp = parseInt(e.detail.value)
+          if (isNaN(startOffsetTemp)) {
+            setErrorMessage('Start offset must be a decimal number')
+          } else if (startOffsetTemp < 0) {
+            setErrorMessage('Start offset must be greater than or equal to 0')
             return
-          } else if (temp >= endOffset) {
-            setMessage('Start offset must be less than end offset')
+          } else if (startOffsetTemp >= endOffset) {
+            setErrorMessage('Start offset must be less than end offset')
             return
           }
-          startOffset = temp
-          length = endOffset - startOffset
+          startOffset = startOffsetTemp
+          const lengthTemp = endOffset - startOffset
+          if (lengthTemp > DATA_PROFILE_MAX_LENGTH) {
+            // affects the length and end offset
+            setWarningMessage(`Length adjusted to ${DATA_PROFILE_MAX_LENGTH}`)
+            length = DATA_PROFILE_MAX_LENGTH
+            endOffset = startOffset + length
+          } else {
+            length = lengthTemp
+          }
         }
         break
       case 'end-offset-input':
         {
-          const temp = parseInt(e.detail.value)
-          if (isNaN(temp)) {
-            setMessage('End offset must be a decimal number')
-          } else if (temp <= startOffset) {
-            setMessage('End offset must be greater than start offset')
+          const endOffsetTemp = parseInt(e.detail.value)
+          if (isNaN(endOffsetTemp)) {
+            setErrorMessage('End offset must be a decimal number')
+          } else if (endOffsetTemp <= startOffset) {
+            setErrorMessage('End offset must be greater than start offset')
             return
-          } else if (temp > $offsetMax) {
-            setMessage(`End offset must be less than or equal to ${$offsetMax}`)
+          } else if (endOffsetTemp > $offsetMax) {
+            setErrorMessage(`End offset must be less than or equal to ${$offsetMax}`)
             return
           }
-          endOffset = temp
-          length = endOffset - startOffset
+          endOffset = endOffsetTemp
+          const lengthTemp = endOffset - startOffset
+          if (lengthTemp > DATA_PROFILE_MAX_LENGTH) {
+            // affects the length and start offset
+            setWarningMessage(`Length adjusted to ${DATA_PROFILE_MAX_LENGTH}`)
+            length = DATA_PROFILE_MAX_LENGTH
+            startOffset = endOffset - length
+          } else {
+            length = lengthTemp
+          }
         }
         break
       case 'length-input':
         {
-          const temp = parseInt(e.detail.value)
-          if (isNaN(temp)) {
-            setMessage('Length must be a decimal number')
-          } else if (temp <= 0) {
-            setMessage('Length must be greater than 0')
+          const lengthTemp = parseInt(e.detail.value)
+          if (isNaN(lengthTemp)) {
+            setErrorMessage('Length must be a decimal number')
+          } else if (lengthTemp <= 0) {
+            setErrorMessage('Length must be greater than 0')
             return
-          } else if (temp > $offsetMax - startOffset) {
-            setMessage(
-              `Length must be less than or equal to ${$offsetMax - startOffset}`
-            )
+          } else if (lengthTemp > $offsetMax - startOffset) {
+            setErrorMessage(`Length must be less than or equal to ${$offsetMax - startOffset}`)
             return
           }
-          length = temp
+          if (lengthTemp > DATA_PROFILE_MAX_LENGTH) {
+            // affects the length
+            setWarningMessage(`Length adjusted to ${DATA_PROFILE_MAX_LENGTH}`)
+            length = DATA_PROFILE_MAX_LENGTH
+          } else {
+            length = lengthTemp
+          }
+          // affects the end offset
           endOffset = startOffset + length
         }
         break
@@ -177,7 +224,7 @@ limitations under the License.
           console.assert(byteProfile.length === 256)
           console.assert(startOffset === msg.data.data.startOffset)
           console.assert(length === msg.data.data.length)
-          setMessage(
+          setStatusMessage(
             `Profiled bytes from ${startOffset} to ${startOffset + length}`
           )
           break
@@ -216,13 +263,24 @@ limitations under the License.
     {/each}
     {#if currentTooltip}
       <div class="tooltip" style="bottom: {currentTooltip.value}px;">
-        Byte: {currentTooltip.index}, Frequency: {byteProfile[
+        Byte: {currentTooltip.index} Frequency: {byteProfile[
           currentTooltip.index
         ]}
+        {#if currentTooltip.index >= 32 && currentTooltip.index <= 126}
+          ASCII: '{String.fromCharCode(currentTooltip.index)}'
+        {/if}
       </div>
     {/if}
   </div>
-  <div class="message">&nbsp;{message}&nbsp;</div>
+  {#if statusMessage.length > 0}
+    <div class="message status">&nbsp;{statusMessage}&nbsp;</div>
+  {/if}
+  {#if warningMessage.length > 0}
+    <div class="message warning">&nbsp;{warningMessage}&nbsp;</div>
+  {/if}
+  {#if errorMessage.length > 0}
+    <div class="message error">&nbsp;{errorMessage}&nbsp;</div>
+  {/if}
   <div>
     <div class="input-container">
       <label for="ascii-overlay-toggle"
@@ -232,7 +290,7 @@ limitations under the License.
           class="editable"
           on:click={() => {
             asciiOverlay = !asciiOverlay
-          }}>{asciiOverlay ? 'On' : 'Off'}</span
+          }}>{asciiOverlay ? 'ASCII' : 'None'}</span
         >
       </label>
     </div>
@@ -462,17 +520,26 @@ limitations under the License.
 
   div.tooltip {
     position: absolute;
-    padding: 5px 10px;
+    padding: 4px 6px;
     background-color: #afafaf;
     color: black;
     border: 1px solid blue;
     pointer-events: none;
     opacity: 0.75;
+    font-size: smaller;
   }
 
   div.message {
     text-align: center;
     font-size: 0.75em;
+  }
+  div.status {
     color: green;
+  }
+  div.warning {
+    color: orange;
+  }
+  div.error {
+    color: red;
   }
 </style>
