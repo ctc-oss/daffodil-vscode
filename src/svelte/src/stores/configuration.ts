@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { writable } from 'svelte/store'
+
 export type Radixes = 'Hexadecimal' | 'Decimal' | 'Octal' | 'Binary'
 
 export type RadixValues = 16 | 10 | 8 | 2
@@ -75,9 +77,15 @@ export const StrEncodingByteWidths: StrEncodingByteWidths = {
   'utf-16': 2 | 4,
 }
 
-export const EDIT_ACTIONS = [
-  { name: 'Delete, Insert, and Overwrite', value: 'delete-insert-overwrite' },
-  { name: 'Overwrite Only', value: 'overwrite-only' },
+export enum EditActionRestrictions {
+  None,
+  OverwriteOnly,
+}
+
+export type EditAction = { name: string; value: EditActionRestrictions }
+export const EDIT_ACTIONS: EditAction[] = [
+  { name: 'Delete, Insert, and Overwrite', value: EditActionRestrictions.None },
+  { name: 'Overwrite Only', value: EditActionRestrictions.OverwriteOnly },
 ]
 
 export const ENDIANNESS_OPTIONS = [
@@ -110,3 +118,5 @@ export const NUM_LINES_DISPLAYED = 20
 export const SEARCH_AND_REPLACE_MAX_RESULTS = 1000
 
 export const DATA_PROFILE_MAX_LENGTH = 1_000_000
+
+export const editorActionsAllowed = writable(EditActionRestrictions.None)

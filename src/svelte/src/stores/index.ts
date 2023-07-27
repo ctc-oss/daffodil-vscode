@@ -21,6 +21,8 @@ import {
   UNPRINTABLE_CHAR_STAND_IN,
   type RadixValues,
   type BytesPerRow,
+  EditActionRestrictions,
+  editorActionsAllowed,
 } from './configuration'
 import { ThemeType } from '../utilities/colorScheme'
 import { fileMetrics } from '../components/Header/fieldsets/FileMetrics'
@@ -61,6 +63,11 @@ class SelectionData extends SimpleWritable<SelectionData_t> {
   }
 }
 
+export enum EditModeRestrictions {
+  None,
+  OverwriteOnly,
+}
+
 // noinspection JSUnusedGlobalSymbols
 
 // theme to use for the UI
@@ -83,9 +90,6 @@ export const editByteWindowHidden = writable(true)
 
 // segment of data that is being edited in single or multiple byte modes
 export const editedDataSegment = writable(new Uint8Array(0))
-
-// edit actions allowed (delete-insert-overwrite or overwrite-only)
-export const editorActionsAllowed = writable('delete-insert-overwrite')
 
 // encoding to use in the multibyte editor
 export const editorEncoding = writable('latin1')
@@ -278,6 +282,7 @@ export const committable = derived(
     selectionSize,
     editMode,
     editedByteIsOriginalByte,
+    editorActionsAllowed,
   ],
   ([
     $requestable,
@@ -287,6 +292,7 @@ export const committable = derived(
     $selectionSize,
     $editMode,
     $editedByteIsOriginalByte,
+    $editorActionsAllowed,
   ]) => {
     if (
       !$requestable ||
@@ -296,8 +302,14 @@ export const committable = derived(
     const originalLength =
       $selectionData.originalEndOffset - $selectionData.startOffset
     const editedLength = $selectionData.endOffset - $selectionData.startOffset
+    const editLengthHasDelta = originalLength !== editedLength
 
-    if (originalLength !== editedLength) return true
+    if (
+      $editorActionsAllowed === EditActionRestrictions.OverwriteOnly &&
+      editLengthHasDelta
+    )
+      return false
+    if (editLengthHasDelta) return true
     for (let i = 0; i < $selectionSize; i++) {
       if (
         $viewport.data[i + $selectionData.startOffset] !== $selectedFileData[i]

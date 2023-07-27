@@ -19,20 +19,11 @@ limitations under the License.
     RADIX_OPTIONS,
     ENCODING_GROUPS,
     EDIT_ACTIONS,
-  } from '../../../stores/configuration'
-  import {
-    displayRadix,
-    editorEncoding,
     editorActionsAllowed,
-  } from '../../../stores'
+  } from '../../../stores/configuration'
+  import { displayRadix, editorEncoding } from '../../../stores'
   import FlexContainer from '../../layouts/FlexContainer.svelte'
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
-  import Button from '../../Inputs/Buttons/Button.svelte'
-  import {
-    sizeHumanReadable,
-    tooltipsEnabled,
-  } from '../../../utilities/display'
-  import ConfigurationToggle from '../../Inputs/Buttons/ConfigurationToggle.svelte'
 </script>
 
 <fieldset>
@@ -79,14 +70,6 @@ limitations under the License.
     </FlexContainer>
 
     <hr />
-    <!-- <ConfigurationToggle
-      configItem="Show Tooltips"
-      bind:toggleBind={$tooltipsEnabled}
-    />
-    <ConfigurationToggle
-      configItem="Shorthand Filesize"
-      bind:toggleBind={$sizeHumanReadable}
-    /> -->
   </FlexContainer>
 </fieldset>
 

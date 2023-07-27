@@ -18,7 +18,6 @@ limitations under the License.
   import {
     addressRadix,
     allowCaseInsensitiveSearch,
-    editorActionsAllowed,
     editorEncoding,
     searchCaseInsensitive,
     seekable,
@@ -45,7 +44,11 @@ limitations under the License.
   import ToggleableButton from '../../Inputs/Buttons/ToggleableButton.svelte'
   import { updateSearchResultsHighlights } from '../../../utilities/highlights'
   import { viewport } from '../../DataDisplays/CustomByteDisplay/BinaryData'
-  import { SEARCH_AND_REPLACE_MAX_RESULTS } from '../../../stores/configuration'
+  import {
+    EditActionRestrictions,
+    editorActionsAllowed,
+    SEARCH_AND_REPLACE_MAX_RESULTS,
+  } from '../../../stores/configuration'
 
   const eventDispatcher = createEventDispatcher()
 
@@ -129,7 +132,8 @@ limitations under the License.
         caseInsensitive: $searchCaseInsensitive,
         replaceData: $replaceQuery.input,
         encoding: $editorEncoding,
-        overwriteOnly: $editorActionsAllowed === 'overwrite-only',
+        overwriteOnly:
+          $editorActionsAllowed === EditActionRestrictions.OverwriteOnly,
         startOffset: startOffset,
         replaceStrategy: strategy,
         limit: SEARCH_AND_REPLACE_MAX_RESULTS,

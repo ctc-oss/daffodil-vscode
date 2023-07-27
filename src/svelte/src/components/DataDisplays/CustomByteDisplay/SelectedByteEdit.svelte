@@ -20,7 +20,6 @@ limitations under the License.
     byteDivWidthFromRadix,
     type ByteDivWidth,
     radixBytePad,
-    radixToString,
   } from '../../../utilities/display'
   import {
     editorSelection,
@@ -35,16 +34,15 @@ limitations under the License.
     focusedViewportId,
   } from '../../../stores'
   import { enterKeypressEvents } from '../../../utilities/enterKeypressEvents'
-  import {
-    byte_value_string,
-    bytesPerRow,
-    type ByteValue,
-    type EditAction,
-  } from './BinaryData'
+  import { bytesPerRow, type ByteValue, type EditAction } from './BinaryData'
   import {
     UIThemeCSSClass,
     type CSSThemeClass,
   } from '../../../utilities/colorScheme'
+  import {
+    EditActionRestrictions,
+    editorActionsAllowed,
+  } from '../../../stores/configuration'
 
   const eventDispatcher = createEventDispatcher()
 
@@ -64,7 +62,7 @@ limitations under the License.
   let actionElements: ActionElements = {
     input: {
       id: 'binary-action-input',
-      HTMLRef: undefined,
+      HTMLRef: undefined as HTMLInputElement,
       position: { viewportLine: -1, viewportByteIndex: -1 },
     },
     'insert-before': {
@@ -151,6 +149,10 @@ limitations under the License.
     $editorSelection = byte.text
     grab_action_element_refs()
     initialize_action_elements()
+
+    actionElements['input'].HTMLRef.focus()
+    actionElements['input'].HTMLRef.value = ''
+
     return restore_original_target
   })
 
@@ -163,6 +165,8 @@ limitations under the License.
 
   function initialize_action_elements() {
     setup_action_element('input')
+    if ($editorActionsAllowed == EditActionRestrictions.OverwriteOnly) return
+
     setup_action_element('insert-before')
     setup_action_element('insert-after')
   }
@@ -301,51 +305,66 @@ limitations under the License.
   }
 </script>
 
-<!-- svelte-ignore a11y-click-events-have-key-events -->
-<!-- svelte-ignore a11y-no-static-element-interactions -->
-<div
-  class="insert-before {themeClass}"
-  id={actionElements['insert-before'].id}
-  style:width={elementDivWidth}
-  on:click={send_insert}
->
-  &#8676;
-</div>
-
-<!-- svelte-ignore a11y-click-events-have-key-events -->
-<!-- svelte-ignore a11y-no-static-element-interactions -->
-<div
-  class="insert-after {themeClass}"
-  id={actionElements['insert-after'].id}
-  style:width={elementDivWidth}
-  on:click={send_insert}
->
-  &#8677;
-</div>
-
-<span>
-  <input
-    class="insert {themeClass}"
-    id={actionElements['input'].id}
-    class:invalid
-    class:inProgress
+{#if $editorActionsAllowed == EditActionRestrictions.None}
+  <!-- svelte-ignore a11y-click-events-have-key-events -->
+  <!-- svelte-ignore a11y-no-static-element-interactions -->
+  <div
+    class="insert-before {themeClass}"
+    id={actionElements['insert-before'].id}
     style:width={elementDivWidth}
-    placeholder={$editByte}
-    bind:value={$editorSelection}
-    on:input={handleEditorEvent}
-  />
+    on:click={send_insert}
+  >
+    &#8676;
+  </div>
 
   <!-- svelte-ignore a11y-click-events-have-key-events -->
   <!-- svelte-ignore a11y-no-static-element-interactions -->
   <div
-    class="delete {themeClass}"
-    id={actionElements['delete'].id}
+    class="insert-after {themeClass}"
+    id={actionElements['insert-after'].id}
     style:width={elementDivWidth}
-    on:click={send_delete}
+    on:click={send_insert}
   >
-    &#10006;
+    &#8677;
   </div>
-</span>
+
+  <span>
+    <input
+      class="insert {themeClass}"
+      id={actionElements['input'].id}
+      class:invalid
+      class:inProgress
+      style:width={elementDivWidth}
+      placeholder={$editByte}
+      bind:value={$editorSelection}
+      on:input={handleEditorEvent}
+    />
+
+    <!-- svelte-ignore a11y-click-events-have-key-events -->
+    <!-- svelte-ignore a11y-no-static-element-interactions -->
+    <div
+      class="delete {themeClass}"
+      id={actionElements['delete'].id}
+      style:width={elementDivWidth}
+      on:click={send_delete}
+    >
+      &#10006;
+    </div>
+  </span>
+{:else}
+  <span>
+    <input
+      class="insert {themeClass}"
+      id={actionElements['input'].id}
+      class:invalid
+      class:inProgress
+      style:width={elementDivWidth}
+      placeholder={$editByte}
+      bind:value={$editorSelection}
+      on:input={handleEditorEvent}
+    />
+  </span>
+{/if}
 
 <style lang="scss">
   @keyframes shake {
@@ -377,10 +396,12 @@ limitations under the License.
   }
   input {
     padding: 0;
-  }
-  input {
     background-color: var(--color-secondary-light);
     color: var(--color-secondary-darkest);
+  }
+  input::placeholder {
+    font-size: 12px;
+    font-style: normal;
   }
   input.invalid {
     border-color: crimson;

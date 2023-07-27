@@ -32,6 +32,8 @@ limitations under the License.
     VIEWPORT_CAPACITY_MAX,
     type BytesPerRow,
     type RadixValues,
+    editorActionsAllowed,
+    EditActionRestrictions,
   } from '../../../stores/configuration'
   import { MessageCommand } from '../../../utilities/message'
   import { vscode } from '../../../utilities/vscode'
@@ -418,7 +420,6 @@ limitations under the License.
   }
 
   $: {
-    // tick()
     if ($selectionDataStore.active) {
       window.removeEventListener('keydown', navigation_keydown_event)
       if (viewportDataContainer)
@@ -451,7 +452,7 @@ limitations under the License.
 </script>
 
 {#if $selectionDataStore.active && $editMode == EditByteModes.Single}
-  {#key $selectedByte || selectedByteElement || dataRadix}
+  {#key $selectedByte || selectedByteElement || dataRadix || $editorActionsAllowed == EditActionRestrictions.None}
     <SelectedByteEdit
       byte={$selectedByte}
       on:seek

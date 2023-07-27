@@ -39,7 +39,11 @@ limitations under the License.
   </legend>
   {#if $editMode === EditByteModes.Multiple}
     <FlexContainer>
-      <Button disabledBy={!$committable} fn={commitChanges}>
+      <Button
+        disabledBy={!$committable}
+        fn={commitChanges}
+        description="Commit changes"
+      >
         <span slot="left" class="btn-icon material-symbols-outlined"
           >commit</span
         >

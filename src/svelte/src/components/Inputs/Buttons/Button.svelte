@@ -86,6 +86,7 @@ limitations under the License.
 <style lang="scss">
   button {
     width: var(--width, 80pt);
+    outline: none;
   }
   button.collapsed {
     width: 25pt;
