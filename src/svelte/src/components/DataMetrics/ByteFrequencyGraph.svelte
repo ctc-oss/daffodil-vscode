@@ -21,7 +21,7 @@ limitations under the License.
   import { onMount } from 'svelte'
   import Input from '../Inputs/Input/Input.svelte'
   import { offsetMax } from '../DataDisplays/CustomByteDisplay/BinaryData'
-  import { DATA_PROFILE_MAX_LENGTH } from "../../stores/configuration";
+  import { DATA_PROFILE_MAX_LENGTH } from '../../stores/configuration'
 
   // title for the byte profile graph
   export let title: string
@@ -166,7 +166,9 @@ limitations under the License.
             setErrorMessage('End offset must be greater than start offset')
             return
           } else if (endOffsetTemp > $offsetMax) {
-            setErrorMessage(`End offset must be less than or equal to ${$offsetMax}`)
+            setErrorMessage(
+              `End offset must be less than or equal to ${$offsetMax}`
+            )
             return
           }
           endOffset = endOffsetTemp
@@ -190,7 +192,9 @@ limitations under the License.
             setErrorMessage('Length must be greater than 0')
             return
           } else if (lengthTemp > $offsetMax - startOffset) {
-            setErrorMessage(`Length must be less than or equal to ${$offsetMax - startOffset}`)
+            setErrorMessage(
+              `Length must be less than or equal to ${$offsetMax - startOffset}`
+            )
             return
           }
           if (lengthTemp > DATA_PROFILE_MAX_LENGTH) {
@@ -379,11 +383,14 @@ limitations under the License.
         >
       </div>
     {/if}
-    <Button fn={handleCsvProfileDownload}>
+    <Button
+      fn={handleCsvProfileDownload}
+      description="Download profiled data as .csv"
+    >
       <span slot="left" class="btn-icon material-symbols-outlined"
         >download</span
       >
-      <span slot="default">Profile&nbsp;as&nbsp;CSV</span></Button
+      <span>Profile&nbsp;as&nbsp;CSV</span></Button
     >
   </div>
   <hr />

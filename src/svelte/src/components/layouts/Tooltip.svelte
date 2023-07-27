@@ -20,7 +20,7 @@ limitations under the License.
   const NULL = () => {}
 
   export let description: string
-
+  export let alwaysEnabled = false
   let showTooltip = false
   let left = 0,
     top = 0
@@ -41,7 +41,7 @@ limitations under the License.
   }
 </script>
 
-{#if $tooltipsEnabled}
+{#if ($tooltipsEnabled || alwaysEnabled) && description.length > 0}
   <!-- svelte-ignore a11y-no-static-element-interactions -->
   <span
     on:mouseenter={showTooltip ? NULL : renderTooltip}

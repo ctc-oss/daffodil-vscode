@@ -26,7 +26,7 @@ limitations under the License.
   export let description: string
 </script>
 
-<Tooltip {description}>
+<Tooltip {description} alwaysEnabled={true}>
   <button
     class={$UIThemeCSSClass}
     disabled={disabledBy}

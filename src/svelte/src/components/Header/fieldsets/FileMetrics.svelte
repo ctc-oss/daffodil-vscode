@@ -29,7 +29,8 @@ limitations under the License.
     humanReadableByteLength,
     sizeHumanReadable,
   } from '../../../utilities/display'
-  import { DATA_PROFILE_MAX_LENGTH } from "../../../stores/configuration";
+  import { DATA_PROFILE_MAX_LENGTH } from '../../../stores/configuration'
+  import Tooltip from '../../layouts/Tooltip.svelte'
   const eventDispatcher = createEventDispatcher()
 
   let displayOpts = false
@@ -124,7 +125,11 @@ limitations under the License.
   bind:open={isProfilerOpen}
 >
   {#if isProfilerOpen}
-    <ByteFrequencyGraph title="Byte Frequency Profile" {startOffset} length={Math.min(length, DATA_PROFILE_MAX_LENGTH)} />
+    <ByteFrequencyGraph
+      title="Byte Frequency Profile"
+      {startOffset}
+      length={Math.min(length, DATA_PROFILE_MAX_LENGTH)}
+    />
   {/if}
 </SidePanel>
 
@@ -135,7 +140,7 @@ limitations under the License.
   </FlexContainer>
   <FlexContainer --dir="row" --align-items="center">
     {#if displayOpts}
-      <Button fn={save} disabledBy={!$saveable}>
+      <Button fn={save} disabledBy={!$saveable} description="Save to disk">
         <span slot="left" class="btn-icon material-symbols-outlined">save</span>
         <span slot="default">&nbsp;Save</span>
       </Button>
@@ -146,7 +151,7 @@ limitations under the License.
         <span slot="default">&nbsp;Save As</span>
       </Button>
     {:else}
-      <Button fn={toggleSaveDisplay} description="Save to disk">
+      <Button fn={toggleSaveDisplay} description="Save">
         <span slot="left" class="btn-icon material-symbols-outlined">save</span>
         <span slot="default">Save&hellip;</span>
       </Button>
@@ -156,19 +161,25 @@ limitations under the License.
   <FlexContainer --dir="row">
     <FlexContainer --dir="column">
       <label for="disk_file_size">Disk Size</label>
-      <span id="disk_file_size" class="nowrap"
-        >{$sizeHumanReadable
-          ? humanReadableByteLength($fileMetrics.diskSize)
-          : $fileMetrics.diskSize}</span
+      <Tooltip
+        description="{$fileMetrics.diskSize.toLocaleString('en')} bytes"
+        alwaysEnabled={true}
       >
+        <span id="disk_file_size" class="nowrap"
+          >{humanReadableByteLength($fileMetrics.diskSize)}</span
+        >
+      </Tooltip>
     </FlexContainer>
     <FlexContainer --dir="column">
       <label for="computed_file_size">Computed Size</label>
-      <span id="computed_file_size" class="nowrap"
-        >{$sizeHumanReadable
-          ? humanReadableByteLength($fileMetrics.diskSize)
-          : $fileMetrics.diskSize}</span
+      <Tooltip
+        description="{$fileMetrics.computedSize.toLocaleString('en')} bytes"
+        alwaysEnabled={true}
       >
+        <span id="computed_file_size" class="nowrap"
+          >{humanReadableByteLength($fileMetrics.computedSize)}</span
+        >
+      </Tooltip>
     </FlexContainer>
     <FlexContainer --dir="column">
       <label for="content_type">Content Type</label>

@@ -222,18 +222,18 @@ export enum BinaryBytePrefixes {
 }
 
 export function humanReadableByteLength(byteLength: number): string {
-  let ret = byteLength.toString(10)
-  const byteStrLen = ret.length
-  if (byteStrLen <= 3) return ret + BinaryBytePrefixes[0]
+  let ret = byteLength.toLocaleString('en')
+  let byteStrLen = ret.length
+  if (byteStrLen <= 3) ret += BinaryBytePrefixes[0]
+  else {
+    const octets = ret.split(',')
 
-  const octets = (Math.ceil(byteStrLen / 3) - 1) as ValidByteOctetCount
-  const deltaPad = Math.abs((byteStrLen % 3) - 3)
+    ret =
+      octets[0] +
+      '.' +
+      octets[1].substring(0, 1) +
+      BinaryBytePrefixes[octets.length - 1]
+  }
 
-  deltaPad === 3
-    ? (ret = ret.substring(0, 3))
-    : (ret = parseInt(
-        ret.padStart(deltaPad + byteStrLen, '0').substring(0, 3)
-      ).toString())
-
-  return ret + BinaryBytePrefixes[octets]
+  return ret
 }

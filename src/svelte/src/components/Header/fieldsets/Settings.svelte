@@ -79,14 +79,14 @@ limitations under the License.
     </FlexContainer>
 
     <hr />
-    <ConfigurationToggle
+    <!-- <ConfigurationToggle
       configItem="Show Tooltips"
       bind:toggleBind={$tooltipsEnabled}
     />
     <ConfigurationToggle
       configItem="Shorthand Filesize"
       bind:toggleBind={$sizeHumanReadable}
-    />
+    /> -->
   </FlexContainer>
 </fieldset>
 

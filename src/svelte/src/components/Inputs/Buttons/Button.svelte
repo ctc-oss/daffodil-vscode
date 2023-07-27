@@ -22,6 +22,7 @@ limitations under the License.
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
   import FlexContainer from '../../layouts/FlexContainer.svelte'
   import Tooltip from '../../layouts/Tooltip.svelte'
+  import { tooltipsEnabled } from '../../../utilities/display'
 
   onMount(() => {
     collapseContent = document.body.clientWidth <= 1600
@@ -31,6 +32,9 @@ limitations under the License.
 
   let collapseContentFn: NodeJS.Timeout
   let collapseContent = false
+
+  $: $tooltipsEnabled = collapseContent
+
   window.addEventListener('resize', () => {
     clearTimeout(collapseContentFn)
     collapseContentFn = setTimeout(() => {
