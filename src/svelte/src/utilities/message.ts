@@ -14,30 +14,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// import * as vscode from 'vscode'
 
 export enum MessageCommand {
-  viewportSubscribe,
-  save,
-  undo,
-  redo,
   clear,
-  fileInfo,
   commit,
+  editorOnChange,
+  fileInfo,
+  heartbeat,
+  profile,
+  redo,
+  replaceResults,
+  requestEditedData,
+  save,
+  saveAs,
+  scrollViewport,
   search,
   searchAndReplace,
-  addBreakpoint,
-  editorOnChange,
-  loadFile,
-  requestEditedData,
-  setSessionFile,
-  updateLogicalDisplay,
-  populateSelectionData,
-  heartBeat,
-  replacementsResults,
+  searchResults,
   setUITheme,
+  showMessage,
+  undo,
+  updateLogicalDisplay,
+  viewportRefresh,
 }
+
+export enum MessageLevel {
+  Error,
+  Info,
+  Warn,
+}
+
 export type EditorMessage = {
   command: MessageCommand
   data: Record<string, any>
+}
+
+export enum ReplaceStrategy {
+  searchNext,
+  ReplaceOne,
+  ReplaceAll,
 }

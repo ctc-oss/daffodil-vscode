@@ -91,6 +91,7 @@ jobs:
       matrix:
         os: [macos-11, ubuntu-20.04, windows-2019]
         node: [ '14', '16' ]
+      fail-fast: false  # don't immediately fail all other jobs if a single job fails
     runs-on: ${{ matrix.os }}
     defaults:
       run:
@@ -111,9 +112,15 @@ jobs:
       - run: $SBT compile # used to initialize sbt, if not done sbt universal:packageBin ran by yarn package times out -- windows only
         if: runner.os == 'Windows'
       - run: yarn install
+      - name: Make sure the Ωedit server can start on port 9009
+        run: chmod +x ./node_modules/@omega-edit/server/bin/omega-edit-grpc-server && OUT=$(./node_modules/@omega-edit/server/bin/omega-edit-grpc-server --port 9009& PID=$!; sleep 15; kill $PID) && echo $OUT
+        if: runner.os != 'Windows'
       - run: xvfb-run -a yarn test
         if: runner.os == 'Linux'
       - run: yarn test
         if: runner.os != 'Linux'
+      - name: Check for Errors in macOS
+        run: tail -n 1000 '/Users/runner/Library/Application Support/omega_edit/'* && exit 1
+        if: failure() && runner.os == 'macOS'
       - name: Package
         run: yarn package
