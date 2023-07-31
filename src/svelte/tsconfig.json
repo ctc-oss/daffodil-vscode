@@ -21,11 +21,12 @@
     "module": "esnext",
     "target": "es6",
     "outDir": "out",
-    "lib": ["es6", "es2021", "DOM"]
+    "lib": ["es6", "es2021", "DOM"],
+    "ignoreDeprecations": "5.0"
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules/*"],
-  "strict": true,   /* enable all strict type-checking options */
+  "strict": true /* enable all strict type-checking options */,
   "noImplicitAny": false,
   "removeComments": false,
   "noUnusedLocals": true,

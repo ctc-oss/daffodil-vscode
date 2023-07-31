@@ -12,24 +12,25 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License. */
+
 /* fallback */
 @font-face {
   font-family: 'Material Symbols Outlined';
   font-style: normal;
   font-weight: normal bold;
-  src: url(resources/icons/material-icons.woff2) format('woff2');
+  src: url(../resources/icons/material-icons.woff2) format('woff2');
 }
 @font-face {
   font-family: 'Red Hat Mono';
   font-style: normal;
   font-weight: normal bold;
-  src: url(resources/fonts/RedHatMono-Regular.woff2) format('woff2');
+  src: url(../resources/fonts/RedHatMono-Regular.woff2) format('woff2');
 }
 @font-face {
   font-family: 'Space Grotesk';
   font-style: normal;
   font-weight: normal bold;
-  src: url(resources/fonts/SpaceGrotesk-Variable.woff2) format('woff2');
+  src: url(../resources/fonts/SpaceGrotesk-Variable.woff2) format('woff2');
 }
 .material-symbols-outlined {
   font-family: 'Material Symbols Outlined';
