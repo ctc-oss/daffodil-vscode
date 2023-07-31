@@ -19,7 +19,6 @@ limitations under the License.
     addressRadix,
     allowCaseInsensitiveSearch,
     editorEncoding,
-    searchCaseInsensitive,
     seekable,
     seekOffsetInput,
   } from '../../../stores'
@@ -33,13 +32,13 @@ limitations under the License.
     seekErr,
   } from './SearchReplace'
   import { vscode } from '../../../utilities/vscode'
-  import { MessageCommand, ReplaceStrategy } from '../../../utilities/message'
+  import { MessageCommand } from '../../../utilities/message'
 
   import Error from '../../Error/Error.svelte'
   import Button from '../../Inputs/Buttons/Button.svelte'
   import Input from '../../Inputs/Input/Input.svelte'
   import FlexContainer from '../../layouts/FlexContainer.svelte'
-  import { createEventDispatcher } from 'svelte'
+  import { createEventDispatcher, tick } from 'svelte'
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
   import ToggleableButton from '../../Inputs/Buttons/ToggleableButton.svelte'
   import { updateSearchResultsHighlights } from '../../../utilities/highlights'
@@ -47,20 +46,26 @@ limitations under the License.
   import {
     EditActionRestrictions,
     editorActionsAllowed,
-    SEARCH_AND_REPLACE_MAX_RESULTS,
   } from '../../../stores/configuration'
 
   const eventDispatcher = createEventDispatcher()
 
+  type SearchDirection = 'Home' | 'End' | 'Forward' | 'Backward'
+
   let searchErrDisplay: boolean
   let replaceErrDisplay: boolean
-  let caseInsensitiveToggled: boolean = false
+  let caseInsensitive: boolean = false
   let containerClass: string
   let inlineClass: string
   let inputClass: string
-  let startOffset: number = 0
   let replaceStarted: boolean = false
+  let searchStarted: boolean = false
+  let showSearchOptions: boolean = false
   let showReplaceOptions: boolean = false
+  let matchOffset: number = -1
+  let moreForward: boolean = false
+  let moreBackward: boolean = false
+  let direction: SearchDirection = 'Home'
 
   let searchReplaceButtonWidth = '85pt'
   let searchNavButtonWidth = '55pt'
@@ -73,96 +78,96 @@ limitations under the License.
   $: replaceErrDisplay = $replaceErr.length > 0 && !$replaceable
   $: $seekErr = $seekable.seekErrMsg
 
-  function case_sensitive_action(_: MouseEvent) {
-    $searchCaseInsensitive = !$searchCaseInsensitive
-    caseInsensitiveToggled = !caseInsensitiveToggled
-  }
-
-  function search() {
-    searchQuery.clear()
-    showReplaceOptions = false
-    $replaceQuery.count = -1
-    $replaceQuery.replaceOneCount = 0
-    $replaceQuery.skipCount = 0
+  function search(
+    searchOffset: number,
+    searchLength: number,
+    isReverse: boolean
+  ) {
+    $searchQuery.processing = true
     vscode.postMessage({
       command: MessageCommand.search,
       data: {
         searchData: $searchQuery.input,
-        caseInsensitive: $searchCaseInsensitive,
+        caseInsensitive: caseInsensitive,
+        isReverse: isReverse,
         encoding: $editorEncoding,
-        limit: SEARCH_AND_REPLACE_MAX_RESULTS,
-      },
-    })
-    $searchQuery.processing = true
-  }
-
-  function startReplace() {
-    searchQuery.clear()
-    startOffset = 0
-    replaceStarted = true
-    search()
-  }
-
-  function skipReplace() {
-    vscode.postMessage({
-      command: MessageCommand.searchAndReplace,
-      data: {
-        searchData: $searchQuery.input,
-        caseInsensitive: $searchCaseInsensitive,
-        replaceData: $replaceQuery.input,
-        encoding: $editorEncoding,
-        startOffset: startOffset + 1,
-        replaceStrategy: ReplaceStrategy.searchNext,
-        limit: SEARCH_AND_REPLACE_MAX_RESULTS,
+        searchOffset: searchOffset,
+        searchLength: searchLength,
+        limit: 1,
       },
     })
   }
 
-  function searchAndReplace(
-    strategy: ReplaceStrategy = ReplaceStrategy.ReplaceOne
-  ) {
-    searchQuery.clear()
-    $replaceQuery.count = -1
-    $replaceQuery.replaceOneCount = 0
-    $replaceQuery.skipCount = 0
+  function searchFirst() {
+    // start search from the beginning of the file
+    direction = 'Home'
+    search(0, 0, false)
+  }
+
+  function searchLast() {
+    // start search from the end of the file
+    direction = 'End'
+    search(0, 0, true)
+  }
+
+  function searchNext() {
+    // start search from the current match offset + 1
+    direction = 'Forward'
+    search(matchOffset + 1, 0, false)
+  }
+
+  function searchPrev() {
+    // start search from the match offset to the beginning of the file
+    direction = 'Backward'
+    search(0, matchOffset, true)
+  }
+
+  function searchStart() {
+    if (searchable) {
+      matchOffset = -1
+      replaceStarted = false
+      searchStarted = true
+      searchQuery.clear()
+      searchFirst()
+    }
+  }
+
+  function replaceStart() {
+    if (replaceable) {
+      matchOffset = -1
+      replaceStarted = true
+      searchStarted = false
+      searchFirst()
+    }
+  }
+
+  function replace() {
+    $replaceQuery.processing = true
     vscode.postMessage({
-      command: MessageCommand.searchAndReplace,
+      command: MessageCommand.replace,
       data: {
         searchData: $searchQuery.input,
-        caseInsensitive: $searchCaseInsensitive,
+        caseInsensitive: caseInsensitive,
+        isReverse: false,
         replaceData: $replaceQuery.input,
         encoding: $editorEncoding,
         overwriteOnly:
           $editorActionsAllowed === EditActionRestrictions.OverwriteOnly,
-        startOffset: startOffset,
-        replaceStrategy: strategy,
-        limit: SEARCH_AND_REPLACE_MAX_RESULTS,
+        searchOffset: matchOffset,
+        searchLength: 0,
+        limit: 1,
       },
     })
-    $replaceQuery.processing = true
     eventDispatcher('clearDataDisplays')
-  }
-
-  function replaceOne() {
-    searchAndReplace(ReplaceStrategy.ReplaceOne)
-  }
-
-  function replaceRest() {
-    searchAndReplace(ReplaceStrategy.ReplaceAll)
-  }
-
-  function replaceAll() {
-    startOffset = 0
-    searchAndReplace(ReplaceStrategy.ReplaceAll)
   }
 
   function handleInputEnter(event: CustomEvent) {
     switch (event.detail.id) {
       case 'search':
-        search()
+        searchStart()
         break
       case 'replace':
-        searchAndReplace()
+        replaceStart()
         break
       case 'seek':
         eventDispatcher('seek')
@@ -174,113 +179,74 @@ limitations under the License.
     return selectors + ' ' + $UIThemeCSSClass
   }
 
-  function scrollSearchFirst() {
-    $searchQuery.searchIndex = 0
-    searchQuery.updateSearchResults($searchQuery.searchIndex)
-    eventDispatcher('seek')
-  }
-
-  function scrollSearchNext() {
-    searchQuery.updateSearchResults(++$searchQuery.searchIndex)
-    eventDispatcher('seek')
-  }
-
-  function scrollSearchPrev() {
-    searchQuery.updateSearchResults(--$searchQuery.searchIndex)
-    eventDispatcher('seek')
-  }
-
-  function scrollSearchLast() {
-    searchQuery.updateSearchResults($searchQuery.searchResults.length - 1)
-    eventDispatcher('seek')
+  function scrollToMatch() {
+    if (matchOffset >= 0) {
+      $seekOffsetInput = matchOffset.toString($addressRadix)
+      eventDispatcher('seek')
+    }
   }
 
   window.addEventListener('message', (msg) => {
     switch (msg.data.command) {
+      // handle search results
       case MessageCommand.searchResults:
-        $searchQuery.searchResults = msg.data.data.searchResults
-        $searchQuery.overflow = msg.data.data.overflow
-        $searchQuery.processing = false
-        if ($searchQuery.searchResults.length > 0) {
-          searchQuery.updateSearchResults($searchQuery.searchIndex)
-          eventDispatcher('seek')
-        }
-        if (replaceStarted) {
-          replaceStarted = false
-          if ($searchQuery.searchResults.length > 0) {
-            showReplaceOptions = true
-            startOffset = $searchQuery.searchResults[0]
+        if (msg.data.data.searchResults.length > 0) {
+          switch(direction) {
+            case 'Home':
+              moreForward = msg.data.data.overflow
+              moreBackward = false
+              break
+            case 'End':
+              moreForward = false
+              moreBackward = msg.data.data.overflow
+              break
+            case 'Forward':
+              moreForward = msg.data.data.overflow
+              moreBackward = true
+              break
+            case 'Backward':
+              moreForward = true
+              moreBackward = msg.data.data.overflow
+              break
           }
-        }
-        updateSearchResultsHighlights(
-          $searchQuery.searchResults,
-          $viewport.fileOffset,
-          $searchQuery.input.length
-        )
-
-        break
-
-      case MessageCommand.replaceResults:
-        $searchQuery.processing = false
-        $replaceQuery.processing = false
-        $replaceQuery.overflow = msg.data.data.overflow
-        switch (msg.data.data.replaceStrategy) {
-          case ReplaceStrategy.searchNext:
-            ++$replaceQuery.skipCount
-            $searchQuery.searchResults = msg.data.data.searchResults
-            if ($searchQuery.searchResults.length > 0) {
-              startOffset = $searchQuery.searchResults[0]
-              searchQuery.updateSearchResults($searchQuery.searchIndex)
-              eventDispatcher('seek')
-            } else {
-              showReplaceOptions = false
-            }
-            break
-
-          case ReplaceStrategy.ReplaceOne:
-            $searchQuery.searchResults = msg.data.data.searchResults
-            $replaceQuery.count = msg.data.data.replacementsCount
-            $replaceQuery.replaceOneCount += msg.data.data.replacementsCount
-            if ($searchQuery.searchResults.length > 0) {
-              startOffset = msg.data.data.replacementOffset
-              searchQuery.updateSearchResults($searchQuery.searchIndex)
-              eventDispatcher('seek')
-            } else {
-              showReplaceOptions = false
-            }
-            updateSearchResultsHighlights(
-              $searchQuery.searchResults,
-              $viewport.fileOffset,
-              $searchQuery.input.length
-            )
-            // reset replace query count after 5 seconds
-            setTimeout(() => {
-              $replaceQuery.count = -1
-            }, 5000)
-            break
-
-          case ReplaceStrategy.ReplaceAll:
+          matchOffset = msg.data.data.searchResults[0]
+          scrollToMatch()
+          if (searchStarted) {
             showReplaceOptions = false
-            $searchQuery.searchResults = []
-            $replaceQuery.count = msg.data.data.replacementsCount
-            updateSearchResultsHighlights(
-              $searchQuery.searchResults,
-              $viewport.fileOffset,
-              $searchQuery.input.length
-            )
-            // reset replace query count after 5 seconds
-            setTimeout(() => {
-              $replaceQuery.count = -1
-            }, 5000)
-            break
+            showSearchOptions = true
+          } else if (replaceStarted) {
+            showReplaceOptions = true
+            showSearchOptions = false
+          }
+          $searchQuery.overflow = msg.data.data.overflow
+        } else {
+          matchOffset = -1
+          $searchQuery.overflow = showSearchOptions = showReplaceOptions = false
         }
-        break
-      case MessageCommand.viewportRefresh:
+        console.log(msg)
+        searchStarted = replaceStarted = false
         updateSearchResultsHighlights(
-          $searchQuery.searchResults,
+          msg.data.data.searchResults,
           $viewport.fileOffset,
-          $searchQuery.input.length
+          msg.data.data.searchDataBytesLength
         )
+        $searchQuery.processing = false
+        break
+
+      // handle replace results
+      case MessageCommand.replaceResults:
+        searchStarted = replaceStarted = false
+        if (msg.data.data.replacementsCount > 0) {
+          showReplaceOptions = true
+          // subtract 1 from the next offset because search next will add 1
+          matchOffset = msg.data.data.nextOffset - 1
+          searchNext()
+        } else {
+          matchOffset = -1
+          showReplaceOptions = false
+        }
+        $replaceQuery.processing = false
+        break
     }
   })
 </script>
@@ -323,9 +289,13 @@ limitations under the License.
         >
           <ToggleableButton
             --width="24px"
-            fn={case_sensitive_action}
-            active={$searchCaseInsensitive}
-            description="Case sensitive search: {$searchCaseInsensitive}"
+            fn={() => {
+              caseInsensitive = !caseInsensitive
+            }}
+            active={caseInsensitive}
+            description="Case insensitive search: {caseInsensitive
+              ? 'on'
+              : 'off'}"
           >
             Aa
           </ToggleableButton>
@@ -341,7 +311,7 @@ limitations under the License.
       <Error err={searchErr} display={searchErrDisplay} />
       <Button
         disabledBy={!$searchable}
-        fn={search}
+        fn={searchStart}
         width={searchReplaceButtonWidth}
         description="Start search"
       >
@@ -363,7 +333,7 @@ limitations under the License.
       <Error err={replaceErr} display={replaceErrDisplay} />
       <Button
         disabledBy={!$replaceable}
-        fn={startReplace}
+        fn={replaceStart}
         width={searchReplaceButtonWidth}
         description="Start replacement"
       >
@@ -374,12 +344,13 @@ limitations under the License.
       </Button>
     </FlexContainer>
 
-    {#if !showReplaceOptions && $searchQuery.searchResults.length > 1}
+    {#if showSearchOptions || showReplaceOptions}
       <FlexContainer --dir="row">
         <Button
           width={searchNavButtonWidth}
-          fn={scrollSearchFirst}
-          description="Seek to first result"
+          fn={searchFirst}
+          disabledBy={!moreBackward}
+          description="Seek to the first match"
         >
           <span slot="left" class="btn-icon material-symbols-outlined"
             >first_page</span
@@ -388,18 +359,28 @@ limitations under the License.
         >
         <Button
           width={searchNavButtonWidth}
-          fn={scrollSearchPrev}
-          description="Previous result"
+          fn={searchPrev}
+          disabledBy={!moreBackward}
+          description="Seek to the previous match"
         >
           <span slot="left" class="btn-icon material-symbols-outlined"
             >navigate_before</span
           >
           <span slot="default">&nbsp;Prev</span></Button
         >
+        {#if showReplaceOptions}
+          <Button fn={replace} description="Replace the current match">
+            <span slot="left" class="btn-icon material-symbols-outlined"
+              >find_replace</span
+            >
+            <span slot="default">&nbsp;Replace</span>
+          </Button>
+        {/if}
         <Button
           width={searchNavButtonWidth}
-          fn={scrollSearchNext}
-          description="Next result"
+          fn={searchNext}
+          disabledBy={!moreForward}
+          description="Seek to the next match"
         >
           <span slot="default">Next&nbsp;</span>
           <span slot="right" class="btn-icon material-symbols-outlined"
@@ -408,74 +389,14 @@ limitations under the License.
         >
         <Button
           width={searchNavButtonWidth}
-          fn={scrollSearchLast}
-          description="Seek to last result"
+          fn={searchLast}
+          disabledBy={!moreForward}
+          description="Seek to the last match"
         >
           <span slot="default">Last&nbsp;</span>
           <span slot="right" class="btn-icon material-symbols-outlined"
             >last_page</span
           ></Button
-        >
-      </FlexContainer>
-      <FlexContainer --dir="row">
-        <sub
-          >{$searchQuery.overflow ? 'top ' : ''}{$searchQuery.searchIndex + 1} /
-          {$searchQuery.searchResults.length}{$searchQuery.overflow ? '+' : ''}
-          Results</sub
-        >
-      </FlexContainer>
-    {/if}
-    {#if showReplaceOptions}
-      <FlexContainer --dir="row">
-        <Button fn={replaceOne} description="Replace one">
-          <span slot="left" class="icon-container">
-            <span class="btn-icon material-symbols-outlined">find_replace</span>
-            <div class="icon-badge">1</div>
-          </span>
-          <span slot="default">&nbsp;One</span></Button
-        >
-        <Button fn={replaceAll} description="Replace all results">
-          <span slot="left" class="icon-container">
-            <span class="btn-icon material-symbols-outlined">find_replace</span>
-            <div class="icon-badge">
-              {#if $searchQuery.overflow}
-                {$searchQuery.overflow ? 'top ' : ''}{$searchQuery.searchResults
-                  .length}
-              {:else}
-                {$searchQuery.searchResults.length + $replaceQuery.skipCount}
-              {/if}
-            </div>
-          </span>
-          <span slot="default">&nbsp;All</span></Button
-        >
-        <Button fn={replaceRest} description="Replace remaining results">
-          <span slot="left" class="icon-container">
-            <span class="btn-icon material-symbols-outlined">find_replace</span>
-            <div class="icon-badge">
-              {$searchQuery.overflow ? 'top ' : ''}{$searchQuery.searchResults
-                .length}
-            </div>
-          </span>
-          <span slot="default">&nbsp;Rest</span></Button
-        >
-        <Button
-          fn={skipReplace}
-          disabledBy={$searchQuery.searchResults.length <= 1}
-          description="Skip this replacement"
-        >
-          <span slot="default">Next&nbsp;</span>
-          <span slot="right" class="btn-icon material-symbols-outlined"
-            >skip_next</span
-          >
-        </Button>
-      </FlexContainer>
-    {/if}
-    {#if $replaceQuery.count > -1}
-      <FlexContainer --dir="row">
-        <sub
-          >{$replaceQuery.count} Replacement{$replaceQuery.count === 1
-            ? ''
-            : 's'}</sub
         >
       </FlexContainer>
     {/if}

@@ -114,9 +114,6 @@ export const VIEWPORT_CAPACITY_MAX = 16 * 64 // 1024, Ωedit maximum viewport si
 // Number of bytes to display in the viewport
 export const NUM_LINES_DISPLAYED = 20
 
-// Maximum number of search and replace results to display
-export const SEARCH_AND_REPLACE_MAX_RESULTS = 1000
-
 export const DATA_PROFILE_MAX_LENGTH = 1_000_000
 
 export const editorActionsAllowed = writable(EditActionRestrictions.None)

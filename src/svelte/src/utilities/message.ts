@@ -29,7 +29,7 @@ export enum MessageCommand {
   saveAs,
   scrollViewport,
   search,
-  searchAndReplace,
+  replace,
   searchResults,
   setUITheme,
   showMessage,
@@ -47,10 +47,4 @@ export enum MessageLevel {
 export type EditorMessage = {
   command: MessageCommand
   data: Record<string, any>
-}
-
-export enum ReplaceStrategy {
-  searchNext,
-  ReplaceOne,
-  ReplaceAll,
 }
