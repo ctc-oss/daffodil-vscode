@@ -239,7 +239,6 @@ limitations under the License.
           matchOffset = -1
           $searchQuery.overflow = showSearchOptions = showReplaceOptions = false
         }
-        console.log(msg)
         searchStarted = replaceStarted = false
         updateSearchResultsHighlights(
           msg.data.data.searchResults,

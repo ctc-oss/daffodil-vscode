@@ -780,6 +780,7 @@ async function setupLogging(): Promise<void> {
     .replace('${omegaEditPort}', omegaEditPort.toString())
   const logLevel =
     process.env.OMEGA_EDIT_CLIENT_LOG_LEVEL ||
+    process.env.OMEGA_EDIT_LOG_LEVEL ||
     config.get<string>('logLevel', 'info')
   rotateLogFiles(logFile)
   setLogger(createSimpleFileLogger(logFile, logLevel))
@@ -1112,10 +1113,13 @@ async function serverStart() {
     ++animationFrame
   }, animationInterval)
   const config = vscode.workspace.getConfiguration('dataEditor')
+  const logLevel =
+    process.env.OMEGA_EDIT_SERVER_LOG_LEVEL ||
+    process.env.OMEGA_EDIT_LOG_LEVEL ||
+    config.get<string>('logLevel', 'info')
   const logConfigFile = generateLogbackConfigFile(
     path.join(APP_DATA_PATH, `serv-${omegaEditPort}.log`),
-    process.env.OMEGA_EDIT_SERVER_LOG_LEVEL ||
-      config.get<string>('logLevel', 'info')
+    logLevel
   )
   if (!fs.existsSync(logConfigFile)) {
     throw new Error(`Log config file '${logConfigFile}' not found`)
