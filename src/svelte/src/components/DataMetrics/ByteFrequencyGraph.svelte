@@ -276,15 +276,7 @@ limitations under the License.
       </div>
     {/if}
   </div>
-  {#if statusMessage.length > 0}
-    <div class="message status">&nbsp;{statusMessage}&nbsp;</div>
-  {/if}
-  {#if warningMessage.length > 0}
-    <div class="message warning">&nbsp;{warningMessage}&nbsp;</div>
-  {/if}
-  {#if errorMessage.length > 0}
-    <div class="message error">&nbsp;{errorMessage}&nbsp;</div>
-  {/if}
+  <hr />
   <div>
     <div class="input-container">
       <label for="ascii-overlay-toggle"
@@ -383,15 +375,6 @@ limitations under the License.
         >
       </div>
     {/if}
-    <Button
-      fn={handleCsvProfileDownload}
-      description="Download profiled data as .csv"
-    >
-      <span slot="left" class="btn-icon material-symbols-outlined"
-        >download</span
-      >
-      <span>Profile&nbsp;as&nbsp;CSV</span></Button
-    >
   </div>
   <hr />
   <div class="stats">
@@ -440,6 +423,23 @@ limitations under the License.
     </label>
   </div>
   <hr />
+  <Button
+    fn={handleCsvProfileDownload}
+    description="Download profiled data as .csv"
+  >
+    <span slot="left" class="btn-icon material-symbols-outlined">download</span>
+    <span>Profile&nbsp;as&nbsp;CSV</span></Button
+  >
+  <hr />
+  {#if statusMessage.length > 0}
+    <div class="message status">&nbsp;{statusMessage}&nbsp;</div>
+  {/if}
+  {#if warningMessage.length > 0}
+    <div class="message warning">&nbsp;{warningMessage}&nbsp;</div>
+  {/if}
+  {#if errorMessage.length > 0}
+    <div class="message error">&nbsp;{errorMessage}&nbsp;</div>
+  {/if}
 </div>
 
 <style lang="scss">
