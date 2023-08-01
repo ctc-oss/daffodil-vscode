@@ -41,7 +41,10 @@ limitations under the License.
   import { createEventDispatcher, tick } from 'svelte'
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
   import ToggleableButton from '../../Inputs/Buttons/ToggleableButton.svelte'
-  import { updateSearchResultsHighlights } from '../../../utilities/highlights'
+  import {
+    clearSearchResultsHighlights,
+    updateSearchResultsHighlights,
+  } from '../../../utilities/highlights'
   import { viewport } from '../../DataDisplays/CustomByteDisplay/BinaryData'
   import {
     EditActionRestrictions,
@@ -186,12 +189,22 @@ limitations under the License.
     }
   }
 
+  function cancel() {
+    showSearchOptions = false
+    showReplaceOptions = false
+    searchStarted = false
+    replaceStarted = false
+    matchOffset = -1
+    clearSearchResultsHighlights()
+    eventDispatcher('clearDataDisplays')
+  }
+
   window.addEventListener('message', (msg) => {
     switch (msg.data.command) {
       // handle search results
       case MessageCommand.searchResults:
         if (msg.data.data.searchResults.length > 0) {
-          switch(direction) {
+          switch (direction) {
             case 'Home':
               moreForward = msg.data.data.overflow
               moreBackward = false
@@ -398,6 +411,16 @@ limitations under the License.
             >last_page</span
           ></Button
         >
+        <Button
+          width={searchNavButtonWidth}
+          fn={cancel}
+          description="Cancel {showReplaceOptions ? 'replace' : 'search'}"
+        >
+          <span slot="left" class="btn-icon material-symbols-outlined"
+            >search_off</span
+          >
+          <span slot="default">&nbsp;Cancel</span>
+        </Button>
       </FlexContainer>
     {/if}
   </FlexContainer>
