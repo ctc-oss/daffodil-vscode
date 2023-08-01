@@ -66,9 +66,11 @@ limitations under the License.
   let showSearchOptions: boolean = false
   let showReplaceOptions: boolean = false
   let matchOffset: number = -1
-  let moreForward: boolean = false
-  let moreBackward: boolean = false
+  let hasNext: boolean = false
+  let hasPrev: boolean = false
   let direction: SearchDirection = 'Home'
+  let preReplaceHasPrev: boolean = false
+  let justReplaced: boolean = false
 
   let searchReplaceButtonWidth = '85pt'
   let searchNavButtonWidth = '55pt'
@@ -206,20 +208,21 @@ limitations under the License.
         if (msg.data.data.searchResults.length > 0) {
           switch (direction) {
             case 'Home':
-              moreForward = msg.data.data.overflow
-              moreBackward = false
+              hasNext = msg.data.data.overflow
+              hasPrev = false
               break
             case 'End':
-              moreForward = false
-              moreBackward = msg.data.data.overflow
+              hasNext = false
+              hasPrev = msg.data.data.overflow
               break
             case 'Forward':
-              moreForward = msg.data.data.overflow
-              moreBackward = true
+              hasNext = msg.data.data.overflow
+              hasPrev = justReplaced ? preReplaceHasPrev : true
+              justReplaced = false
               break
             case 'Backward':
-              moreForward = true
-              moreBackward = msg.data.data.overflow
+              hasNext = true
+              hasPrev = msg.data.data.overflow
               break
           }
           matchOffset = msg.data.data.searchResults[0]
@@ -250,9 +253,10 @@ limitations under the License.
       case MessageCommand.replaceResults:
         searchStarted = replaceStarted = false
         if (msg.data.data.replacementsCount > 0) {
-          showReplaceOptions = true
           // subtract 1 from the next offset because search next will add 1
           matchOffset = msg.data.data.nextOffset - 1
+          preReplaceHasPrev = hasPrev
+          justReplaced = true
           searchNext()
         } else {
           matchOffset = -1
@@ -362,7 +366,7 @@ limitations under the License.
         <Button
           width={searchNavButtonWidth}
           fn={searchFirst}
-          disabledBy={!moreBackward}
+          disabledBy={!hasPrev}
           description="Seek to the first match"
         >
           <span slot="left" class="btn-icon material-symbols-outlined"
@@ -373,7 +377,7 @@ limitations under the License.
         <Button
           width={searchNavButtonWidth}
           fn={searchPrev}
-          disabledBy={!moreBackward}
+          disabledBy={!hasPrev}
           description="Seek to the previous match"
         >
           <span slot="left" class="btn-icon material-symbols-outlined"
@@ -392,7 +396,7 @@ limitations under the License.
         <Button
           width={searchNavButtonWidth}
           fn={searchNext}
-          disabledBy={!moreForward}
+          disabledBy={!hasNext}
           description="Seek to the next match"
         >
           <span slot="default">Next&nbsp;</span>
@@ -403,7 +407,7 @@ limitations under the License.
         <Button
           width={searchNavButtonWidth}
           fn={searchLast}
-          disabledBy={!moreForward}
+          disabledBy={!hasNext}
           description="Seek to the last match"
         >
           <span slot="default">Last&nbsp;</span>
