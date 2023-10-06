@@ -135,6 +135,11 @@
         "language": "dfdl",
         "scopeName": "text.xml.dfdl.xsd",
         "path": "./language/syntaxes/dfdl.tmLanguage.json"
+      },
+      {
+        "language": "tdml",
+        "scopeName": "text.xml.tdml.xsd",
+        "path": "./language/syntaxes/tdml.tmLanguage.json"
       }
     ],
     "menus": {
