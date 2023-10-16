@@ -111,6 +111,7 @@
     "onCommand:extension.dfdl-debug.getTDMLPath",
     "onCommand:extension.dfdl-debug.getValidatedTDMLPath",
     "onCommand:launch.config",
+    "onCommand:tdml.config",
     "onCommand:extension.data.edit",
     "onCommand:extension.dfdl-debug.debugLastEditorContents"
   ],
@@ -157,6 +158,10 @@
       "editor/title": [
         {
           "command": "launch.config",
+          "group": "navigation@1"
+        },
+        {
+          "command": "tdml.config",
           "group": "navigation@1"
         },
         {
@@ -313,6 +318,12 @@
       {
         "command": "launch.config",
         "title": "Configure launch.json",
+        "category": "Daffodil Debug",
+        "icon": "$(debug-configure)"
+      },
+      {
+        "command": "tdml.config",
+        "title": "Edit TDML File",
         "category": "Daffodil Debug",
         "icon": "$(debug-configure)"
       },
