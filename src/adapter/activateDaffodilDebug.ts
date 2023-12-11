@@ -18,6 +18,7 @@ import { getDataFileFromFolder, getDebugger } from '../daffodilDebugger'
 import * as infoset from '../infoset'
 import * as dfdlLang from '../language/dfdl'
 import * as launchWizard from '../launchWizard/launchWizard'
+import * as tdmlEditor from '../tdmlEditor/tdmlEditor'
 import * as dataEditClient from '../dataEditor/dataEditorClient'
 import { getConfig, getCurrentConfig, setCurrentConfig } from '../utils'
 import { FileAccessor } from './daffodilRuntime'
@@ -409,6 +410,7 @@ export function activateDaffodilDebug(
   infoset.activate(context)
   dataEditClient.activate(context)
   launchWizard.activate(context)
+  tdmlEditor.activate(context)
 }
 
 class DaffodilConfigurationProvider
