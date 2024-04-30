@@ -88,6 +88,7 @@ import {
   ServerStopPredicate,
 } from './include/server/ServerInfo'
 import { isDFDLDebugSessionActive } from './include/utils'
+import { OmegaEditServer } from './include/server/Server'
 
 // *****************************************************************************
 // global constants
@@ -127,6 +128,8 @@ export function activate(ctx: vscode.ExtensionContext): void {
       DATA_EDITOR_COMMAND,
       async (fileToEdit: string = '') => {
         let configVars = editor_config.extractConfigurationVariables()
+        let server = new OmegaEditServer('127.0.0.1', configVars.port)
+        return await server.start()
         return await createDataEditorWebviewPanel(ctx, configVars, fileToEdit)
       }
     )
