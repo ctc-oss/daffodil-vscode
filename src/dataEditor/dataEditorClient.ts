@@ -78,6 +78,7 @@ import * as vscode from 'vscode'
 import os from 'os'
 import {
   HeartbeatInfo,
+  HeartbeatInfoStr,
   IHeartbeatInfo,
 } from './include/server/heartbeat/HeartBeatInfo'
 import { extractDaffodilEvent } from '../daffodilDebugger/daffodil'
@@ -88,7 +89,8 @@ import {
   ServerStopPredicate,
 } from './include/server/ServerInfo'
 import { isDFDLDebugSessionActive } from './include/utils'
-import { OmegaEditServer } from './include/server/Server'
+import { OmegaEditServer, ServiceHeartbeat } from './include/server/Server'
+import { DataEditor } from './include/client/dataEditorClient'
 
 // *****************************************************************************
 // global constants
@@ -109,7 +111,7 @@ const MAX_LOG_FILES: number = 5 // Maximum number of log files to keep TODO: mak
 // *****************************************************************************
 // file-scoped variables
 // *****************************************************************************
-
+let activeEditors = []
 let activeSessions: string[] = []
 let checkpointPath: string = ''
 let client: EditorClient
@@ -121,7 +123,16 @@ let omegaEditPort: number = 0
 // *****************************************************************************
 // exported functions
 // *****************************************************************************
-
+// const vscodeInfoHeartbeat = new ServiceHeartbeat('test', (hb) => {
+//   vscode.window.showInformationMessage(`Got heartbeat w/ ${hb.latency} latency`)
+// })
+class StandaloneEditor extends DataEditor {
+  protected fileToEdit: string = ''
+  constructor() {
+    super()
+  }
+  initialize() {}
+}
 export function activate(ctx: vscode.ExtensionContext): void {
   ctx.subscriptions.push(
     vscode.commands.registerCommand(
@@ -129,8 +140,10 @@ export function activate(ctx: vscode.ExtensionContext): void {
       async (fileToEdit: string = '') => {
         let configVars = editor_config.extractConfigurationVariables()
         let server = new OmegaEditServer('127.0.0.1', configVars.port)
-        return await server.start()
-        return await createDataEditorWebviewPanel(ctx, configVars, fileToEdit)
+        await server.start()
+        const editor = new StandaloneEditor()
+        // await server.register(editor.heatbeat)
+        // return await createDataEditorWebviewPanel(ctx, configVars, fileToEdit)
       }
     )
   )
