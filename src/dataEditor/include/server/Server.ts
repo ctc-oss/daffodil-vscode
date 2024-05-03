@@ -26,6 +26,7 @@ import path from 'path'
 import { APP_DATA_PATH } from '../../config'
 import assert from 'assert'
 import { HeartbeatProcessor, IHeartbeatInfo } from './heartbeat/HeartBeatInfo'
+import { OmegaEditService } from '../service/editorService'
 
 type ServerProcess = {
   pidFile: string
@@ -122,7 +123,11 @@ export class OmegaEditServer {
       resolve(true)
     })
   }
-
+  async getService(): Promise<OmegaEditService> {
+    return new Promise((resolve, reject) => {
+      resolve(new OmegaEditService())
+    })
+  }
   static createProcessor(
     params: Required<IHeartbeatReceiver>
   ): IHeartbeatReceiver {

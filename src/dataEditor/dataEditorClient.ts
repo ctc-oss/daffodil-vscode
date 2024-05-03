@@ -90,7 +90,8 @@ import {
 } from './include/server/ServerInfo'
 import { isDFDLDebugSessionActive } from './include/utils'
 import { OmegaEditServer, ServiceHeartbeat } from './include/server/Server'
-import { DataEditor } from './include/client/dataEditorClient'
+import { DataEditor, DataEditorUI } from './include/client/dataEditorClient'
+import { StandaloneEditor } from './standalone/standaloneEditor'
 
 // *****************************************************************************
 // global constants
@@ -126,12 +127,25 @@ let omegaEditPort: number = 0
 // const vscodeInfoHeartbeat = new ServiceHeartbeat('test', (hb) => {
 //   vscode.window.showInformationMessage(`Got heartbeat w/ ${hb.latency} latency`)
 // })
-class StandaloneEditor extends DataEditor {
-  protected fileToEdit: string = ''
-  constructor() {
-    super()
+class DataEditorWebviewPanel implements DataEditorUI {
+  protected panel: vscode.WebviewPanel
+  private view: string = 'dataeditor'
+  private constructor(title: string) {
+    this.panel = vscode.window.createWebviewPanel(
+      this.view,
+      title,
+      vscode.ViewColumn.Active,
+      { enableScripts: true, retainContextWhenHidden: true }
+    )
   }
-  initialize() {}
+  static async create(title: string): Promise<DataEditorWebviewPanel> {
+    return new Promise((resolve, reject) => {
+      resolve(new DataEditorWebviewPanel(title))
+    })
+  }
+  async show(): Promise<void> {
+    this.panel.reveal()
+  }
 }
 export function activate(ctx: vscode.ExtensionContext): void {
   ctx.subscriptions.push(
@@ -141,7 +155,9 @@ export function activate(ctx: vscode.ExtensionContext): void {
         let configVars = editor_config.extractConfigurationVariables()
         let server = new OmegaEditServer('127.0.0.1', configVars.port)
         await server.start()
-        const editor = new StandaloneEditor()
+        /* Moving on w/ assumption that server is up and running */
+        const editor = new StandaloneEditor(ctx, configVars)
+        await editor.initialize(await server.getService())
         // await server.register(editor.heatbeat)
         // return await createDataEditorWebviewPanel(ctx, configVars, fileToEdit)
       }

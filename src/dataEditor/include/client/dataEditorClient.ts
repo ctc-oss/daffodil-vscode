@@ -4,6 +4,7 @@ import {
   HeartbeatProcessor,
 } from '../server/heartbeat/HeartBeatInfo'
 import { ServiceHeartbeat } from '../server/Server'
+import { IEditService } from '../service/editorService'
 class TestProcessor implements IHeartbeatReceiver {
   constructor(
     readonly id: string,
@@ -12,6 +13,17 @@ class TestProcessor implements IHeartbeatReceiver {
 }
 export abstract class DataEditor {
   protected abstract fileToEdit: string
+  protected editService: IEditService | undefined = undefined
   constructor() {}
-  abstract initialize(): any
+  async initialize(service: IEditService) {
+    await this.getFile()
+    this.editService = service
+    service.setup(this.fileToEdit)
+    // await this.setupService()
+  }
+  protected abstract getFile(): Promise<void>
+  // protected abstract setupService(): Promise<void>
+}
+export interface DataEditorUI {
+  show(): Promise<void>
 }
