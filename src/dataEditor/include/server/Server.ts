@@ -12,11 +12,10 @@
 // import net from 'net'
 import * as fs from 'fs'
 import {
-  IHeartbeatReceiver,
+  // IHeartbeatReceiver,
   IServerHeartbeat,
   IServerInfo,
   getServerHeartbeat,
-  getServerHeartbeatFor,
   getServerInfo,
   pidIsRunning,
   startServer,
@@ -25,8 +24,7 @@ import {
 import path from 'path'
 import { APP_DATA_PATH } from '../../config'
 import assert from 'assert'
-import { HeartbeatProcessor, IHeartbeatInfo } from './heartbeat/HeartBeatInfo'
-import { OmegaEditService } from '../service/editorService'
+import { IEditService, OmegaEditService } from '../service/editorService'
 
 type ServerProcess = {
   pidFile: string
@@ -45,13 +43,10 @@ export class ServiceHeartbeat {
     }, this.interval)
   }
 }
-export class ServiceClient {
-  constructor() {
-    // createSession()
-    // createViewport()
-  }
+export interface IEditServiceProvider {
+  getService(targetFile: string): Promise<IEditService>
 }
-export class OmegaEditServer {
+export class OmegaEditServer implements IEditServiceProvider {
   readonly host: string
   readonly port: number
   private proc: ServerProcess = { pidFile: '', pid: -1 }
@@ -123,17 +118,19 @@ export class OmegaEditServer {
       resolve(true)
     })
   }
-  async getService(): Promise<OmegaEditService> {
-    return new Promise((resolve, reject) => {
-      resolve(new OmegaEditService())
+  async getService(targetFile: string): Promise<OmegaEditService> {
+    return new Promise(async (resolve, reject) => {
+      let service = new OmegaEditService()
+      await service.set(targetFile)
+      resolve(service)
     })
   }
-  static createProcessor(
-    params: Required<IHeartbeatReceiver>
-  ): IHeartbeatReceiver {
-    // Register Receiver w/ server registry
-    return params as IHeartbeatReceiver
-  }
+  // static createProcessor(
+  //   params: Required<IHeartbeatReceiver>
+  // ): IHeartbeatReceiver {
+  //   // Register Receiver w/ server registry
+  //   return params as IHeartbeatReceiver
+  // }
   private async verify(): Promise<void> {
     return new Promise(async (resolve, reject) => {
       for (let i = 1; i <= 10; ++i) {

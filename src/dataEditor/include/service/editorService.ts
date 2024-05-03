@@ -5,12 +5,12 @@ import {
   getLanguage,
   CreateSessionResponse,
 } from '@omega-edit/client'
-import assert from 'assert'
 
 export interface IEditService {
-  setup(editingFile: string): any
+  set(editingFile: string): any
 }
 
+/* OmegaEditService Implementation */
 const SessionMetadata = {
   byteOrderMark: '',
   changeCount: 0,
@@ -35,7 +35,7 @@ export class Session {
 export class OmegaEditService implements IEditService {
   private session: Session | undefined = undefined
   constructor() {}
-  async setup(editingFile: string) {
+  async set(editingFile: string) {
     try {
       this.session = new Session(await createSession(editingFile))
     } catch {

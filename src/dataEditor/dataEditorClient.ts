@@ -157,7 +157,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
         await server.start()
         /* Moving on w/ assumption that server is up and running */
         const editor = new StandaloneEditor(ctx, configVars)
-        await editor.initialize(await server.getService())
+        await editor.initialize(server)
         // await server.register(editor.heatbeat)
         // return await createDataEditorWebviewPanel(ctx, configVars, fileToEdit)
       }

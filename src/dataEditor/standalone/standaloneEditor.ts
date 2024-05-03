@@ -1,7 +1,6 @@
 import * as vscode from 'vscode'
 import * as editor_config from '../config'
 import { DataEditor } from '../include/client/dataEditorClient'
-import { IEditService } from '../include/service/editorService'
 
 export class StandaloneEditor extends DataEditor {
   protected fileToEdit: string = ''
@@ -21,6 +20,4 @@ export class StandaloneEditor extends DataEditor {
       // await this.setupDataEditor()
     }
   }
-
-  async setupService(): Promise<void> {}
 }
