@@ -3,6 +3,7 @@ import * as editor_config from '../config'
 import { DataEditor } from '../include/client/dataEditorClient'
 import { OmegaEditService } from '../include/omegaEdit/omegaEditService'
 import { DataEditorUI } from '../include/client/dataEditorUI'
+import { SvelteWebviewInitializer } from '../svelteWebviewInitializer'
 
 export class StandaloneEditor extends DataEditor implements vscode.Disposable {
   protected fileToEdit: string = ''
@@ -20,9 +21,6 @@ export class StandaloneEditor extends DataEditor implements vscode.Disposable {
     vscode.window.showInformationMessage(
       `Received ${notification.id} notification. Sending ${notification.data} to UI`
     )
-    if (notification.id === 'viewport-updated') {
-      console.debug(notification.data)
-    }
     this.ui?.sendMessage(notification)
   }
   initializeUI(ui: DataEditorWebviewPanel): void {
@@ -35,6 +33,8 @@ export class StandaloneEditor extends DataEditor implements vscode.Disposable {
         offset: 2000,
       }
       console.debug('Sending scrollViewport request')
+      // The UI will have access to the same Viewport data as the sessio nand service
+      // So upon requests, it will populate a 'viewportId' member
       this.editService!.getViewport(request.viewportId)?.setOffset(
         request.offset
       )
@@ -54,21 +54,19 @@ export class StandaloneEditor extends DataEditor implements vscode.Disposable {
 export class DataEditorWebviewPanel implements DataEditorUI {
   protected panel: vscode.WebviewPanel
   private view: string = 'dataeditor'
-  constructor(title: string) {
+  private svelteWebviewInitializer: SvelteWebviewInitializer
+  constructor(context: vscode.ExtensionContext, title: string) {
     this.panel = vscode.window.createWebviewPanel(
       this.view,
       title,
       vscode.ViewColumn.Active,
       { enableScripts: true, retainContextWhenHidden: true }
     )
+    this.svelteWebviewInitializer = new SvelteWebviewInitializer(context)
+    this.svelteWebviewInitializer.initialize(this.view, this.panel.webview)
   }
   sendMessage(msg: any): void {
     this.panel.webview.postMessage(msg)
-  }
-  static async create(title: string): Promise<DataEditorWebviewPanel> {
-    return new Promise((resolve, reject) => {
-      resolve(new DataEditorWebviewPanel(title))
-    })
   }
   async show(): Promise<void> {
     this.panel.reveal()
