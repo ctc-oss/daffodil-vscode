@@ -27,6 +27,18 @@ export class StandaloneEditor extends DataEditor implements vscode.Disposable {
   }
   initializeUI(ui: DataEditorWebviewPanel): void {
     this.ui = ui
+    setTimeout(() => {
+      // Simulate UI Request to scroll viewport
+      const request = {
+        type: 'scroll',
+        viewportId: '',
+        offset: 2000,
+      }
+      console.debug('Sending scrollViewport request')
+      this.editService!.getViewport(request.viewportId)?.setOffset(
+        request.offset
+      )
+    }, 4000)
   }
   async getFile(): Promise<void> {
     const fileUri = await vscode.window.showOpenDialog({

@@ -11,6 +11,8 @@ import {
   getClient,
   getContentType,
   getLanguage,
+  getLogger,
+  getViewportData,
 } from '@omega-edit/client'
 import EventEmitter from 'events'
 import { Viewport } from './Viewport'
@@ -31,8 +33,8 @@ export class Session {
 
   private metadata = SessionMetadata
   private metadataEventEmitter = new EventEmitter()
-  private viewports: Map<string, Viewport> = new Map()
-
+  // private viewports: Map<Viewport, (viewport: Viewport) => void> = new Map()
+  private viewports: Viewport[] = []
   constructor(
     response: CreateSessionResponse,
     public onMetadataUpdate: (data: typeof SessionMetadata) => void
@@ -46,8 +48,11 @@ export class Session {
       this.onMetadataUpdate(this.metadata)
     })
   }
+  getViewports() {
+    return this.viewports
+  }
   async createViewport(
-    client: EditorClient,
+    // client: EditorClient,
     offset: number,
     capacity: number,
     onDataEvent: (event: Viewport) => void
@@ -55,21 +60,32 @@ export class Session {
     return new Promise((resolve, reject) => {
       createViewport(undefined, this.id, offset, capacity)
         .then((response) => {
-          this.viewports.set(
-            response.getViewportId(),
-            new Viewport(response.getData_asU8(), capacity)
-          )
-          client
-            .subscribeToViewportEvents(
-              new EventSubscriptionRequest()
-                .setId(response.getViewportId())
-                .setInterest(
-                  ALL_EVENTS & ~ViewportEventKind.VIEWPORT_EVT_MODIFY
-                )
+          this.viewports.push(
+            new Viewport(
+              response.getViewportId(),
+              response.getData_asU8(),
+              capacity,
+              onDataEvent
             )
-            .on('data', async (event: ViewportEvent) => {
-              onDataEvent(new Viewport(event.getData_asU8(), 1024))
-            })
+          )
+          // client
+          //   .subscribeToViewportEvents(
+          //     new EventSubscriptionRequest()
+          //       .setId(response.getViewportId())
+          //       .setInterest(
+          //         ALL_EVENTS & ~ViewportEventKind.VIEWPORT_EVT_MODIFY
+          //       )
+          //   )
+          //   .on('data', async (event: ViewportEvent) => {
+          //     getLogger().debug({
+          //       viewportId: event.getViewportId(),
+          //       event: event.getViewportEventKind(),
+          //     })
+          //     const viewport = this.viewports.find((viewport) => {
+          //       return viewport.id == event.getViewportId()
+          //     })
+          //     onDataEvent(viewport!)
+          //   })
           resolve()
         })
         .catch((err) => {

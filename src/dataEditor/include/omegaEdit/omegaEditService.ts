@@ -1,8 +1,15 @@
-import { EditorClient, createSession, getClient } from '@omega-edit/client'
+import {
+  EditorClient,
+  createSession,
+  getClient,
+  modifyViewport,
+} from '@omega-edit/client'
 import { IEditService, IServiceMediator } from '../service/editorService'
 import { Session } from './Session'
+import { Viewport } from './Viewport'
 
 export class OmegaEditService extends IEditService {
+  static ViewportCapacity = 1024
   private session: Session | undefined = undefined
 
   constructor(
@@ -19,16 +26,40 @@ export class OmegaEditService extends IEditService {
           data: data,
         })
       })
-      this.session.createViewport(this.client, 0, 1024, (event) => {
-        this.mediator.notify({
-          id: 'viewport-updated',
-          data: event,
-        })
-      })
+      this.session.createViewport(
+        0,
+        OmegaEditService.ViewportCapacity,
+        (event) => {
+          this.mediator.notify({
+            id: 'viewport-updated',
+            data: event,
+          })
+        }
+      )
     } catch {
       throw new Error('Could not setup Omegaeditservice')
     }
   }
   async destroy() {}
+  getViewport(byId: string): Viewport | undefined {
+    if (byId === '') return this.session?.getViewports()[0]
+    return this.session?.getViewports().find((vp) => {
+      return vp.id === byId
+    })
+  }
+  // async scrollViewport(
+  //   offset: number,
+  //   onViewportUpdate: (viewport: Viewport) => void
+  // ) {
+  //   const first = this.session?.getViewports()[0]
+  //   modifyViewport(first!.id, offset, OmegaEditService.ViewportCapacity).then(
+  //     (response) => {
+  //       const viewport = this.session?.getViewports().find((vp) => {
+  //         return vp.id == response.getViewportId()
+  //       })
+  //       onViewportUpdate(viewport!)
+  //     }
+  //   )
+  // }
 }
 // service requires a running server
