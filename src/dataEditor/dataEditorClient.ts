@@ -89,9 +89,13 @@ import {
   ServerStopPredicate,
 } from './include/server/ServerInfo'
 import { isDFDLDebugSessionActive } from './include/utils'
-import { OmegaEditServer, ServiceHeartbeat } from './include/server/Server'
-import { DataEditor, DataEditorUI } from './include/client/dataEditorClient'
-import { StandaloneEditor } from './standalone/standaloneEditor'
+import { DataEditor } from './include/client/dataEditorClient'
+import {
+  DataEditorWebviewPanel,
+  StandaloneEditor,
+} from './standalone/standaloneEditor'
+import { IStatusUpdater } from './include/status/IStatus'
+import { OmegaEditServer } from './include/omegaEdit/omegaEditServer'
 
 // *****************************************************************************
 // global constants
@@ -127,39 +131,56 @@ let omegaEditPort: number = 0
 // const vscodeInfoHeartbeat = new ServiceHeartbeat('test', (hb) => {
 //   vscode.window.showInformationMessage(`Got heartbeat w/ ${hb.latency} latency`)
 // })
-class DataEditorWebviewPanel implements DataEditorUI {
-  protected panel: vscode.WebviewPanel
-  private view: string = 'dataeditor'
-  private constructor(title: string) {
-    this.panel = vscode.window.createWebviewPanel(
-      this.view,
-      title,
-      vscode.ViewColumn.Active,
-      { enableScripts: true, retainContextWhenHidden: true }
-    )
+class StatusBar implements IStatusUpdater {
+  private tag: string = ''
+  private item = vscode.window.createStatusBarItem(
+    vscode.StatusBarAlignment.Left
+  )
+  update(status: string) {
+    this.item.text = this.tag + status
+    this.item.show()
   }
-  static async create(title: string): Promise<DataEditorWebviewPanel> {
-    return new Promise((resolve, reject) => {
-      resolve(new DataEditorWebviewPanel(title))
+  setTag(tag: string) {
+    this.tag = '[' + tag + '] '
+  }
+  dispose() {
+    this.item.dispose()
+  }
+}
+interface DataEditorInitializer {
+  initialize(params: any): Promise<DataEditor>
+}
+const StandaloneInitializer: DataEditorInitializer = {
+  initialize: (params: { ctx: vscode.ExtensionContext }) => {
+    return new Promise(async (resolve) => {
+      const statusBar = new StatusBar()
+      statusBar.update('[Data Editor]: Extracting Configuration Variables')
+      let configVars = editor_config.extractConfigurationVariables()
+      let server = new OmegaEditServer('127.0.0.1', configVars.port)
+
+      await server.start(statusBar)
+      statusBar.update('[Data Editor]: Server Startup Complete!')
+      /* Moving on w/ assumption that server is up and running */
+      const editor = new StandaloneEditor(params.ctx, configVars)
+      await editor.getServiceFrom(server)
+      editor.initializeUI(new DataEditorWebviewPanel(editor.filePath()))
+      statusBar.dispose()
+      resolve(editor)
     })
-  }
-  async show(): Promise<void> {
-    this.panel.reveal()
-  }
+  },
 }
 export function activate(ctx: vscode.ExtensionContext): void {
   ctx.subscriptions.push(
     vscode.commands.registerCommand(
       DATA_EDITOR_COMMAND,
-      async (fileToEdit: string = '') => {
-        let configVars = editor_config.extractConfigurationVariables()
-        let server = new OmegaEditServer('127.0.0.1', configVars.port)
-        await server.start()
-        /* Moving on w/ assumption that server is up and running */
-        const editor = new StandaloneEditor(ctx, configVars)
-        await editor.initialize(server)
-        // await server.register(editor.heatbeat)
-        // return await createDataEditorWebviewPanel(ctx, configVars, fileToEdit)
+      async (
+        initializer: DataEditorInitializer = StandaloneInitializer,
+        params: any = {
+          ctx: ctx,
+        }
+      ) => {
+        const editor = await initializer.initialize(params)
+        return editor
       }
     )
   )

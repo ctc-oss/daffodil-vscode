@@ -1,14 +1,21 @@
 import { IEditServiceProvider } from '../server/Server'
-import { IEditService } from '../service/editorService'
-export abstract class DataEditor {
+import { IEditService, IServiceMediator } from '../service/editorService'
+import { DataEditorUI } from './dataEditorUI'
+export abstract class DataEditor implements IServiceMediator {
   protected abstract fileToEdit: string
+  protected abstract ui: DataEditorUI | undefined
+
   protected editService: IEditService | undefined = undefined
-  async initialize(provider: IEditServiceProvider) {
-    await this.getFile()
-    this.editService = await provider.getService(this.fileToEdit)
-  }
+
+  abstract initializeUI(ui: DataEditorUI): void
+  abstract notify(notification: { id: string; data: any }): void
   protected abstract getFile(): Promise<void>
-}
-export interface DataEditorUI {
-  show(): Promise<void>
+
+  filePath() {
+    return this.fileToEdit
+  }
+  async getServiceFrom(provider: IEditServiceProvider) {
+    await this.getFile()
+    this.editService = await provider.getService(this, this.fileToEdit)
+  }
 }
