@@ -1,5 +1,5 @@
 import { createSession } from '@omega-edit/client'
-import { IEditService, IServiceMediator } from '../service/editorService'
+import { IEditService, IEditorMediator } from '../service/editorService'
 import { Session } from './Session'
 import { Viewport } from './Viewport'
 
@@ -7,8 +7,8 @@ export class OmegaEditService extends IEditService {
   static ViewportCapacity = 1024
   private session: Session | undefined = undefined
 
-  constructor(mediator: IServiceMediator) {
-    super(mediator)
+  constructor(mediator: IEditorMediator) {
+    super(mediator, 'OmegaEditor')
   }
   request(msg: { type: string; data: any }) {
     console.debug(`OmegaEditService received request ${msg.type}`)
@@ -16,7 +16,7 @@ export class OmegaEditService extends IEditService {
   async set(editingFile: string) {
     try {
       this.session = new Session(await createSession(editingFile), (data) => {
-        this.mediator.notify({
+        this.mediator.notify(this, {
           id: 'session-info-update',
           data: data,
         })
@@ -25,7 +25,7 @@ export class OmegaEditService extends IEditService {
         0,
         OmegaEditService.ViewportCapacity,
         (event) => {
-          this.mediator.notify({
+          this.mediator.notify(this, {
             id: 'viewport-updated',
             data: event,
           })

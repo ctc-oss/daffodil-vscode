@@ -1,8 +1,19 @@
-export interface IServiceMediator {
-  notify(notification: { id: string; data: any }): any
+export interface IEditorMediator {
+  notify(
+    fromComponent: IEditorComponent,
+    notification: { id: string; data: any }
+  ): any
 }
-export abstract class IEditService {
-  constructor(protected mediator: IServiceMediator) {}
+export abstract class IEditorComponent {
+  constructor(
+    protected mediator: IEditorMediator,
+    readonly componentId: string
+  ) {}
+}
+export abstract class IEditService extends IEditorComponent {
+  constructor(mediator: IEditorMediator, id: string) {
+    super(mediator, id)
+  }
   abstract request(data: any): any
   abstract set(editingFile: string): any
   abstract destroy(): void
@@ -10,7 +21,7 @@ export abstract class IEditService {
 
 export interface IEditServiceProvider {
   getService(
-    mediator: IServiceMediator,
+    mediator: IEditorMediator,
     targetFile: string
   ): Promise<IEditService>
 }

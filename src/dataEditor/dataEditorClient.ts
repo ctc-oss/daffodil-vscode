@@ -164,9 +164,6 @@ const StandaloneInitializer: DataEditorInitializer = {
       /* Moving on w/ assumption that server is up and running */
       const editor = new StandaloneEditor(params.ctx, configVars)
       await editor.getServiceFrom(server)
-      editor.initializeUI(
-        new DataEditorWebviewPanel(params.ctx, editor.filePath())
-      )
       statusBar.dispose()
       resolve(editor)
     })

@@ -1,17 +1,22 @@
 import {
   IEditService,
   IEditServiceProvider,
-  IServiceMediator,
+  IEditorComponent,
+  IEditorMediator,
 } from '../service/editorService'
 import { DataEditorUI } from './dataEditorUI'
-export abstract class DataEditor implements IServiceMediator {
+export abstract class DataEditor implements IEditorMediator {
   protected abstract fileToEdit: string
   protected abstract ui: DataEditorUI | undefined
 
   protected editService: IEditService | undefined = undefined
 
-  abstract initializeUI(ui: DataEditorUI): void
-  abstract notify(notification: { id: string; data: any }): void
+  // abstract initializeUI(ui: DataEditorUI): void
+  // abstract initUI(): void
+  abstract notify(
+    fromComponent: IEditorComponent,
+    notification: { id: string; data: any }
+  ): void
   protected abstract getFile(): Promise<void>
 
   filePath() {

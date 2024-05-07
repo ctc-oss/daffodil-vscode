@@ -7,6 +7,7 @@ import {
 } from '@omega-edit/client'
 import EventEmitter from 'events'
 import { Viewport } from './Viewport'
+import { IEditorComponent } from '../service/editorService'
 
 /* OmegaEditService Implementation */
 const SessionMetadata = {

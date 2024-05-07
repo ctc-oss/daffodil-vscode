@@ -15,10 +15,7 @@ import { ServerProcess } from '../server/Server'
 import { IStatusUpdater } from '../status/IStatus'
 
 import * as fs from 'fs'
-import {
-  IEditServiceProvider,
-  IServiceMediator,
-} from '../service/editorService'
+import { IEditServiceProvider, IEditorMediator } from '../service/editorService'
 import { OmegaEditService } from './omegaEditService'
 
 export class OmegaEditServer implements IEditServiceProvider {
@@ -67,7 +64,7 @@ export class OmegaEditServer implements IEditServiceProvider {
     })
   }
   async getService(
-    mediator: IServiceMediator,
+    mediator: IEditorMediator,
     targetFile: string
   ): Promise<OmegaEditService> {
     return new Promise(async (resolve, reject) => {
