@@ -1,9 +1,4 @@
-import {
-  EditorClient,
-  createSession,
-  getClient,
-  modifyViewport,
-} from '@omega-edit/client'
+import { createSession } from '@omega-edit/client'
 import { IEditService, IServiceMediator } from '../service/editorService'
 import { Session } from './Session'
 import { Viewport } from './Viewport'
@@ -12,11 +7,11 @@ export class OmegaEditService extends IEditService {
   static ViewportCapacity = 1024
   private session: Session | undefined = undefined
 
-  constructor(
-    mediator: IServiceMediator,
-    private client: EditorClient
-  ) {
+  constructor(mediator: IServiceMediator) {
     super(mediator)
+  }
+  request(msg: { type: string; data: any }) {
+    console.debug(`OmegaEditService received request ${msg.type}`)
   }
   async set(editingFile: string) {
     try {

@@ -11,11 +11,14 @@ import {
 import assert from 'assert'
 import path from 'path'
 import { APP_DATA_PATH } from '../../config'
-import { IEditServiceProvider, ServerProcess } from '../server/Server'
+import { ServerProcess } from '../server/Server'
 import { IStatusUpdater } from '../status/IStatus'
 
 import * as fs from 'fs'
-import { IServiceMediator } from '../service/editorService'
+import {
+  IEditServiceProvider,
+  IServiceMediator,
+} from '../service/editorService'
 import { OmegaEditService } from './omegaEditService'
 
 export class OmegaEditServer implements IEditServiceProvider {

@@ -10,7 +10,7 @@
 //       - getHeartbeat()
 
 // import net from 'net'
-import { IEditService, IServiceMediator } from '../service/editorService'
+// import { IEditService, IServiceMediator } from '../service/editorService'
 
 export type ServerProcess = {
   pidFile: string
@@ -29,9 +29,3 @@ export type ServerProcess = {
 //     }, this.interval)
 //   }
 // }
-export interface IEditServiceProvider {
-  getService(
-    mediator: IServiceMediator,
-    targetFile: string
-  ): Promise<IEditService>
-}

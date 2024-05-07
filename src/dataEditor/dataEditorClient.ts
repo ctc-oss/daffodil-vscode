@@ -156,10 +156,11 @@ const StandaloneInitializer: DataEditorInitializer = {
       const statusBar = new StatusBar()
       statusBar.update('[Data Editor]: Extracting Configuration Variables')
       let configVars = editor_config.extractConfigurationVariables()
-      let server = new OmegaEditServer('127.0.0.1', configVars.port)
 
+      let server = new OmegaEditServer('127.0.0.1', configVars.port)
       await server.start(statusBar)
       statusBar.update('[Data Editor]: Server Startup Complete!')
+
       /* Moving on w/ assumption that server is up and running */
       const editor = new StandaloneEditor(params.ctx, configVars)
       await editor.getServiceFrom(server)

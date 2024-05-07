@@ -2,7 +2,7 @@ import * as vscode from 'vscode'
 import * as editor_config from '../config'
 import { DataEditor } from '../include/client/dataEditorClient'
 import { OmegaEditService } from '../include/omegaEdit/omegaEditService'
-import { DataEditorUI } from '../include/client/dataEditorUI'
+import { DataEditorUI, UIInputHandler } from '../include/client/dataEditorUI'
 import { SvelteWebviewInitializer } from '../svelteWebviewInitializer'
 
 export class StandaloneEditor extends DataEditor implements vscode.Disposable {
@@ -23,8 +23,12 @@ export class StandaloneEditor extends DataEditor implements vscode.Disposable {
     )
     this.ui?.sendMessage(notification)
   }
+
   initializeUI(ui: DataEditorWebviewPanel): void {
     this.ui = ui
+    this.ui.setInputHandler((uiMsg: any) => {
+      this.editService?.request(uiMsg)
+    })
     setTimeout(() => {
       // Simulate UI Request to scroll viewport
       const request = {
@@ -40,6 +44,7 @@ export class StandaloneEditor extends DataEditor implements vscode.Disposable {
       )
     }, 4000)
   }
+
   async getFile(): Promise<void> {
     const fileUri = await vscode.window.showOpenDialog({
       canSelectMany: false,
@@ -51,19 +56,36 @@ export class StandaloneEditor extends DataEditor implements vscode.Disposable {
   }
 }
 
+interface IDataEditorInputHandler {
+  handle(input: any): any
+}
+
+/*
+UI capable inputs that need to send to service:
+  Viewport:
+    - seek
+    - search
+    - replace
+    - edit (delete)
+  Session:
+    - createViewport ( for multiple viewports to display? )
+*/
 export class DataEditorWebviewPanel implements DataEditorUI {
   protected panel: vscode.WebviewPanel
-  private view: string = 'dataeditor'
+  private view: string = 'dataEditor'
   private svelteWebviewInitializer: SvelteWebviewInitializer
   constructor(context: vscode.ExtensionContext, title: string) {
+    this.svelteWebviewInitializer = new SvelteWebviewInitializer(context)
     this.panel = vscode.window.createWebviewPanel(
       this.view,
       title,
       vscode.ViewColumn.Active,
       { enableScripts: true, retainContextWhenHidden: true }
     )
-    this.svelteWebviewInitializer = new SvelteWebviewInitializer(context)
     this.svelteWebviewInitializer.initialize(this.view, this.panel.webview)
+  }
+  setInputHandler(handler: UIInputHandler): void {
+    this.panel.webview.onDidReceiveMessage(handler, this)
   }
   sendMessage(msg: any): void {
     this.panel.webview.postMessage(msg)

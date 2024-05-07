@@ -62,6 +62,7 @@ limitations under the License.
   } from './DataDisplays/CustomByteDisplay/BinaryData'
   import { byte_count_divisible_offset } from '../utilities/display'
   import Help from './layouts/Help.svelte'
+  import Button from './Inputs/Buttons/Button.svelte'
 
   $: $UIThemeCSSClass = $darkUITheme ? CSSThemeClass.Dark : CSSThemeClass.Light
 
@@ -94,8 +95,12 @@ limitations under the License.
     const nearestBPRdivisibleViewportFileOffset = byte_count_divisible_offset(
       viewportStartOffset,
       bytesPerRow
-    ) 
-    return (nearestBPRdivisibleTargetFileOffset - nearestBPRdivisibleViewportFileOffset) / bytesPerRow
+    )
+    return (
+      (nearestBPRdivisibleTargetFileOffset -
+        nearestBPRdivisibleViewportFileOffset) /
+      bytesPerRow
+    )
   }
 
   function fetchable_content(offset: number): boolean {
@@ -130,7 +135,13 @@ limitations under the License.
 
     $dataFeedAwaitRefresh = true
 
-    const fetchOffset = Math.max(0, byte_count_divisible_offset(offsetArg - (VIEWPORT_SCROLL_INCREMENT-$bytesPerRow), $bytesPerRow))
+    const fetchOffset = Math.max(
+      0,
+      byte_count_divisible_offset(
+        offsetArg - (VIEWPORT_SCROLL_INCREMENT - $bytesPerRow),
+        $bytesPerRow
+      )
+    )
 
     $dataFeedLineTop = offset_to_viewport_line_number(
       offsetArg,
@@ -252,7 +263,8 @@ limitations under the License.
   function handleKeyBind(event: Event) {
     const kbdEvent = event as KeyboardEvent
     if (key_is_mappable(kbdEvent.key)) {
-      if(document.activeElement) // document.activeElement is possibly undefined / null
+      if (document.activeElement)
+        // document.activeElement is possibly undefined / null
         elementKeypressEventMap.run(document.activeElement.id, kbdEvent)
       return
     }
@@ -314,16 +326,24 @@ limitations under the License.
     on:handleEditorEvent={handleEditorEvent}
     on:traverse-file={traversalEventHandler}
     on:seek={seekEventHandler}
-      />
+  />
 
   <Help />
   <hr />
   <ServerMetrics />
+  <Button
+    description="UI Input Test"
+    fn={() => {
+      vscode.postMessage({
+        type: 'ui-test',
+        data: { viewportId: '1234', data: 0x1234 },
+      })
+    }}>Send UI Input Test</Button
+  >
 </body>
 
 <!-- svelte-ignore css-unused-selector -->
 <style lang="scss">
-
   div.test {
     display: flex;
     flex-wrap: wrap;

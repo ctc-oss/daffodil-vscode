@@ -1,18 +1,9 @@
 import {
-  ALL_EVENTS,
   CreateSessionResponse,
-  EditorClient,
-  EventSubscriptionRequest,
-  ViewportDataResponse,
-  ViewportEvent,
-  ViewportEventKind,
   createViewport,
   getByteOrderMark,
-  getClient,
   getContentType,
   getLanguage,
-  getLogger,
-  getViewportData,
 } from '@omega-edit/client'
 import EventEmitter from 'events'
 import { Viewport } from './Viewport'
@@ -48,9 +39,14 @@ export class Session {
       this.onMetadataUpdate(this.metadata)
     })
   }
+
+  info() {
+    return { ...this.metadata }
+  }
   getViewports() {
     return this.viewports
   }
+
   async createViewport(
     // client: EditorClient,
     offset: number,
@@ -93,9 +89,7 @@ export class Session {
         })
     })
   }
-  info() {
-    return { ...this.metadata }
-  }
+
   private async populateAsyncMetadata() {
     const contentTypeResponse = await getContentType(
       this.id,

@@ -1,5 +1,8 @@
-import { IEditServiceProvider } from '../server/Server'
-import { IEditService, IServiceMediator } from '../service/editorService'
+import {
+  IEditService,
+  IEditServiceProvider,
+  IServiceMediator,
+} from '../service/editorService'
 import { DataEditorUI } from './dataEditorUI'
 export abstract class DataEditor implements IServiceMediator {
   protected abstract fileToEdit: string

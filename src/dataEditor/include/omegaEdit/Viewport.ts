@@ -1,4 +1,4 @@
-import { createViewport, modifyViewport } from '@omega-edit/client'
+import { modifyViewport } from '@omega-edit/client'
 
 export class Viewport {
   constructor(
