@@ -15,19 +15,27 @@ export class OmegaEditService extends IEditService {
   }
   async set(editingFile: string) {
     try {
-      this.session = new Session(await createSession(editingFile), (data) => {
-        this.mediator.notify(this, {
-          id: 'session-info-update',
-          data: data,
-        })
-      })
+      this.session = new Session(
+        editingFile,
+        await createSession(editingFile),
+        (data) => {
+          this.mediator.notify(this, {
+            id: 'session-info-update',
+            data: data,
+          })
+        }
+      )
       this.session.createViewport(
         0,
         OmegaEditService.ViewportCapacity,
-        (event) => {
+        (event: Viewport) => {
           this.mediator.notify(this, {
-            id: 'viewport-updated',
-            data: event,
+            id: 20,
+            data: {
+              viewportData: event.binaryData(),
+              length: event.length(),
+              viewportOffset: event.offset(),
+            },
           })
         }
       )
@@ -41,6 +49,9 @@ export class OmegaEditService extends IEditService {
     return this.session?.getViewports().find((vp) => {
       return vp.id === byId
     })
+  }
+  getSession() {
+    return this.session
   }
   // async scrollViewport(
   //   offset: number,

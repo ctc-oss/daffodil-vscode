@@ -1,7 +1,7 @@
 export interface IEditorMediator {
   notify(
     fromComponent: IEditorComponent,
-    notification: { id: string; data: any }
+    notification: { id: string | number; data: any }
   ): any
 }
 export abstract class IEditorComponent {

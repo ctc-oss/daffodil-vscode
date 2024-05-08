@@ -11,12 +11,7 @@ export abstract class DataEditor implements IEditorMediator {
 
   protected editService: IEditService | undefined = undefined
 
-  // abstract initializeUI(ui: DataEditorUI): void
-  // abstract initUI(): void
-  abstract notify(
-    fromComponent: IEditorComponent,
-    notification: { id: string; data: any }
-  ): void
+  abstract notify(fromComponent: IEditorComponent, notification: any): void
   protected abstract getFile(): Promise<void>
 
   filePath() {

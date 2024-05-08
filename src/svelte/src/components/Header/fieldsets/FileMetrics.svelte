@@ -64,6 +64,15 @@ limitations under the License.
 
   window.addEventListener('message', (msg) => {
     switch (msg.data.command) {
+      case 'session-info-update':
+        $fileMetrics.name = msg.data.data.fileName
+        $fileMetrics.type = msg.data.data.type
+        $fileMetrics.language = msg.data.data.language
+        $fileMetrics.computedSize = msg.data.data.computedFileSize
+        $fileMetrics.diskSize = msg.data.data.diskFileSize
+        $fileMetrics.changeCount = msg.data.data.changeCount
+        $fileMetrics.undoCount = msg.data.data.undoCount
+        break
       case MessageCommand.fileInfo:
         {
           // reset the profiler if changes have been made
@@ -186,18 +195,19 @@ limitations under the License.
     </FlexContainer>
     <FlexContainer --dir="column">
       <label for="content_type">Content Type</label>
-      <Tooltip
-        description="{$fileMetrics.type}"
-        alwaysEnabled={true}>
-      <span id="content_type" class="nowrap">{$fileMetrics.type.split('/').pop()}</span>
-        </Tooltip>
+      <Tooltip description={$fileMetrics.type} alwaysEnabled={true}>
+        <span id="content_type" class="nowrap"
+          >{$fileMetrics.type.split('/').pop()}</span
+        >
+      </Tooltip>
     </FlexContainer>
     <FlexContainer --dir="column">
       <label for="language">Language</label>
       <Tooltip
-        description="{ISO6391.getName($fileMetrics.language)}"
-        alwaysEnabled={true}>
-      <span id="language" class="nowrap">{$fileMetrics.language}</span>
+        description={ISO6391.getName($fileMetrics.language)}
+        alwaysEnabled={true}
+      >
+        <span id="language" class="nowrap">{$fileMetrics.language}</span>
       </Tooltip>
     </FlexContainer>
   </FlexContainer>

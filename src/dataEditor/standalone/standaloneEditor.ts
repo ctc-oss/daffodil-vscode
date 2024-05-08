@@ -24,33 +24,13 @@ export class StandaloneEditor extends DataEditor implements vscode.Disposable {
 
   notify(
     fromComponent: IEditorComponent,
-    notification: { id: string; data: any }
+    notification: { id: string | number; data: any }
   ): void {
     vscode.window.showInformationMessage(
-      `Received ${notification.id} notification from ${fromComponent.componentId}. Sending ${notification.data} to UI`
+      `Received ${notification} notification from ${fromComponent.componentId}. Sending ${notification.data} to UI`
     )
     this.ui.sendMessage(notification)
   }
-
-  // initializeUI(ui: DataEditorWebviewPanel): void {
-  //   this.ui = ui
-  //   this.ui.setInputHandler((uiMsg: any) => {
-  //     this.editService?.request(uiMsg)
-  //   })
-  //   setTimeout(() => {
-  //     // Simulate UI Request to scroll viewport
-  //     const request = {
-  //       type: 'scroll',
-  //       viewportId: '',
-  //       offset: 2000,
-  //     }
-  //     // The UI will have access to the same Viewport data as the sessio nand service
-  //     // So upon requests, it will populate a 'viewportId' member
-  //     this.editService!.getViewport(request.viewportId)?.setOffset(
-  //       request.offset
-  //     )
-  //   }, 4000)
-  // }
 
   async getFile(): Promise<void> {
     const fileUri = await vscode.window.showOpenDialog({
@@ -64,10 +44,6 @@ export class StandaloneEditor extends DataEditor implements vscode.Disposable {
   }
 }
 
-interface IDataEditorInputHandler {
-  handle(input: any): any
-}
-
 /*
 UI capable inputs that need to send to service:
   Viewport:
@@ -78,13 +54,14 @@ UI capable inputs that need to send to service:
   Session:
     - createViewport ( for multiple viewports to display? )
 */
-export class DataEditorWebviewPanel
-  extends IEditorComponent
-  implements DataEditorUI
-{
+export class DataEditorWebviewPanel extends DataEditorUI {
   protected panel: vscode.WebviewPanel
+  protected inputHandler: (input: any) => any = (msg) => {
+    this.mediator.notify(this, msg)
+  }
   private view: string = 'dataEditor'
   private svelteWebviewInitializer: SvelteWebviewInitializer
+
   constructor(mediator: IEditorMediator, context: vscode.ExtensionContext) {
     super(mediator, 'webviewPanel')
     this.svelteWebviewInitializer = new SvelteWebviewInitializer(context)
@@ -95,14 +72,14 @@ export class DataEditorWebviewPanel
       { enableScripts: true, retainContextWhenHidden: true }
     )
     this.svelteWebviewInitializer.initialize(this.view, this.panel.webview)
-    this.panel.webview.onDidReceiveMessage((msg) => {
-      this.mediator.notify(this, msg)
-    })
+    this.panel.webview.onDidReceiveMessage(this.inputHandler)
   }
+
   setTitle(title: string) {
     this.panel.title = title
   }
-  sendMessage(msg: any): void {
-    this.panel.webview.postMessage(msg)
+
+  sendMessage(msg: { id: string | number; data: any }): void {
+    this.panel.webview.postMessage({ command: msg.id, data: msg.data })
   }
 }

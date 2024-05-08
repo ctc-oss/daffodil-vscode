@@ -69,8 +69,8 @@ export class OmegaEditServer implements IEditServiceProvider {
   ): Promise<OmegaEditService> {
     return new Promise(async (resolve, reject) => {
       let service = new OmegaEditService(
-        mediator,
-        await getClient(this.port, this.host)
+        mediator
+        // await getClient(this.port, this.host)
       )
       await service.set(targetFile)
       resolve(service)

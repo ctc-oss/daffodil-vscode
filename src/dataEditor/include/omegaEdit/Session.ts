@@ -28,10 +28,12 @@ export class Session {
   // private viewports: Map<Viewport, (viewport: Viewport) => void> = new Map()
   private viewports: Viewport[] = []
   constructor(
+    file: string,
     response: CreateSessionResponse,
     public onMetadataUpdate: (data: typeof SessionMetadata) => void
   ) {
     this.id = response.getSessionId()
+    this.metadata.fileName = file
     if (response.hasFileSize()) {
       this.metadata.diskFileSize = this.metadata.computedFileSize =
         response.getFileSize()!
@@ -49,7 +51,6 @@ export class Session {
   }
 
   async createViewport(
-    // client: EditorClient,
     offset: number,
     capacity: number,
     onDataEvent: (event: Viewport) => void
@@ -60,29 +61,12 @@ export class Session {
           this.viewports.push(
             new Viewport(
               response.getViewportId(),
-              response.getData_asU8(),
+              response.getOffset(),
+              Uint8Array.from(response.getData_asU8()),
               capacity,
               onDataEvent
             )
           )
-          // client
-          //   .subscribeToViewportEvents(
-          //     new EventSubscriptionRequest()
-          //       .setId(response.getViewportId())
-          //       .setInterest(
-          //         ALL_EVENTS & ~ViewportEventKind.VIEWPORT_EVT_MODIFY
-          //       )
-          //   )
-          //   .on('data', async (event: ViewportEvent) => {
-          //     getLogger().debug({
-          //       viewportId: event.getViewportId(),
-          //       event: event.getViewportEventKind(),
-          //     })
-          //     const viewport = this.viewports.find((viewport) => {
-          //       return viewport.id == event.getViewportId()
-          //     })
-          //     onDataEvent(viewport!)
-          //   })
           resolve()
         })
         .catch((err) => {
