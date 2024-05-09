@@ -12,6 +12,7 @@ import { IStatusUpdater } from '../include/status/IStatus'
 import {
   IEditorComponent,
   IEditorMediator,
+  MediatorNotification,
 } from '../include/mediator/editorMediator'
 
 export class StandaloneEditor extends DataEditor implements vscode.Disposable {
@@ -27,11 +28,10 @@ export class StandaloneEditor extends DataEditor implements vscode.Disposable {
     this.editService?.destroy()
   }
 
-  notify(
-    fromComponent: IEditorComponent,
-    notification: { id: string | number; data: any }
-  ): void {
-    this.ui.sendMessage(notification)
+  notify<T>(notification: T, from: IEditorComponent): void {
+    from.componentId === this.ui.componentId
+      ? this.editService?.request({ type: '', data: 0 })
+      : this.ui.sendMessage(notification)
   }
 
   async getDataSource(): Promise<void> {
@@ -59,7 +59,7 @@ UI capable inputs that need to send to service:
 export class DataEditorWebviewPanel extends DataEditorUI {
   protected panel: vscode.WebviewPanel
   protected inputHandler: (input: any) => any = (msg) => {
-    this.mediator.notify(this, msg)
+    this.mediator.notify(msg, this)
   }
   private view: string = 'dataEditor'
   private svelteWebviewInitializer: SvelteWebviewInitializer
@@ -81,8 +81,8 @@ export class DataEditorWebviewPanel extends DataEditorUI {
     this.panel.title = title
   }
 
-  sendMessage(msg: { id: string | number; data: any }): void {
-    this.panel.webview.postMessage({ command: msg.id, data: msg.data })
+  sendMessage<T>(msg: T): void {
+    this.panel.webview.postMessage({ command: 0, data: msg })
   }
 }
 

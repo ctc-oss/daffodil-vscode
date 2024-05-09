@@ -1,4 +1,8 @@
-import { IEditorMediator, IEditorComponent } from '../mediator/editorMediator'
+import {
+  IEditorMediator,
+  IEditorComponent,
+  MediatorNotification,
+} from '../mediator/editorMediator'
 import { IEditService, IEditServiceProvider } from '../service/editorService'
 import { DataEditorUI } from './dataEditorUI'
 export abstract class DataEditor implements IEditorMediator {
@@ -7,7 +11,10 @@ export abstract class DataEditor implements IEditorMediator {
 
   protected editService: IEditService | undefined = undefined
 
-  abstract notify(fromComponent: IEditorComponent, notification: any): void
+  abstract notify<T extends MediatorNotification>(
+    notification: T,
+    from: IEditorComponent
+  ): void
   protected abstract getDataSource(): Promise<void>
 
   filePath() {

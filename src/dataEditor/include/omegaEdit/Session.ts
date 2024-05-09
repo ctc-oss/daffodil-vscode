@@ -6,11 +6,11 @@ import {
   getContentType,
   getLanguage,
 } from '@omega-edit/client'
-import EventEmitter from 'events'
 import { Viewport } from './Viewport'
 
 /* OmegaEditService Implementation */
 const SessionMetadata = {
+  id: '',
   byteOrderMark: '',
   changeCount: 0,
   computedFileSize: 0,
@@ -19,29 +19,25 @@ const SessionMetadata = {
   type: '',
   undoCount: 0,
 }
-type SessionMetadataNotification = {
-  id: ''
-  data: typeof SessionMetadata
-}
-export class Session {
-  readonly id: string
 
+export class Session {
   private metadata = SessionMetadata
   private viewports: Viewport[] = []
-
-  constructor(
+  static async FromResponse(
     response: CreateSessionResponse,
-    public onMetadataUpdate: (data: typeof SessionMetadata) => void
-  ) {
-    this.id = response.getSessionId()
-    if (response.hasFileSize()) {
-      this.metadata.diskFileSize = this.metadata.computedFileSize =
-        response.getFileSize()!
-    }
-    this.populateAsyncMetadata().then(() => {
-      this.onMetadataUpdate(this.metadata)
+    onMetadataUpdate: (event: typeof SessionMetadata) => void
+  ): Promise<Session> {
+    return new Promise((resolve, reject) => {
+      let ret = new Session(onMetadataUpdate)
+      ret.metadata.id = response.getSessionId()
+      ret.metadata.diskFileSize = ret.metadata.computedFileSize =
+        response.hasFileSize() ? response.getFileSize()! : 0
+      ret.populateAsyncMetadata()
     })
   }
+  private constructor(
+    public onMetadataUpdate: (event: typeof SessionMetadata) => void
+  ) {}
 
   info() {
     return { ...this.metadata }
@@ -52,17 +48,17 @@ export class Session {
 
   async createViewport(
     offset: number,
-    onDataEvent: (event: Viewport) => void
+    onDataUpdate: (event: Viewport) => void
   ): Promise<void> {
     return new Promise((resolve, reject) => {
-      createViewport(undefined, this.id, offset, Viewport.Capacity)
+      createViewport(undefined, this.metadata.id, offset, Viewport.Capacity)
         .then((response) => {
           this.viewports.push(
             new Viewport(
               response.getViewportId(),
               response.getOffset(),
               Uint8Array.from(response.getData_asU8()),
-              onDataEvent
+              onDataUpdate
             )
           )
           resolve()
@@ -74,23 +70,24 @@ export class Session {
   }
 
   private async populateAsyncMetadata() {
-    this.metadata.computedFileSize = await getComputedFileSize(this.id)
+    this.metadata.computedFileSize = await getComputedFileSize(this.metadata.id)
     const contentTypeResponse = await getContentType(
-      this.id,
+      this.metadata.id,
       0,
       Math.min(1024, this.metadata.computedFileSize)
     )
     this.metadata.type = contentTypeResponse.getContentType()
 
-    const byteOrderMarkResponse = await getByteOrderMark(this.id, 0)
+    const byteOrderMarkResponse = await getByteOrderMark(this.metadata.id, 0)
     this.metadata.byteOrderMark = byteOrderMarkResponse.getByteOrderMark()
 
     const languageResponse = await getLanguage(
-      this.id,
+      this.metadata.id,
       0,
       Math.min(1024, this.metadata.computedFileSize),
       this.metadata.byteOrderMark
     )
     this.metadata.language = languageResponse.getLanguage()
+    this.onMetadataUpdate(this.metadata)
   }
 }

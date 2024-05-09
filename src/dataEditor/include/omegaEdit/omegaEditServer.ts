@@ -15,8 +15,9 @@ import { ServerProcess } from '../server/Server'
 import { IStatusUpdater } from '../status/IStatus'
 
 import * as fs from 'fs'
-import { IEditServiceProvider, IEditorMediator } from '../service/editorService'
 import { OmegaEditService } from './omegaEditService'
+import { IEditorMediator } from '../mediator/editorMediator'
+import { IEditServiceProvider } from '../service/editorService'
 
 export class OmegaEditServer implements IEditServiceProvider {
   readonly host: string
@@ -68,11 +69,8 @@ export class OmegaEditServer implements IEditServiceProvider {
     targetFile: string
   ): Promise<OmegaEditService> {
     return new Promise(async (resolve, reject) => {
-      let service = new OmegaEditService(
-        mediator
-        // await getClient(this.port, this.host)
-      )
-      await service.set(targetFile)
+      let service = new OmegaEditService(mediator)
+      await service.setDataSource(targetFile).catch((err) => reject(err))
       resolve(service)
     })
   }

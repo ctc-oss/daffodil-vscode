@@ -1,7 +1,11 @@
+export interface MediatorNotification {
+  readonly command: number
+  data: any
+}
 export interface IEditorMediator {
-  notify(
-    fromComponent: IEditorComponent,
-    notification: { id: string | number; data: any }
+  notify<T extends MediatorNotification>(
+    notification: T,
+    from: IEditorComponent
   ): any
 }
 export abstract class IEditorComponent {

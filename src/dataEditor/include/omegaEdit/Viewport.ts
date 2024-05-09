@@ -1,4 +1,5 @@
 import { modifyViewport } from '@omega-edit/client'
+import { MediatorNotification } from '../mediator/editorMediator'
 
 export class Viewport {
   static readonly Capacity: number = 1024
@@ -6,7 +7,7 @@ export class Viewport {
     readonly id: string,
     protected fileOffset: number,
     protected data: Uint8Array,
-    public onDataUpdate: (viewport: Viewport) => void
+    public onDataUpdate: (event: Viewport) => void
   ) {
     // Validate some stuff
     onDataUpdate(this)

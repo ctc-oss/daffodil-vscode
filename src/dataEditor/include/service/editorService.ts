@@ -5,7 +5,7 @@ export abstract class IEditService extends IEditorComponent {
     super(mediator, id)
   }
   abstract request(data: any): any
-  abstract set(editingFile: string): any
+  abstract setDataSource(editingFile: string): any
   abstract destroy(): void
 }
 
