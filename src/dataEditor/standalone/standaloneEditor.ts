@@ -1,13 +1,18 @@
 import * as vscode from 'vscode'
 import * as editor_config from '../config'
-import { DataEditor } from '../include/client/dataEditorClient'
+import {
+  DataEditor,
+  DataEditorInitializer,
+} from '../include/client/dataEditorClient'
 import { OmegaEditService } from '../include/omegaEdit/omegaEditService'
-import { DataEditorUI, UIInputHandler } from '../include/client/dataEditorUI'
+import { DataEditorUI } from '../include/client/dataEditorUI'
 import { SvelteWebviewInitializer } from '../svelteWebviewInitializer'
+import { OmegaEditServer } from '../include/omegaEdit/omegaEditServer'
+import { IStatusUpdater } from '../include/status/IStatus'
 import {
   IEditorComponent,
   IEditorMediator,
-} from '../include/service/editorService'
+} from '../include/mediator/editorMediator'
 
 export class StandaloneEditor extends DataEditor implements vscode.Disposable {
   protected fileToEdit: string = ''
@@ -26,13 +31,10 @@ export class StandaloneEditor extends DataEditor implements vscode.Disposable {
     fromComponent: IEditorComponent,
     notification: { id: string | number; data: any }
   ): void {
-    vscode.window.showInformationMessage(
-      `Received ${notification} notification from ${fromComponent.componentId}. Sending ${notification.data} to UI`
-    )
     this.ui.sendMessage(notification)
   }
 
-  async getFile(): Promise<void> {
+  async getDataSource(): Promise<void> {
     const fileUri = await vscode.window.showOpenDialog({
       canSelectMany: false,
       openLabel: 'Select',
@@ -81,5 +83,42 @@ export class DataEditorWebviewPanel extends DataEditorUI {
 
   sendMessage(msg: { id: string | number; data: any }): void {
     this.panel.webview.postMessage({ command: msg.id, data: msg.data })
+  }
+}
+
+export const StandaloneInitializer: DataEditorInitializer = {
+  initialize: (params: { ctx: vscode.ExtensionContext }) => {
+    return new Promise(async (resolve) => {
+      const statusBar = new StatusBar()
+      statusBar.update('[Data Editor]: Extracting Configuration Variables')
+      let configVars = editor_config.extractConfigurationVariables()
+
+      let server = new OmegaEditServer('127.0.0.1', configVars.port)
+      await server.start(statusBar)
+      statusBar.update('[Data Editor]: Server Startup Complete!')
+
+      /* Moving on w/ assumption that server is up and running */
+      const editor = new StandaloneEditor(params.ctx, configVars)
+      await editor.getServiceFrom(server)
+      statusBar.dispose()
+      resolve(editor)
+    })
+  },
+}
+
+class StatusBar implements IStatusUpdater {
+  private tag: string = ''
+  private item = vscode.window.createStatusBarItem(
+    vscode.StatusBarAlignment.Left
+  )
+  update(status: string) {
+    this.item.text = this.tag + status
+    this.item.show()
+  }
+  setTag(tag: string) {
+    this.tag = '[' + tag + '] '
+  }
+  dispose() {
+    this.item.dispose()
   }
 }

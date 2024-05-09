@@ -1,12 +1,11 @@
 import { modifyViewport } from '@omega-edit/client'
 
 export class Viewport {
-  static readonly ViewportCapacity: number = 1024
+  static readonly Capacity: number = 1024
   constructor(
     readonly id: string,
     protected fileOffset: number,
     protected data: Uint8Array,
-    protected capacity: number,
     public onDataUpdate: (viewport: Viewport) => void
   ) {
     // Validate some stuff
@@ -16,7 +15,7 @@ export class Viewport {
     return this.data.length
   }
   setOffset(offset: number) {
-    modifyViewport(this.id, offset, this.capacity).then((response) => {
+    modifyViewport(this.id, offset, Viewport.Capacity).then((response) => {
       this.data = response.getData_asU8()
       this.onDataUpdate(this)
     })

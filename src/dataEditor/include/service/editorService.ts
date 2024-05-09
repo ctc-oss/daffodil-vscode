@@ -1,15 +1,5 @@
-export interface IEditorMediator {
-  notify(
-    fromComponent: IEditorComponent,
-    notification: { id: string | number; data: any }
-  ): any
-}
-export abstract class IEditorComponent {
-  constructor(
-    protected mediator: IEditorMediator,
-    readonly componentId: string
-  ) {}
-}
+import { IEditorComponent, IEditorMediator } from '../mediator/editorMediator'
+
 export abstract class IEditService extends IEditorComponent {
   constructor(mediator: IEditorMediator, id: string) {
     super(mediator, id)

@@ -1,4 +1,4 @@
-import { IEditorComponent, IEditorMediator } from '../service/editorService'
+import { IEditorComponent, IEditorMediator } from '../mediator/editorMediator'
 
 export type UIInputHandler = (input: any) => any
 export abstract class DataEditorUI extends IEditorComponent {
@@ -8,6 +8,8 @@ export abstract class DataEditorUI extends IEditorComponent {
   ) {
     super(mediator, componentId)
   }
-  protected abstract inputHandler: UIInputHandler
+
   abstract sendMessage(msg: any): void
+
+  protected abstract inputHandler: UIInputHandler
 }

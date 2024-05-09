@@ -1,7 +1,8 @@
 import { createSession } from '@omega-edit/client'
-import { IEditService, IEditorMediator } from '../service/editorService'
 import { Session } from './Session'
 import { Viewport } from './Viewport'
+import { IEditorMediator } from '../mediator/editorMediator'
+import { IEditService } from '../service/editorService'
 
 export class OmegaEditService extends IEditService {
   static ViewportCapacity = 1024
@@ -14,6 +15,9 @@ export class OmegaEditService extends IEditService {
     console.debug(`OmegaEditService received request ${msg.type}`)
   }
   async set(editingFile: string) {
+    createSession(editingFile, undefined, undefined).then((response) => {
+      this.session = new Session(response)
+    })
     try {
       this.session = new Session(
         editingFile,
@@ -25,20 +29,16 @@ export class OmegaEditService extends IEditService {
           })
         }
       )
-      this.session.createViewport(
-        0,
-        OmegaEditService.ViewportCapacity,
-        (event: Viewport) => {
-          this.mediator.notify(this, {
-            id: 20,
-            data: {
-              viewportData: event.binaryData(),
-              length: event.length(),
-              viewportOffset: event.offset(),
-            },
-          })
-        }
-      )
+      this.session.createViewport(0, (event: Viewport) => {
+        this.mediator.notify(this, {
+          id: 20,
+          data: {
+            viewportData: event.binaryData(),
+            length: event.length(),
+            viewportOffset: event.offset(),
+          },
+        })
+      })
     } catch {
       throw new Error('Could not setup Omegaeditservice')
     }
@@ -50,22 +50,4 @@ export class OmegaEditService extends IEditService {
       return vp.id === byId
     })
   }
-  getSession() {
-    return this.session
-  }
-  // async scrollViewport(
-  //   offset: number,
-  //   onViewportUpdate: (viewport: Viewport) => void
-  // ) {
-  //   const first = this.session?.getViewports()[0]
-  //   modifyViewport(first!.id, offset, OmegaEditService.ViewportCapacity).then(
-  //     (response) => {
-  //       const viewport = this.session?.getViewports().find((vp) => {
-  //         return vp.id == response.getViewportId()
-  //       })
-  //       onViewportUpdate(viewport!)
-  //     }
-  //   )
-  // }
 }
-// service requires a running server

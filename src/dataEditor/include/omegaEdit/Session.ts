@@ -2,12 +2,12 @@ import {
   CreateSessionResponse,
   createViewport,
   getByteOrderMark,
+  getComputedFileSize,
   getContentType,
   getLanguage,
 } from '@omega-edit/client'
 import EventEmitter from 'events'
 import { Viewport } from './Viewport'
-import { IEditorComponent } from '../service/editorService'
 
 /* OmegaEditService Implementation */
 const SessionMetadata = {
@@ -15,25 +15,25 @@ const SessionMetadata = {
   changeCount: 0,
   computedFileSize: 0,
   diskFileSize: 0,
-  fileName: '',
   language: '',
   type: '',
   undoCount: 0,
+}
+type SessionMetadataNotification = {
+  id: ''
+  data: typeof SessionMetadata
 }
 export class Session {
   readonly id: string
 
   private metadata = SessionMetadata
-  private metadataEventEmitter = new EventEmitter()
-  // private viewports: Map<Viewport, (viewport: Viewport) => void> = new Map()
   private viewports: Viewport[] = []
+
   constructor(
-    file: string,
     response: CreateSessionResponse,
     public onMetadataUpdate: (data: typeof SessionMetadata) => void
   ) {
     this.id = response.getSessionId()
-    this.metadata.fileName = file
     if (response.hasFileSize()) {
       this.metadata.diskFileSize = this.metadata.computedFileSize =
         response.getFileSize()!
@@ -52,18 +52,16 @@ export class Session {
 
   async createViewport(
     offset: number,
-    capacity: number,
     onDataEvent: (event: Viewport) => void
   ): Promise<void> {
     return new Promise((resolve, reject) => {
-      createViewport(undefined, this.id, offset, capacity)
+      createViewport(undefined, this.id, offset, Viewport.Capacity)
         .then((response) => {
           this.viewports.push(
             new Viewport(
               response.getViewportId(),
               response.getOffset(),
               Uint8Array.from(response.getData_asU8()),
-              capacity,
               onDataEvent
             )
           )
@@ -76,6 +74,7 @@ export class Session {
   }
 
   private async populateAsyncMetadata() {
+    this.metadata.computedFileSize = await getComputedFileSize(this.id)
     const contentTypeResponse = await getContentType(
       this.id,
       0,

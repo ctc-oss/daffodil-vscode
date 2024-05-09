@@ -89,10 +89,14 @@ import {
   ServerStopPredicate,
 } from './include/server/ServerInfo'
 import { isDFDLDebugSessionActive } from './include/utils'
-import { DataEditor } from './include/client/dataEditorClient'
+import {
+  DataEditor,
+  DataEditorInitializer,
+} from './include/client/dataEditorClient'
 import {
   DataEditorWebviewPanel,
   StandaloneEditor,
+  StandaloneInitializer,
 } from './standalone/standaloneEditor'
 import { IStatusUpdater } from './include/status/IStatus'
 import { OmegaEditServer } from './include/omegaEdit/omegaEditServer'
@@ -131,44 +135,6 @@ let omegaEditPort: number = 0
 // const vscodeInfoHeartbeat = new ServiceHeartbeat('test', (hb) => {
 //   vscode.window.showInformationMessage(`Got heartbeat w/ ${hb.latency} latency`)
 // })
-class StatusBar implements IStatusUpdater {
-  private tag: string = ''
-  private item = vscode.window.createStatusBarItem(
-    vscode.StatusBarAlignment.Left
-  )
-  update(status: string) {
-    this.item.text = this.tag + status
-    this.item.show()
-  }
-  setTag(tag: string) {
-    this.tag = '[' + tag + '] '
-  }
-  dispose() {
-    this.item.dispose()
-  }
-}
-interface DataEditorInitializer {
-  initialize(params: any): Promise<DataEditor>
-}
-const StandaloneInitializer: DataEditorInitializer = {
-  initialize: (params: { ctx: vscode.ExtensionContext }) => {
-    return new Promise(async (resolve) => {
-      const statusBar = new StatusBar()
-      statusBar.update('[Data Editor]: Extracting Configuration Variables')
-      let configVars = editor_config.extractConfigurationVariables()
-
-      let server = new OmegaEditServer('127.0.0.1', configVars.port)
-      await server.start(statusBar)
-      statusBar.update('[Data Editor]: Server Startup Complete!')
-
-      /* Moving on w/ assumption that server is up and running */
-      const editor = new StandaloneEditor(params.ctx, configVars)
-      await editor.getServiceFrom(server)
-      statusBar.dispose()
-      resolve(editor)
-    })
-  },
-}
 export function activate(ctx: vscode.ExtensionContext): void {
   ctx.subscriptions.push(
     vscode.commands.registerCommand(
