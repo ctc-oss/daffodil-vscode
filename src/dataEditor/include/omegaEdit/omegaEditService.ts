@@ -1,6 +1,5 @@
 import { createSession } from '@omega-edit/client'
 import { Session } from './Session'
-import { Viewport } from './Viewport'
 import {
   IEditorMediator,
   MediatorNotification,
@@ -16,8 +15,14 @@ export class OmegaEditService extends IEditService {
   static ViewportCapacity = 1024
   private session: Session | undefined = undefined
 
-  constructor(mediator: IEditorMediator) {
-    super(mediator, 'OmegaEditorService')
+  constructor(
+    mediator: IEditorMediator,
+    readonly onDisposal: () => any
+  ) {
+    super(mediator, onDisposal, 'OmegaEditorService')
+  }
+  [Symbol.dispose](): void {
+    throw new Error('Method not implemented.')
   }
   async setDataSource(editingFile: string) {
     const response = await createSession(editingFile)
@@ -26,13 +31,6 @@ export class OmegaEditService extends IEditService {
     })
     this.session.createViewport(0, (data) => {
       this.mediator.notify(new ViewportRefreshNotification(data), this)
-    })
-  }
-  async destroy() {}
-  getViewport(byId: string): Viewport | undefined {
-    if (byId === '') return this.session?.getViewports()[0]
-    return this.session?.getViewports().find((vp) => {
-      return vp.id === byId
     })
   }
   request<T>(notification: MediatorNotification<T>) {

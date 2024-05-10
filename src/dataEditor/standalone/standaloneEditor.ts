@@ -21,7 +21,9 @@ export class StandaloneEditor extends DataEditor implements vscode.Disposable {
   protected editService: OmegaEditService | undefined = undefined
   constructor(ctx: vscode.ExtensionContext, config: editor_config.Config) {
     super()
-    this.ui = new DataEditorWebviewPanel(this, ctx)
+    this.ui = new DataEditorWebviewPanel(this, ctx, () => {
+      this.dispose()
+    })
   }
 
   dispose() {
@@ -67,7 +69,11 @@ export class DataEditorWebviewPanel extends DataEditorUI {
   private view: string = 'dataEditor'
   private svelteWebviewInitializer: SvelteWebviewInitializer
 
-  constructor(mediator: IEditorMediator, context: vscode.ExtensionContext) {
+  constructor(
+    mediator: IEditorMediator,
+    context: vscode.ExtensionContext,
+    onDisposal: () => any
+  ) {
     super(mediator, 'webviewPanel')
     this.svelteWebviewInitializer = new SvelteWebviewInitializer(context)
     this.panel = vscode.window.createWebviewPanel(
@@ -78,6 +84,9 @@ export class DataEditorWebviewPanel extends DataEditorUI {
     )
     this.svelteWebviewInitializer.initialize(this.view, this.panel.webview)
     this.panel.webview.onDidReceiveMessage(this.inputHandler)
+    this.panel.onDidDispose(() => {
+      onDisposal()
+    })
   }
 
   setTitle(title: string) {
