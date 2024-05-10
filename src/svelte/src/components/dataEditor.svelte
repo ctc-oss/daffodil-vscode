@@ -276,7 +276,8 @@ limitations under the License.
   }
 
   window.addEventListener('message', (msg) => {
-    switch (msg.data.command) {
+    const { command, data } = msg.data
+    switch (command) {
       case MessageCommand.editorOnChange:
         if ($editMode === EditByteModes.Multiple)
           $editorSelection = msg.data.display
@@ -297,13 +298,7 @@ limitations under the License.
         $darkUITheme = msg.data.theme === 2
         break
       case MessageCommand.viewportRefresh:
-        // the viewport has been refreshed, so the editor views need to be updated
-        $viewport = {
-          data: msg.data.data.viewportData,
-          fileOffset: msg.data.data.viewportOffset,
-          length: msg.data.data.viewportLength,
-          bytesLeft: msg.data.data.viewportFollowingByteCount,
-        } as ViewportData_t
+        $viewport = data as ViewportData_t
 
         break
     }

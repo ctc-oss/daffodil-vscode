@@ -33,6 +33,7 @@ export class Session {
       ret.metadata.diskFileSize = ret.metadata.computedFileSize =
         response.hasFileSize() ? response.getFileSize()! : 0
       ret.populateAsyncMetadata()
+      resolve(ret)
     })
   }
   private constructor(

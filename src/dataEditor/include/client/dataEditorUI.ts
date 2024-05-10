@@ -13,7 +13,7 @@ export abstract class DataEditorUI extends IEditorComponent {
     super(mediator, componentId)
   }
 
-  abstract sendMessage<T>(msg: MessageEvent<T>): void
+  abstract sendMessage(msg: MediatorNotification): void
 
   protected abstract inputHandler: UIInputHandler
 }

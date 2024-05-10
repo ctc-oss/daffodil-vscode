@@ -3,6 +3,7 @@ import { Session } from './Session'
 import { Viewport } from './Viewport'
 import { IEditorMediator } from '../mediator/editorMediator'
 import { IEditService } from '../service/editorService'
+import { NotificationType } from '../mediator/notification'
 
 export class OmegaEditService extends IEditService {
   static ViewportCapacity = 1024
@@ -17,10 +18,24 @@ export class OmegaEditService extends IEditService {
   async setDataSource(editingFile: string) {
     const response = await createSession(editingFile)
     this.session = await Session.FromResponse(response, (metadata) => {
-      this.mediator.notify({ command: 0, data: metadata }, this)
+      this.mediator.notify(
+        { command: NotificationType.fileInfo, data: metadata },
+        this
+      )
     })
     this.session.createViewport(0, (data) => {
-      this.mediator.notify({ command: 20, data }, this)
+      this.mediator.notify(
+        {
+          command: NotificationType.viewportRefresh,
+          data: {
+            viewportData: data.binaryData(),
+            fileOffset: data.offset(),
+            length: data.length(),
+            bytesLeft: 0,
+          },
+        },
+        this
+      )
     })
   }
   async destroy() {}

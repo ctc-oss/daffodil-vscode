@@ -317,10 +317,12 @@ export const editByte = derived(
   [displayRadix, focusedViewportId, viewport, selectionDataStore],
   ([$displayRadix, $focusedViewportId, $viewport, $selectionData]) => {
     // TODO: I think there is a cleaner way to do this given that we already have the encoded data in the respective viewports
-    if ($viewport.data[$selectionData.startOffset] !== undefined) {
+    if ($viewport.viewportData[$selectionData.startOffset] !== undefined) {
       return $focusedViewportId === 'logical'
-        ? String.fromCharCode($viewport.data[$selectionData.startOffset])
-        : $viewport.data[$selectionData.startOffset]
+        ? String.fromCharCode(
+            $viewport.viewportData[$selectionData.startOffset]
+          )
+        : $viewport.viewportData[$selectionData.startOffset]
             .toString($displayRadix)
             .padStart(radixBytePad($displayRadix), '0')
     }
@@ -381,10 +383,10 @@ export const requestable = derived(
 export const originalDataSegment = derived(
   [viewport, selectionDataStore, regularSizedFile],
   ([$viewport, $selectionData, $regularSizedFile]) => {
-    if (!$viewport.data) return []
-    if (!$regularSizedFile) return $viewport.data
+    if (!$viewport.viewportData) return []
+    if (!$regularSizedFile) return $viewport.viewportData
 
-    return $viewport.data.slice(
+    return $viewport.viewportData.slice(
       $selectionData.startOffset,
       $selectionData.originalEndOffset + 1
     )
@@ -420,7 +422,7 @@ export const applicable = derived(
     $regularSizedFile,
   ]) => {
     if (!$regularSizedFile) {
-      return $viewport.data.length !=
+      return $viewport.viewportData.length !=
         $editorSelection.length / radixBytePad($displayRadix) &&
         $editorActionsAllowed === EditActionRestrictions.OverwriteOnly
         ? false
@@ -444,7 +446,8 @@ export const applicable = derived(
     if (editLengthHasDelta) return true
     for (let i = 0; i < $selectionSize; i++) {
       if (
-        $viewport.data[i + $selectionData.startOffset] !== $selectedFileData[i]
+        $viewport.viewportData[i + $selectionData.startOffset] !==
+        $selectedFileData[i]
       )
         return true
     }
@@ -495,7 +498,7 @@ export const dataView = derived(
   [selectionDataStore, viewport],
   ([$selectionData, $viewport]) => {
     return new DataView(
-      typedArrayToBuffer($viewport.data, $selectionData.startOffset, 8)
+      typedArrayToBuffer($viewport.viewportData, $selectionData.startOffset, 8)
     )
   }
 )
@@ -672,6 +675,6 @@ function logicalDisplay(bytes: Uint8Array, bytesPerRow: number): string {
 export const viewportLogicalDisplayText = derived(
   [viewport, bytesPerRow],
   ([$viewport, $bytesPerRow]) => {
-    return logicalDisplay($viewport.data, $bytesPerRow)
+    return logicalDisplay($viewport.viewportData, $bytesPerRow)
   }
 )

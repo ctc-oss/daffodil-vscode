@@ -11,8 +11,8 @@ export abstract class DataEditor implements IEditorMediator {
 
   protected editService: IEditService | undefined = undefined
 
-  abstract notify<T extends MediatorNotification>(
-    notification: T,
+  abstract notify(
+    notification: MediatorNotification,
     from: IEditorComponent
   ): void
   protected abstract getDataSource(): Promise<void>

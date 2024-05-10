@@ -28,7 +28,7 @@ export class StandaloneEditor extends DataEditor implements vscode.Disposable {
     this.editService?.destroy()
   }
 
-  notify<T>(notification: T, from: IEditorComponent): void {
+  notify(notification: MediatorNotification, from: IEditorComponent): void {
     from.componentId === this.ui.componentId
       ? this.editService?.request({ type: '', data: 0 })
       : this.ui.sendMessage(notification)
@@ -81,13 +81,14 @@ export class DataEditorWebviewPanel extends DataEditorUI {
     this.panel.title = title
   }
 
-  sendMessage<T>(msg: T): void {
-    this.panel.webview.postMessage({ command: 0, data: msg })
+  sendMessage(msg: MediatorNotification): void {
+    this.panel.webview.postMessage({ command: msg.command, data: msg.data })
   }
 }
 
 export const StandaloneInitializer: DataEditorInitializer = {
   initialize: (params: { ctx: vscode.ExtensionContext }) => {
+    5
     return new Promise(async (resolve) => {
       const statusBar = new StatusBar()
       statusBar.update('[Data Editor]: Extracting Configuration Variables')

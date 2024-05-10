@@ -82,11 +82,11 @@ export const RADIX_REGEX_MATCH_STR = {
 }
 
 export class ViewportData_t {
-  data = new Uint8Array(0)
+  viewportData = new Uint8Array(0)
   fileOffset = -1
   length = -1
   bytesLeft = -1
-  capacity = this.data.length
+  capacity = this.viewportData.length
 }
 
 export class ViewportDataStore_t extends SimpleWritable<ViewportData_t> {
@@ -152,16 +152,16 @@ export class ViewportDataStore_t extends SimpleWritable<ViewportData_t> {
   }
 
   public subarray(from: number, to: number): Uint8Array {
-    return this.storeData().data.subarray(from, to)
+    return this.storeData().viewportData.subarray(from, to)
   }
 
   public slice(from: number, to: number): Uint8Array {
-    return this.storeData().data.slice(from, to)
+    return this.storeData().viewportData.slice(from, to)
   }
 
   private physical_display(radix: RadixValues, bytesPerRow: 16 | 8): string {
     let result = ''
-    let arr = this.storeData().data
+    let arr = this.storeData().viewportData
     if (arr.byteLength > 0) {
       const pad = radixBytePad(radix)
       let i = 0

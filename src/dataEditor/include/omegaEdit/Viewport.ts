@@ -1,5 +1,4 @@
 import { modifyViewport } from '@omega-edit/client'
-import { MediatorNotification } from '../mediator/editorMediator'
 
 export class Viewport {
   static readonly Capacity: number = 1024

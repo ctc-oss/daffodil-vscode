@@ -35,18 +35,21 @@ export class OmegaEditServer implements IEditServiceProvider {
   async start(statusUpdater: IStatusUpdater): Promise<void> {
     statusUpdater.setTag('OEServer')
     statusUpdater.update('Stopping all open servers')
-    await this.stop()
-    const logConfigFile = generateLogbackConfigFile(
-      path.join(APP_DATA_PATH, `serv-${this.port}.log`),
-      this.port
-    )
+    await this.stop().catch((failure) => {
+      throw new Error(failure)
+    })
+    // const logConfigFile = generateLogbackConfigFile(
+    //   path.join(APP_DATA_PATH, `serv-${this.port}.log`),
+    //   this.port
+    // )
     statusUpdater.update(`Starting server on port ${this.port}`)
     const serverPid = await startServer(
       this.port,
       this.host,
-      this.proc.pidFile,
-      logConfigFile
+      this.proc.pidFile
+      // logConfigFile
     )
+    assert(fs.existsSync(this.proc.pidFile))
     if (serverPid && serverPid > 0) {
       this.proc.pid = serverPid
       await this.verify(statusUpdater).catch((failure) => {
@@ -56,11 +59,15 @@ export class OmegaEditServer implements IEditServiceProvider {
     } else throw new Error('Server failed to start correctly')
   }
   async stop(): Promise<boolean> {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       if (this.proc.pid > 0 && pidIsRunning(this.proc.pid))
-        stopProcessUsingPID(this.proc.pid).then((stopped) => {
-          resolve(stopped)
-        })
+        stopProcessUsingPID(this.proc.pid)
+          .then((stopped) => {
+            resolve(stopped)
+          })
+          .catch((failure) => {
+            reject(failure)
+          })
       resolve(true)
     })
   }
