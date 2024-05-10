@@ -4,7 +4,7 @@ import {
   MediatorNotification,
 } from '../mediator/editorMediator'
 
-export type UIInputHandler = (input: any) => any
+export type UIInputHandler = (input: MediatorNotification<any>) => any
 export abstract class DataEditorUI extends IEditorComponent {
   constructor(
     mediator: IEditorMediator,
@@ -13,7 +13,7 @@ export abstract class DataEditorUI extends IEditorComponent {
     super(mediator, componentId)
   }
 
-  abstract sendMessage(msg: MediatorNotification): void
+  abstract sendMessage(msg: MediatorNotification<unknown>): void
 
   protected abstract inputHandler: UIInputHandler
 }

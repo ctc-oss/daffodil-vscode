@@ -9,7 +9,17 @@ import {
 import { Viewport } from './Viewport'
 
 /* OmegaEditService Implementation */
-const SessionMetadata = {
+export type SessionMetadata = {
+  id: string
+  byteOrderMark: string
+  changeCount: number
+  computedFileSize: number
+  diskFileSize: number
+  language: string
+  type: string
+  undoCount: number
+}
+const SessionMetadata: SessionMetadata = {
   id: '',
   byteOrderMark: '',
   changeCount: 0,

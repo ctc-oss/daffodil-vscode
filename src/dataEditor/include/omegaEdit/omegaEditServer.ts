@@ -6,7 +6,6 @@ import {
   pidIsRunning,
   stopProcessUsingPID,
   getServerInfo,
-  getClient,
 } from '@omega-edit/client'
 import assert from 'assert'
 import path from 'path'

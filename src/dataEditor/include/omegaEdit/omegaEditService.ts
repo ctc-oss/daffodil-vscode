@@ -1,9 +1,16 @@
 import { createSession } from '@omega-edit/client'
 import { Session } from './Session'
 import { Viewport } from './Viewport'
-import { IEditorMediator } from '../mediator/editorMediator'
+import {
+  IEditorMediator,
+  MediatorNotification,
+} from '../mediator/editorMediator'
 import { IEditService } from '../service/editorService'
-import { NotificationType } from '../mediator/notification'
+import {
+  SessionInfoNotification,
+  ViewportRefreshNotification,
+} from './Notifications'
+import { MessageLevel, NotificationType } from '../mediator/notification'
 
 export class OmegaEditService extends IEditService {
   static ViewportCapacity = 1024
@@ -12,30 +19,13 @@ export class OmegaEditService extends IEditService {
   constructor(mediator: IEditorMediator) {
     super(mediator, 'OmegaEditorService')
   }
-  request(msg: { type: string; data: any }) {
-    console.debug(`OmegaEditService received request ${msg.type}`)
-  }
   async setDataSource(editingFile: string) {
     const response = await createSession(editingFile)
     this.session = await Session.FromResponse(response, (metadata) => {
-      this.mediator.notify(
-        { command: NotificationType.fileInfo, data: metadata },
-        this
-      )
+      this.mediator.notify(new SessionInfoNotification(metadata), this)
     })
     this.session.createViewport(0, (data) => {
-      this.mediator.notify(
-        {
-          command: NotificationType.viewportRefresh,
-          data: {
-            viewportData: data.binaryData(),
-            fileOffset: data.offset(),
-            length: data.length(),
-            bytesLeft: 0,
-          },
-        },
-        this
-      )
+      this.mediator.notify(new ViewportRefreshNotification(data), this)
     })
   }
   async destroy() {}
@@ -45,4 +35,21 @@ export class OmegaEditService extends IEditService {
       return vp.id === byId
     })
   }
+  request<T>(notification: MediatorNotification<T>) {
+    switch (notification.command) {
+      case NotificationType.showMessage:
+        const { level, msg } = notification.data as ShowMessage
+        switch (level) {
+          case MessageLevel.Info:
+            console.debug('[INFO] ' + msg)
+            // this.mediator.notify({}) // Can be implemented
+            break
+        }
+        break
+    }
+  }
+}
+interface ShowMessage {
+  readonly level: MessageLevel
+  readonly msg: string
 }

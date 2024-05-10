@@ -1,12 +1,12 @@
 import { NotificationType } from './notification'
 
-export interface MediatorNotification {
+export interface MediatorNotification<T> {
   readonly command: NotificationType
-  data: Record<string, any>
+  data: T
 }
 
 export interface IEditorMediator {
-  notify(notification: MediatorNotification, from: IEditorComponent): any
+  notify<T>(notification: MediatorNotification<T>, from: IEditorComponent): any
 }
 export abstract class IEditorComponent {
   constructor(

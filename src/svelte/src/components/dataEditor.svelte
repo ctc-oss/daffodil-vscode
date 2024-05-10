@@ -330,8 +330,8 @@ limitations under the License.
     description="UI Input Test"
     fn={() => {
       vscode.postMessage({
-        type: 'ui-test',
-        data: { viewportId: '1234', data: 0x1234 },
+        command: MessageCommand.showMessage,
+        data: { level: 1, msg: 'Testing showMessage' },
       })
     }}>Send UI Input Test</Button
   >

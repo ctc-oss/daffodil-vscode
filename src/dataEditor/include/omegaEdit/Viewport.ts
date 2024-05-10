@@ -1,5 +1,11 @@
 import { modifyViewport } from '@omega-edit/client'
 
+export type ViewportContent = {
+  viewportData: Uint8Array
+  fileOffset: number
+  length: number
+  bytesLeft: number // Only visible by Session though?
+}
 export class Viewport {
   static readonly Capacity: number = 1024
   constructor(
@@ -26,4 +32,13 @@ export class Viewport {
   offset() {
     return this.fileOffset
   }
+  getContent(): ViewportContent {
+    return {
+      viewportData: this.data,
+      fileOffset: this.fileOffset,
+      length: this.data.length,
+      bytesLeft: 0,
+    }
+  }
 }
+export class ViewportModifier {}

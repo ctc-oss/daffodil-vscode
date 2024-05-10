@@ -17,8 +17,8 @@ import {
 
 export class StandaloneEditor extends DataEditor implements vscode.Disposable {
   protected fileToEdit: string = ''
-  protected editService: OmegaEditService | undefined
   protected ui: DataEditorWebviewPanel
+  protected editService: OmegaEditService | undefined = undefined
   constructor(ctx: vscode.ExtensionContext, config: editor_config.Config) {
     super()
     this.ui = new DataEditorWebviewPanel(this, ctx)
@@ -28,9 +28,12 @@ export class StandaloneEditor extends DataEditor implements vscode.Disposable {
     this.editService?.destroy()
   }
 
-  notify(notification: MediatorNotification, from: IEditorComponent): void {
+  notify<T>(
+    notification: MediatorNotification<T>,
+    from: IEditorComponent
+  ): void {
     from.componentId === this.ui.componentId
-      ? this.editService?.request({ type: '', data: 0 })
+      ? this.editService!.request(notification)
       : this.ui.sendMessage(notification)
   }
 
@@ -58,7 +61,7 @@ UI capable inputs that need to send to service:
 */
 export class DataEditorWebviewPanel extends DataEditorUI {
   protected panel: vscode.WebviewPanel
-  protected inputHandler: (input: any) => any = (msg) => {
+  protected inputHandler: (input: MediatorNotification<any>) => any = (msg) => {
     this.mediator.notify(msg, this)
   }
   private view: string = 'dataEditor'
@@ -81,7 +84,7 @@ export class DataEditorWebviewPanel extends DataEditorUI {
     this.panel.title = title
   }
 
-  sendMessage(msg: MediatorNotification): void {
+  sendMessage(msg: MediatorNotification<unknown>): void {
     this.panel.webview.postMessage({ command: msg.command, data: msg.data })
   }
 }
