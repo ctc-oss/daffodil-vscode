@@ -1,20 +1,13 @@
-import {
-  IEditorMediator,
-  IEditorComponent,
-  MediatorNotification,
-} from '../mediator/editorMediator'
 import { IEditService, IEditServiceProvider } from '../service/editorService'
 import { DataEditorUI } from './dataEditorUI'
-export abstract class DataEditor implements IEditorMediator {
+import { MappedMediator } from './mappedMediator'
+export abstract class DataEditor {
+  protected mediator = new MappedMediator()
   protected abstract fileToEdit: string
   protected abstract ui: DataEditorUI | undefined
 
   protected editService: IEditService | undefined = undefined
 
-  abstract notify<T>(
-    notification: MediatorNotification<T>,
-    from: IEditorComponent
-  ): void
   protected abstract getDataSource(): Promise<void>
 
   filePath() {
@@ -22,7 +15,7 @@ export abstract class DataEditor implements IEditorMediator {
   }
   async getServiceFrom(provider: IEditServiceProvider) {
     await this.getDataSource()
-    this.editService = await provider.getService(this, this.fileToEdit)
+    this.editService = await provider.getService(this.mediator, this.fileToEdit)
   }
 }
 

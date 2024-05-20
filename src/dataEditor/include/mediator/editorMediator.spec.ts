@@ -1,7 +1,7 @@
 import { describe, it } from 'mocha'
 import {
-  IMediator,
-  IMediatorComponent,
+  Mediator,
+  MediatorComponent,
   MediatorEvent,
   MediatorEventListener,
 } from './editorMediator'
@@ -13,18 +13,21 @@ enum EditorEventTypes {
   insert,
   save,
   dataUpdate,
+  all,
 }
-// interface EditorEvent {}
-
+namespace EditorEventTypes {}
 class DataUpdateEvent implements MediatorEvent<EditorEventTypes> {
   readonly type = EditorEventTypes.dataUpdate
-  constructor(readonly data: Uint8Array) {}
+  constructor(readonly _content: Uint8Array) {}
+  toString(): string {
+    throw new Error('Method not implemented.')
+  }
   content() {
-    return this.data
+    return this._content
   }
 }
 
-class Editor implements IMediator<EditorEventTypes> {
+class Editor implements Mediator<EditorEventTypes> {
   handlers: Map<EditorEventTypes, MediatorEventListener<any>[]> = new Map()
   notify(event: MediatorEvent<EditorEventTypes>): void {
     const handlers = this.handlers.get(event.type)
@@ -43,7 +46,7 @@ class Editor implements IMediator<EditorEventTypes> {
   }
 }
 
-class EditorUI extends IMediatorComponent<EditorEventTypes> {
+class EditorUI extends MediatorComponent<EditorEventTypes> {
   dataText: string = ''
   constructor(editor: Editor) {
     super(editor)
@@ -52,7 +55,7 @@ class EditorUI extends IMediatorComponent<EditorEventTypes> {
     this.mediator.register(EditorEventTypes.dataUpdate, [
       (content: DataUpdateEvent) => {
         content.toString()
-        content.data.forEach((byte) => {
+        content._content.forEach((byte) => {
           this.dataText += ' 0x' + byte.toString(16)
         })
       },
@@ -60,15 +63,8 @@ class EditorUI extends IMediatorComponent<EditorEventTypes> {
   }
 }
 
-// class EditorLog extends IMediatorComponent<EditorEventTypes> {
-//   constructor(editor: Editor) {
-//     super(editor)
-//   }
-//   protected registerEventHandlers(): void {}
-// }
 describe('Editor Mediator Behavior', () => {
   const editor = new Editor()
-
   it('Shoud handle properly', () => {
     const ui = new EditorUI(editor)
     const size = editor.handlers.size
@@ -81,5 +77,4 @@ describe('Editor Mediator Behavior', () => {
     )
     assert(ui.dataText != '')
   })
-  it('Should provide functionality for components to register a single event to multiple Events', () => {})
 })

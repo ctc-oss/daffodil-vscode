@@ -1,59 +1,46 @@
 import { describe, it } from 'mocha'
-import {
-  IEditorComponent,
-  IEditorMediator,
-  MediatorNotification,
-} from './editorMediator'
+import { Mediator } from './mediator'
+// import { MediatorEvent } from './events'
 import assert from 'assert'
-import { NotificationType } from './notification'
-
-const NumberNotification: MediatorNotification<number> = {
-  command: NotificationType.applyChanges,
-  data: 0,
+interface MockEvent {}
+interface RandomEvent {
+  num: number
 }
-
-class MockComponent extends IEditorComponent {
-  static id: number = 0
-  constructor(mediator: IEditorMediator) {
-    super(mediator, 'mock-' + (MockComponent.id++).toString())
-  }
-  execute(notification?: MediatorNotification<any>) {
-    notification
-      ? this.mediator.notify(notification, this)
-      : this.mediator.notify(
-          { command: NotificationType.clearChanges, data: 'abc' },
-          this
-        )
-  }
+interface StringEvent {
+  str: string
 }
-class MockMediator implements IEditorMediator {
-  notify(
-    notification: MediatorNotification<any>,
-    from: IEditorComponent
+interface MockEvent {
+  randEvent: RandomEvent
+}
+interface MockEvent {
+  strEvent: StringEvent
+}
+class MockMediator implements Mediator<MockEvent> {
+  eventHandlers: Map<keyof MockEvent, (event: any) => void> = new Map()
+  notify<K extends keyof MockEvent>(
+    type: K,
+    event: Required<MockEvent[K]>
   ): void {
-    switch (notification.command) {
-      case NotificationType.applyChanges:
-        const { data } = notification as typeof NumberNotification
-        assert.equal(data, NumberNotification.data)
-        break
-      default:
-        throw new Error('Unknown notification command')
-    }
+    const handle = this.eventHandlers.get(type)
+    if (handle) handle(event)
+  }
+  register<K extends keyof MockEvent>(
+    type: K,
+    handler: (content: MockEvent[K]) => void
+  ): void {
+    this.eventHandlers.set(type, handler)
   }
 }
-
 describe('Mediator Behavior', () => {
   const mediator = new MockMediator()
-  it('Should throw for unkown MediatorNotification routes', () => {
-    assert.throws(() => {
-      const component = new MockComponent(mediator)
-      component.execute()
+  it('Should be require event registration', () => {
+    const expected = 'TestStr1234'
+
+    mediator.register('strEvent', (event) => {
+      const { str } = event
+      assert.equal(str, expected)
     })
-  })
-  it('Should not throw for known type routes', () => {
-    assert.doesNotThrow(() => {
-      const component = new MockComponent(mediator)
-      component.execute(NumberNotification)
-    })
+
+    mediator.notify('strEvent', { str: expected })
   })
 })

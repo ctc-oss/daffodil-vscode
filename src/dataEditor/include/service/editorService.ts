@@ -1,18 +1,13 @@
-import {
-  IEditorComponent,
-  IEditorMediator,
-  MediatorNotification,
-} from '../mediator/editorMediator'
+import { Mediator, MediatorComponent } from '../mediator/mediator'
 export interface IServiceRequest {}
-export abstract class IEditService extends IEditorComponent {
+export abstract class IEditService extends MediatorComponent {
   constructor(
-    mediator: IEditorMediator,
+    mediator: Mediator,
     readonly onDisposal: () => any,
     id: string
   ) {
-    super(mediator, id)
+    super(mediator)
   }
-  abstract request<T>(data: MediatorNotification<T>): any
   abstract setDataSource(editingFile: string): any
   destroy(): void {
     this.onDisposal()
@@ -20,8 +15,5 @@ export abstract class IEditService extends IEditorComponent {
 }
 
 export interface IEditServiceProvider {
-  getService(
-    mediator: IEditorMediator,
-    targetFile: string
-  ): Promise<IEditService>
+  getService(mediator: Mediator, targetFile: string): Promise<IEditService>
 }

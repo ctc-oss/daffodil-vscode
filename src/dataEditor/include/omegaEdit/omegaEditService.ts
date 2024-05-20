@@ -1,22 +1,20 @@
 import { createSession } from '@omega-edit/client'
 import { Session } from './Session'
-import {
-  IEditorMediator,
-  MediatorNotification,
-} from '../mediator/editorMediator'
+import { Mediator } from '../mediator/mediator'
 import { IEditService } from '../service/editorService'
-import {
-  SessionInfoNotification,
-  ViewportRefreshNotification,
-} from './Notifications'
-import { MessageLevel, NotificationType } from '../mediator/notification'
+import { MessageLevel } from '../mediator/notification'
 
 export class OmegaEditService extends IEditService {
+  protected registerEventHandlers(): void {
+    this.mediator.register('save', (content) => {
+      console.log(`Saving editor content to: ${content.filePath}`)
+    })
+  }
   static ViewportCapacity = 1024
   private session: Session | undefined = undefined
 
   constructor(
-    mediator: IEditorMediator,
+    mediator: Mediator,
     readonly onDisposal: () => any
   ) {
     super(mediator, onDisposal, 'OmegaEditorService')
@@ -27,24 +25,11 @@ export class OmegaEditService extends IEditService {
   async setDataSource(editingFile: string) {
     const response = await createSession(editingFile)
     this.session = await Session.FromResponse(response, (metadata) => {
-      this.mediator.notify(new SessionInfoNotification(metadata), this)
+      this.mediator.notify('info', { ...metadata })
     })
     this.session.createViewport(0, (data) => {
-      this.mediator.notify(new ViewportRefreshNotification(data), this)
+      this.mediator.notify('dataUpdate', { binData: data.binaryData() })
     })
-  }
-  request<T>(notification: MediatorNotification<T>) {
-    switch (notification.command) {
-      case NotificationType.showMessage:
-        const { level, msg } = notification.data as ShowMessage
-        switch (level) {
-          case MessageLevel.Info:
-            console.debug('[INFO] ' + msg)
-            // this.mediator.notify({}) // Can be implemented
-            break
-        }
-        break
-    }
   }
 }
 interface ShowMessage {

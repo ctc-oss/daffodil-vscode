@@ -15,18 +15,22 @@ export abstract class IEditorComponent {
   ) {}
 }
 
-export interface MediatorEvent<T> {
+export type MediatorEventType = string | number
+export interface MediatorEvent<T extends MediatorEventType> {
   readonly type: T
   content(): any
   toString(): string
 }
+
 export type MediatorEventListener<D> = (content: D) => void
-export interface IMediator<T> {
+
+export interface Mediator<T extends MediatorEventType> {
   notify(event: MediatorEvent<T>): void
   register<D>(type: T, handler: MediatorEventListener<D>[]): void
 }
-export abstract class IMediatorComponent<T> {
-  constructor(protected mediator: IMediator<T>) {
+
+export abstract class MediatorComponent<T extends MediatorEventType> {
+  constructor(protected mediator: Mediator<T>) {
     this.registerEventHandlers()
   }
   protected abstract registerEventHandlers(): void

@@ -1,19 +1,33 @@
-import {
-  IEditorComponent,
-  IEditorMediator,
-  MediatorNotification,
-} from '../mediator/editorMediator'
+import { Mediator, MediatorComponent } from '../mediator/mediator'
 
-export type UIInputHandler = (input: MediatorNotification<any>) => any
-export abstract class DataEditorUI extends IEditorComponent {
+export class DataUpdateEvent {
+  constructor(readonly binData: Uint8Array) {}
+}
+export type DisplayRadix = 2 | 8 | 10 | 16
+export interface DisplaySettings {
+  readonly radix: DisplayRadix
+}
+export interface DisplaySettingsEvent {
+  readonly settings: DisplaySettings
+}
+export abstract class DataEditorUI extends MediatorComponent {
   constructor(
-    mediator: IEditorMediator,
+    mediator: Mediator,
     readonly componentId: string
   ) {
-    super(mediator, componentId)
+    super(mediator)
   }
 
-  abstract sendMessage(msg: MediatorNotification<unknown>): void
+  // abstract sendMessage(msg: MediatorNotification<unknown>): void
+  //
+  // protected abstract inputHandler: UIInputHandler
+}
 
-  protected abstract inputHandler: UIInputHandler
+declare module '../mediator/events' {
+  export interface MediatorEvent {
+    dataUpdate: DataUpdateEvent
+  }
+  export interface MediatorEvent {
+    displaySettingUpdate: DisplaySettingsEvent
+  }
 }
