@@ -5,15 +5,9 @@ import {
   DataEditorInitializer,
 } from '../include/client/dataEditorClient'
 import { OmegaEditService } from '../include/omegaEdit/omegaEditService'
-import { DataEditorUI } from '../include/client/dataEditorUI'
-import { SvelteWebviewInitializer } from '../svelteWebviewInitializer'
 import { OmegaEditServer } from '../include/omegaEdit/omegaEditServer'
 import { IStatusUpdater } from '../include/status/IStatus'
-import {
-  IEditorComponent,
-  IEditorMediator,
-  MediatorNotification,
-} from '../include/mediator/editorMediator'
+import { DataEditorWebviewPanel } from './ui/webviewPanel'
 
 export class StandaloneEditor extends DataEditor implements vscode.Disposable {
   protected fileToEdit: string = ''
@@ -21,22 +15,13 @@ export class StandaloneEditor extends DataEditor implements vscode.Disposable {
   protected editService: OmegaEditService | undefined = undefined
   constructor(ctx: vscode.ExtensionContext, config: editor_config.Config) {
     super()
-    this.ui = new DataEditorWebviewPanel(this, ctx, () => {
+    this.ui = new DataEditorWebviewPanel(this.mediator, ctx, () => {
       this.dispose()
     })
   }
 
   dispose() {
     this.editService?.destroy()
-  }
-
-  notify<T>(
-    notification: MediatorNotification<T>,
-    from: IEditorComponent
-  ): void {
-    from.componentId === this.ui.componentId
-      ? this.editService!.request(notification)
-      : this.ui.sendMessage(notification)
   }
 
   async getDataSource(): Promise<void> {
@@ -51,56 +36,8 @@ export class StandaloneEditor extends DataEditor implements vscode.Disposable {
   }
 }
 
-/*
-UI capable inputs that need to send to service:
-  Viewport:
-    - seek
-    - search
-    - replace
-    - edit (delete)
-  Session:
-    - createViewport ( for multiple viewports to display? )
-*/
-export class DataEditorWebviewPanel extends DataEditorUI {
-  protected panel: vscode.WebviewPanel
-  protected inputHandler: (input: MediatorNotification<any>) => any = (msg) => {
-    this.mediator.notify(msg, this)
-  }
-  private view: string = 'dataEditor'
-  private svelteWebviewInitializer: SvelteWebviewInitializer
-
-  constructor(
-    mediator: IEditorMediator,
-    context: vscode.ExtensionContext,
-    onDisposal: () => any
-  ) {
-    super(mediator, 'webviewPanel')
-    this.svelteWebviewInitializer = new SvelteWebviewInitializer(context)
-    this.panel = vscode.window.createWebviewPanel(
-      this.view,
-      '',
-      { viewColumn: vscode.ViewColumn.Active, preserveFocus: true },
-      { enableScripts: true, retainContextWhenHidden: true }
-    )
-    this.svelteWebviewInitializer.initialize(this.view, this.panel.webview)
-    this.panel.webview.onDidReceiveMessage(this.inputHandler)
-    this.panel.onDidDispose(() => {
-      onDisposal()
-    })
-  }
-
-  setTitle(title: string) {
-    this.panel.title = title
-  }
-
-  sendMessage(msg: MediatorNotification<unknown>): void {
-    this.panel.webview.postMessage({ command: msg.command, data: msg.data })
-  }
-}
-
 export const StandaloneInitializer: DataEditorInitializer = {
   initialize: (params: { ctx: vscode.ExtensionContext }) => {
-    5
     return new Promise(async (resolve) => {
       const statusBar = new StatusBar()
       statusBar.update('[Data Editor]: Extracting Configuration Variables')

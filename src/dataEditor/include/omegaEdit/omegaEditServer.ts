@@ -17,8 +17,9 @@ import * as fs from 'fs'
 import { OmegaEditService } from './omegaEditService'
 import { IEditServiceProvider } from '../service/editorService'
 import { Mediator } from '../mediator/mediator'
+import { DataEditorEvent } from '../events'
 
-export class OmegaEditServer implements IEditServiceProvider {
+export class OmegaEditServer implements IEditServiceProvider<DataEditorEvent> {
   readonly host: string
   readonly port: number
   private proc: ServerProcess = { pidFile: '', pid: -1 }
@@ -71,7 +72,7 @@ export class OmegaEditServer implements IEditServiceProvider {
     })
   }
   async getService(
-    mediator: Mediator,
+    mediator: Mediator<DataEditorEvent>,
     targetFile: string
   ): Promise<OmegaEditService> {
     return new Promise(async (resolve, reject) => {

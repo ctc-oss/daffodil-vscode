@@ -2,9 +2,9 @@ import { createSession } from '@omega-edit/client'
 import { Session } from './Session'
 import { Mediator } from '../mediator/mediator'
 import { IEditService } from '../service/editorService'
-import { MessageLevel } from '../mediator/notification'
+import { DataEditorEvent } from '../events'
 
-export class OmegaEditService extends IEditService {
+export class OmegaEditService extends IEditService<DataEditorEvent> {
   protected registerEventHandlers(): void {
     this.mediator.register('save', (content) => {
       console.log(`Saving editor content to: ${content.filePath}`)
@@ -14,7 +14,7 @@ export class OmegaEditService extends IEditService {
   private session: Session | undefined = undefined
 
   constructor(
-    mediator: Mediator,
+    mediator: Mediator<DataEditorEvent>,
     readonly onDisposal: () => any
   ) {
     super(mediator, onDisposal, 'OmegaEditorService')
@@ -28,11 +28,7 @@ export class OmegaEditService extends IEditService {
       this.mediator.notify('info', { ...metadata })
     })
     this.session.createViewport(0, (data) => {
-      this.mediator.notify('dataUpdate', { binData: data.binaryData() })
+      this.mediator.notify('viewportRefresh', data.getContent())
     })
   }
-}
-interface ShowMessage {
-  readonly level: MessageLevel
-  readonly msg: string
 }

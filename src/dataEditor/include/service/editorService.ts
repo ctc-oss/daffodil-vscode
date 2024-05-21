@@ -1,8 +1,9 @@
 import { Mediator, MediatorComponent } from '../mediator/mediator'
-export interface IServiceRequest {}
-export abstract class IEditService extends MediatorComponent {
+export abstract class IEditService<
+  EventType,
+> extends MediatorComponent<EventType> {
   constructor(
-    mediator: Mediator,
+    mediator: Mediator<EventType>,
     readonly onDisposal: () => any,
     id: string
   ) {
@@ -14,6 +15,9 @@ export abstract class IEditService extends MediatorComponent {
   }
 }
 
-export interface IEditServiceProvider {
-  getService(mediator: Mediator, targetFile: string): Promise<IEditService>
+export interface IEditServiceProvider<EventType> {
+  getService(
+    mediator: Mediator<EventType>,
+    targetFile: string
+  ): Promise<IEditService<EventType>>
 }

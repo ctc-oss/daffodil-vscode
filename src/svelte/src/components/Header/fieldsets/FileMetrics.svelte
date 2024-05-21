@@ -63,15 +63,25 @@ limitations under the License.
   }
 
   window.addEventListener('message', (msg) => {
-    switch (msg.data.command) {
-      case 'session-info-update':
-        $fileMetrics.name = msg.data.data.fileName
-        $fileMetrics.type = msg.data.data.type
-        $fileMetrics.language = msg.data.data.language
-        $fileMetrics.computedSize = msg.data.data.computedFileSize
-        $fileMetrics.diskSize = msg.data.data.diskFileSize
-        $fileMetrics.changeCount = msg.data.data.changeCount
-        $fileMetrics.undoCount = msg.data.data.undoCount
+    const { command, data } = msg.data
+    switch (command) {
+      case 'info':
+        const {
+          fileName,
+          type,
+          language,
+          computedFileSize,
+          diskFileSize,
+          changeCount,
+          undoCount,
+        } = data
+        $fileMetrics.name = fileName
+        $fileMetrics.type = type
+        $fileMetrics.language = language
+        $fileMetrics.computedSize = computedFileSize
+        $fileMetrics.diskSize = diskFileSize
+        $fileMetrics.changeCount = changeCount
+        $fileMetrics.undoCount = undoCount
         break
       case MessageCommand.fileInfo:
         {

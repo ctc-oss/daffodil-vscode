@@ -1,4 +1,5 @@
 import { Mediator, MediatorComponent } from '../mediator/mediator'
+import { DataEditorEvent } from '../events'
 
 export class DataUpdateEvent {
   constructor(readonly binData: Uint8Array) {}
@@ -10,24 +11,13 @@ export interface DisplaySettings {
 export interface DisplaySettingsEvent {
   readonly settings: DisplaySettings
 }
-export abstract class DataEditorUI extends MediatorComponent {
+
+export abstract class DataEditorUI extends MediatorComponent<DataEditorEvent> {
   constructor(
-    mediator: Mediator,
+    mediator: Mediator<DataEditorEvent>,
     readonly componentId: string
   ) {
     super(mediator)
   }
-
-  // abstract sendMessage(msg: MediatorNotification<unknown>): void
-  //
-  // protected abstract inputHandler: UIInputHandler
-}
-
-declare module '../mediator/events' {
-  export interface MediatorEvent {
-    dataUpdate: DataUpdateEvent
-  }
-  export interface MediatorEvent {
-    displaySettingUpdate: DisplaySettingsEvent
-  }
+  protected abstract inputHandler: (event: any) => any
 }
