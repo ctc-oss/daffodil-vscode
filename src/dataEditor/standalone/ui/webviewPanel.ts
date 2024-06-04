@@ -5,7 +5,8 @@ import { SvelteWebviewInitializer } from '../../svelteWebviewInitializer'
 import * as vscode from 'vscode'
 
 export class DataEditorWebviewPanel extends DataEditorUI {
-  protected postToWebview(type: string, content: any) {
+  // protected inputHandler: (event: any) => any
+  public postToWebview(type: string, content: any) {
     this.panel.webview.postMessage({
       command: type,
       data: content,
@@ -27,7 +28,7 @@ export class DataEditorWebviewPanel extends DataEditorUI {
   constructor(
     mediator: Mediator<DataEditorEvent>,
     context: vscode.ExtensionContext,
-    onDisposal: () => any
+    onPanelDisposal: () => any
   ) {
     super(mediator, 'webviewPanel')
     this.svelteWebviewInitializer = new SvelteWebviewInitializer(context)
@@ -38,11 +39,17 @@ export class DataEditorWebviewPanel extends DataEditorUI {
       { enableScripts: true, retainContextWhenHidden: true }
     )
     this.svelteWebviewInitializer.initialize(this.view, this.panel.webview)
-    this.panel.webview.onDidReceiveMessage((msg) => {
-      console.log(msg)
-    })
+    this.panel.webview.onDidReceiveMessage(
+      <EventType extends keyof DataEditorEvent>(event: {
+        type: EventType
+        msg: DataEditorEvent[EventType]
+      }) => {
+        console.log(event)
+        this.mediator.notify(event.type, event.msg)
+      }
+    )
     this.panel.onDidDispose(() => {
-      onDisposal()
+      onPanelDisposal()
     })
   }
 

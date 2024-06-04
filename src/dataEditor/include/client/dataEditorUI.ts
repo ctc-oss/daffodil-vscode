@@ -1,5 +1,4 @@
 import { Mediator, MediatorComponent } from '../mediator/mediator'
-import { DataEditorEvent } from '../events'
 
 export class DataUpdateEvent {
   constructor(readonly binData: Uint8Array) {}
@@ -11,13 +10,14 @@ export interface DisplaySettings {
 export interface DisplaySettingsEvent {
   readonly settings: DisplaySettings
 }
-
-export abstract class DataEditorUI extends MediatorComponent<DataEditorEvent> {
+export abstract class DataEditorUI<
+  EventType,
+> extends MediatorComponent<EventType> {
   constructor(
-    mediator: Mediator<DataEditorEvent>,
+    mediator: Mediator<EventType>,
     readonly componentId: string
   ) {
     super(mediator)
   }
-  protected abstract inputHandler: (event: any) => any
+  // protected abstract inputHandler: (event: any) => any
 }

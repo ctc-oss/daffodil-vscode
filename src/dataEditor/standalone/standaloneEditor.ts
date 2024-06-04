@@ -24,15 +24,19 @@ export class StandaloneEditor extends DataEditor implements vscode.Disposable {
     this.editService?.destroy()
   }
 
-  async getDataSource(): Promise<void> {
-    const fileUri = await vscode.window.showOpenDialog({
-      canSelectMany: false,
-      openLabel: 'Select',
-      canSelectFiles: true,
-      canSelectFolders: false,
+  async getFileToEdit(): Promise<string> {
+    return new Promise(async (resolve, reject) => {
+      if (this.fileToEdit !== '') resolve(this.fileToEdit)
+      const fileUri = await vscode.window.showOpenDialog({
+        canSelectMany: false,
+        openLabel: 'Select',
+        canSelectFiles: true,
+        canSelectFolders: false,
+      })
+      if (fileUri && fileUri[0]) this.fileToEdit = fileUri[0].fsPath
+      this.ui.setTitle(this.fileToEdit)
+      resolve(this.fileToEdit)
     })
-    if (fileUri && fileUri[0]) this.fileToEdit = fileUri[0].fsPath
-    this.ui.setTitle(this.fileToEdit)
   }
 }
 

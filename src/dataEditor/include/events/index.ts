@@ -18,3 +18,25 @@ export interface DataEditorEvent {
 export interface DataEditorEvent {
   viewportRefresh: ViewportRefresh
 }
+
+export type EditedDataRequest = {
+  offset: number
+  editedContentStr: string
+  viewportId: string
+  selectionSize: number
+  encoding: string
+  radix: 2 | 8 | 10 | 16
+  editMode: 'single' | 'multiple'
+}
+export interface DataEditorEvent {
+  requestEditedData: EditedDataRequest
+}
+
+export type ViewportSeek = {
+  targetOffset: number
+  bytesPerRow: number
+  displayLineCount: number
+}
+export interface DataEditorEvent {
+  seek: ViewportSeek
+}

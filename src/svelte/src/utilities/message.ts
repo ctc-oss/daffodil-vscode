@@ -15,6 +15,18 @@
  * limitations under the License.
  */
 
+import type { DataEditorEvent } from '../../../dataEditor/include/events'
+import { vscode } from './vscode'
+export function postEvent<EventType extends keyof DataEditorEvent>(
+  type: EventType,
+  content: Required<DataEditorEvent[EventType]>
+) {
+  vscode.postMessage({ ...content })
+}
+export function processEvent<EventType extends keyof DataEditorEvent>(
+  // type: EventType,
+  content: DataEditorEvent[EventType]
+) {}
 export enum MessageCommand {
   clearChanges = 'clearChanges',
   applyChanges = 'applyChanges',

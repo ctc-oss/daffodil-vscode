@@ -42,7 +42,7 @@ limitations under the License.
     UIThemeCSSClass,
     darkUITheme,
   } from '../utilities/colorScheme'
-  import { MessageCommand } from '../utilities/message'
+  import { MessageCommand, postEvent, processEvent } from '../utilities/message'
   import { vscode } from '../utilities/vscode'
   import Header from './Header/Header.svelte'
   import Main from './Main.svelte'
@@ -63,23 +63,33 @@ limitations under the License.
   import { byte_count_divisible_offset } from '../utilities/display'
   import Help from './layouts/Help.svelte'
   import Button from './Inputs/Buttons/Button.svelte'
+  import type { DataEditorEvent } from '../../../dataEditor/include/events'
 
   $: $UIThemeCSSClass = $darkUITheme ? CSSThemeClass.Dark : CSSThemeClass.Light
 
   function requestEditedData() {
     if ($requestable) {
-      vscode.postMessage({
-        command: MessageCommand.requestEditedData,
-        data: {
-          selectionToFileOffset: $selectionDataStore.startOffset,
-          editedContent: $editorSelection,
-          viewport: $focusedViewportId,
-          selectionSize: $selectionSize,
-          encoding: $editorEncoding,
-          radix: $displayRadix,
-          editMode: $editMode,
-        },
+      postEvent('requestEditedData', {
+        offset: $selectionDataStore.startOffset,
+        editedContentStr: $editorSelection,
+        viewportId: $focusedViewportId,
+        selectionSize: $selectionSize,
+        encoding: $editorEncoding,
+        radix: $displayRadix,
+        editMode: $editMode
       })
+      // vscode.postMessage({
+      //   command: MessageCommand.requestEditedData,
+      //   data: {
+      //     selectionToFileOffset: $selectionDataStore.startOffset,
+      //     editedContent: $editorSelection,
+      //     viewport: $focusedViewportId,
+      //     selectionSize: $selectionSize,
+      //     encoding: $editorEncoding,
+      //     radix: $displayRadix,
+      //     editMode: $editMode,
+      //   },
+      // })
     }
   }
 
@@ -148,15 +158,15 @@ limitations under the License.
       $bytesPerRow,
       fetchOffset
     )
-
-    vscode.postMessage({
-      command: MessageCommand.scrollViewport,
-      data: {
-        scrollOffset: fetchOffset,
-        bytesPerRow: $bytesPerRow,
-        numLinesDisplayed: $dataDislayLineAmount,
-      },
-    })
+    postEvent('seek', {targetOffset: fetchOffset, bytesPerRow: $bytesPerRow, displayLineCount: $dataDislayLineAmount})
+    // vscode.postMessage({
+    //   command: MessageCommand.scrollViewport,
+    //   data: {
+    //     scrollOffset: fetchOffset,
+    //     bytesPerRow: $bytesPerRow,
+    //     numLinesDisplayed: $dataDislayLineAmount,
+    //   },
+    // })
     clearDataDisplays()
   }
 
@@ -275,7 +285,11 @@ limitations under the License.
     }
   }
 
+  window.addEventListener('message', <E extends keyof DataEditorEvent>(msg: MessageEvent<DataEditorEvent[E]>) => {
+    processEvent<E>(msg.data)
+  })
   window.addEventListener('message', (msg) => {
+
     const { command, data } = msg.data
     switch (command) {
       case MessageCommand.editorOnChange:
@@ -329,10 +343,7 @@ limitations under the License.
   <Button
     description="UI Input Test"
     fn={() => {
-      vscode.postMessage({
-        command: MessageCommand.showMessage,
-        data: { level: 1, msg: 'Testing showMessage' },
-      })
+      postEvent('save', {filePath: '/test/event/path.bin'})
     }}>Send UI Input Test</Button
   >
 </body>

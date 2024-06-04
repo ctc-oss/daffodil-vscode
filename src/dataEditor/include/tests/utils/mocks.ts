@@ -17,10 +17,7 @@ export interface MockEvent {
 
 export class MappedMediator<EventType> implements Mediator<EventType> {
   eventHandlers: Map<keyof EventType, (event: any) => void> = new Map()
-  notify<K extends keyof EventType>(
-    type: K,
-    event: Required<EventType[K]>
-  ): void {
+  notify<K extends keyof EventType>(type: K, event: EventType[K]): void {
     const handle = this.eventHandlers.get(type)
     if (handle) handle(event)
   }

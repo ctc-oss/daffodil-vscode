@@ -34,7 +34,7 @@
     "prewatch": "yarn gen-version-ts && yarn sbt",
     "watch": "run-func build/yarn-scripts.ts watch",
     "watch:svelte": "yarn webpack --env development=true -w -c ./src/svelte/webpack.config.js",
-    "watch:svelte-tests" : "mocha -r ts-node/register -w ./src/svelte/tests/**/*.test.ts",
+    "watch:svelte-tests": "mocha -r ts-node/register -w ./src/svelte/tests/**/*.test.ts",
     "watch:tdmlEditorJS": "esbuild src/tdmlEditor/webview/webview.js --outfile=dist/views/tdmlEditor/webview/webview.js --bundle --platform=node --format=cjs --watch",
     "webpack": "webpack --mode production --config ./webpack/ext-dev.webpack.config.js",
     "webpack:pkg": "webpack --mode production --config ./webpack/ext-package.webpack.config.js",
@@ -438,7 +438,9 @@
               "schema": {
                 "type": "object",
                 "description": "Contains the absolute path to the DFDL schema file, root element name and namespace.",
-                "required": ["path"],
+                "required": [
+                  "path"
+                ],
                 "properties": {
                   "path": {
                     "type": "string",
@@ -446,12 +448,18 @@
                     "default": "${command:AskForSchemaName}"
                   },
                   "rootName": {
-                    "type": ["string", "null"],
+                    "type": [
+                      "string",
+                      "null"
+                    ],
                     "description": "Name of the root element",
                     "default": null
                   },
                   "rootNamespace": {
-                    "type": ["string", "null"],
+                    "type": [
+                      "string",
+                      "null"
+                    ],
                     "description": "Name of the root element namespace",
                     "default": null
                   }
@@ -479,11 +487,17 @@
               "infosetOutput": {
                 "type": "object",
                 "description": "Destination for final Infoset ('file' | 'console' | 'none')",
-                "required": ["type"],
+                "required": [
+                  "type"
+                ],
                 "properties": {
                   "type": {
                     "type": "string",
-                    "enum": ["file", "console", "none"],
+                    "enum": [
+                      "file",
+                      "console",
+                      "none"
+                    ],
                     "description": "Type of infoset output",
                     "default": "file"
                   },
@@ -501,11 +515,18 @@
               "tdmlConfig": {
                 "type": "object",
                 "description": "Configuration for TDML Actions",
-                "required": ["action"],
+                "required": [
+                  "action"
+                ],
                 "properties": {
                   "action": {
                     "type": "string",
-                    "enum": ["none", "generate", "append", "execute"],
+                    "enum": [
+                      "none",
+                      "generate",
+                      "append",
+                      "execute"
+                    ],
                     "default": "generate",
                     "description": "TDML Case Action (none | generate | append | exectute)"
                   },
@@ -603,7 +624,13 @@
                       },
                       "level": {
                         "type": "string",
-                        "enum": ["debug", "info", "warning", "error", "critical"],
+                        "enum": [
+                          "debug",
+                          "info",
+                          "warning",
+                          "error",
+                          "critical"
+                        ],
                         "description": "Data Editor Logging Level",
                         "default": "info"
                       }
@@ -637,7 +664,13 @@
                       },
                       "level": {
                         "type": "string",
-                        "enum": ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+                        "enum": [
+                          "DEBUG",
+                          "INFO",
+                          "WARNING",
+                          "ERROR",
+                          "CRITICAL"
+                        ],
                         "description": "DFL Debugger Logging Level",
                         "default": "INFO"
                       }
@@ -884,5 +917,6 @@
     "publisherDisplayName": "Apache Software Foundation",
     "publisherId": "4dbc1d1a-d64b-46f8-8756-1c234855f645",
     "isPreReleaseVersion": false
-  }
+  },
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }
