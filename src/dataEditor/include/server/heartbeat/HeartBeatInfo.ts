@@ -21,7 +21,7 @@ export interface IHeartbeatInfo extends IServerHeartbeat {
   omegaEditPort: number // Ωedit server port
   serverInfo: IServerInfo // server info that remains constant
 }
-export class HeartbeatInfo {
+export class HeartbeatInfo implements IHeartbeatInfo {
   omegaEditPort: number = 0 // Ωedit server port
   latency: number = 0 // latency in ms
   serverCommittedMemory: number = 0 // committed memory in bytes
@@ -33,4 +33,16 @@ export class HeartbeatInfo {
   serverUsedMemory: number = 0 // used memory in bytes
   sessionCount: number = 0 // session count
   serverInfo: IServerInfo = new ServerInfo()
+}
+export function HeartbeatInfoStr(hb: IHeartbeatInfo): string {
+  return `
+  time: ${hb.serverTimestamp},
+  port: ${hb.omegaEditPort},
+  latency: ${hb.latency},
+  CPU: { count: ${hb.serverCpuCount}, load: ${hb.serverCpuLoadAverage} },
+  `
+}
+export interface HeartbeatProcessor {
+  process(heartbeat: IHeartbeatInfo): any
+  request(): any
 }
