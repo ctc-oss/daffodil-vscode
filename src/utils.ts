@@ -70,6 +70,7 @@ export async function onDebugStartDisplay(viewsToCheck: string[]) {
       case 'data-editor':
         if (config.openDataEditor) {
           runCommand('extension.data.edit', config.data)
+          // runCommand('extension.data.edit', new DFDLDebuggerEditorInitializer())
         }
         break
       case 'infoset-view':

@@ -1,12 +1,23 @@
 import { ExtensionContext, commands } from 'vscode'
-import { DataEditorInitializer } from './include/client/dataEditorClient'
+import { DataEditorManager } from './manager'
+import { StandaloneDataEditor } from './clients/standalone'
+import { DataEditorInitializer } from './core/editor/initializer'
+
+let Manager: DataEditorManager
+export const DataEditorCommand = 'extension.data.edit'
 
 export function activate(ctx: ExtensionContext) {
-  commands.registerCommand(
-    'extension.new-data-editor',
-    async (init: DataEditorInitializer) => {
-      const editor = init.initialize()
-      ctx.subscriptions.push()
-    }
+  Manager = new DataEditorManager()
+
+  ctx.subscriptions.push(
+    commands.registerCommand(
+      DataEditorCommand,
+      async (init: DataEditorInitializer) => {
+        // Initializer needs to have all constructable components for editors
+        init ? Manager.Run(init) : Manager.Run(StandaloneDataEditor.Initializer)
+      }
+    )
   )
+  ctx.subscriptions.push(Manager)
+  // ctx.subscriptions.push(OmegaEditServerManager.dispose)
 }
