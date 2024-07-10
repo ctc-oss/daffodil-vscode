@@ -1,22 +1,33 @@
 import * as vscode from 'vscode'
-import { DataEditor, DataEditorInitializer } from './core/editor'
+import { FilePath, FilePathSourceStrategy } from './omegaEdit'
 import {
-  FilePath,
-  GetTargetFileStrategy,
-  StandaloneInitializer,
-} from './standaloneEditor'
+  DataEditor,
+  DataEditorInitializer,
+  EditorCommand,
+} from './core/editor/dataEditor'
+import * as editor_config from './config'
+import { StandaloneEditor, StandaloneInitializer } from './standaloneEditor'
 
-export class DataEditorManager implements vscode.Disposable {
+const editorCommands: Map<
+  EditorCommand['command'],
+  EditorCommand['initializer']
+> = new Map()
+
+export function RegisterEditor(command: EditorCommand): void {
+  editorCommands.set(command.command, command.initializer)
+}
+class DataEditorManager implements vscode.Disposable {
   private editors: DataEditor[] = []
   private disposables: vscode.Disposable[] = []
-
+  constructor() {
+    RegisterEditor(DefaultEditorCommand)
+  }
   dispose(): void {
     this.editors = []
     this.disposables.forEach((item) => {
       item.dispose()
     })
   }
-
   async Run<D extends DataEditor>(
     initializer: DataEditorInitializer<D>
   ): Promise<void> {
@@ -27,34 +38,42 @@ export class DataEditorManager implements vscode.Disposable {
     })
   }
 }
-export const VSCodeFileSelector: GetTargetFileStrategy = () => {
-  return new Promise(async (resolve, reject) => {
-    const fileUri = await vscode.window.showOpenDialog({
-      canSelectMany: false,
-      openLabel: 'Select',
-      canSelectFiles: true,
-      canSelectFolders: false,
+export const VSCodeFileSelector: FilePathSourceStrategy = {
+  get: () => {
+    return new Promise(async (resolve, reject) => {
+      const fileUri = await vscode.window.showOpenDialog({
+        canSelectMany: false,
+        openLabel: 'Select',
+        canSelectFiles: true,
+        canSelectFolders: false,
+      })
+      if (fileUri && fileUri[0]) {
+        resolve(new FilePath(fileUri[0].fsPath))
+      }
     })
-    if (fileUri && fileUri[0]) {
-      resolve(new FilePath(fileUri[0].fsPath))
-    }
-  })
+  },
 }
-export const DataEditorCommand = 'extension.data.edit'
-const DefaultInitializer = new StandaloneInitializer(VSCodeFileSelector)
+
+const DefaultEditorCommand: EditorCommand = {
+  command: StandaloneEditor.commandStr,
+  initializer: new StandaloneInitializer(VSCodeFileSelector),
+}
+
 let Manager: DataEditorManager
 
+function registerAllEditorCommands(ctx: vscode.ExtensionContext) {
+  editorCommands.forEach((initer, command) => {
+    ctx.subscriptions.push(
+      vscode.commands.registerCommand(command, async () => {
+        await Manager.Run(initer)
+      })
+    )
+  })
+}
 export function activate(ctx: vscode.ExtensionContext) {
+  const config = editor_config.extractConfigurationVariables() // Omega Edit Server specific configurations
   Manager = new DataEditorManager()
 
-  ctx.subscriptions.push(
-    vscode.commands.registerCommand(
-      DataEditorCommand,
-      async (init: DataEditorInitializer = DefaultInitializer) => {
-        Manager.Run(init)
-      }
-    )
-  )
+  registerAllEditorCommands(ctx)
   ctx.subscriptions.push(Manager)
-  // ctx.subscriptions.push(OmegaEditServerManager.dispose)
 }

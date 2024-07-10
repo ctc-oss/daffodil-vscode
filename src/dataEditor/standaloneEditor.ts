@@ -1,49 +1,61 @@
 import * as vscode from 'vscode'
-import path from 'path'
-import { DataEditor, DataEditorInitializer } from './core/editor'
+// import { DataEditorUI } from './core/editor/editorUI'
+// import { OmegaEditService } from './omegaEdit/editService'
+import { OmegaEditServerManager } from './omegaEdit/server'
+import { FilePath, FilePathSourceStrategy } from './omegaEdit'
+import { DataEditor, DataEditorInitializer } from './core/editor/dataEditor'
 import { DataEditorUI } from './core/editor/editorUI'
 import { OmegaEditService } from './omegaEdit/editService'
-import { Connection, OmegaEditServerManager } from './omegaEdit/server'
+import { extractConfigurationVariables } from './config'
 
-export class FilePath {
-  private baseName: string
-  constructor(private filepath: string) {
-    this.baseName = path.basename(this.filepath)
+export class WebviewPanelEditorUI implements DataEditorUI {
+  private panel: vscode.WebviewPanel
+  constructor(title: string, focus: boolean = true) {
+    this.panel = vscode.window.createWebviewPanel(
+      'dataEditorView',
+      title, // Target file from selector
+      {
+        viewColumn: focus ? vscode.ViewColumn.Active : vscode.ViewColumn.Beside, // Standalone and DFDLDebug difference
+        preserveFocus: true,
+      },
+      {
+        enableScripts: true,
+        retainContextWhenHidden: true,
+      }
+    )
+    this.panel.webview.onDidReceiveMessage(
+      () => {} /* Standalone and DFDLDebug difference */
+    )
   }
-  fullPath(): string {
-    return this.filepath
+  configuration() {
+    throw new Error('Method not implemented.')
   }
-  fileName(): string {
-    return this.baseName
+  configure(configItem: string, value: any): Promise<void> {
+    throw new Error('Method not implemented.')
   }
 }
-export type GetTargetFileStrategy = () => Promise<FilePath>
-class StandaloneEditor implements vscode.Disposable, DataEditor {
-  constructor(
-    protected editService: OmegaEditService,
-    protected ui: DataEditorUI
-  ) {}
+export class StandaloneEditor extends DataEditor implements vscode.Disposable {
+  static readonly commandStr = 'extension.data.edit'
+  constructor(service: OmegaEditService, targetFile: FilePath) {
+    super(targetFile, service)
+  }
   dispose() {
     // this.editService.dispose()
   }
 }
 
-const DefaultConfig = {
-  conn: new Connection('127.0.0.1', 9000),
-}
 export class StandaloneInitializer extends DataEditorInitializer<StandaloneEditor> {
-  constructor(
-    targetFile: GetTargetFileStrategy,
-    readonly config: { conn: Connection } = DefaultConfig
-  ) {
+  constructor(readonly getTarget: FilePathSourceStrategy) {
     super()
   }
   Initialize(): Promise<StandaloneEditor> {
     return new Promise(async (resolve, reject) => {
-      const server = await OmegaEditServerManager.Connect(this.config.conn)
+      const target = await this.getTarget.get()
+      const server = await OmegaEditServerManager.Connect(
+        extractConfigurationVariables
+      )
       const editService = await server.getService()
-      const ui = {}
-      resolve(new StandaloneEditor(editService, ui))
+      resolve(new StandaloneEditor(editService, target))
     })
   }
 }

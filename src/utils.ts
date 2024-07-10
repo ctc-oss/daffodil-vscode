@@ -23,6 +23,7 @@ import path from 'path'
 import { VSCodeLaunchConfigArgs } from './classes/vscode-launch'
 import { InfosetOutput } from './daffodilDebugger'
 import { getTmpTDMLFilePath } from './tdmlEditor/utilities/tdmlXmlUtils'
+import { DFDLDebugDataEditor } from './daffodilDebugger/dataEditor'
 
 let currentConfig: vscode.DebugConfiguration
 
@@ -69,7 +70,7 @@ export async function onDebugStartDisplay(viewsToCheck: string[]) {
     switch (viewToCheck) {
       case 'data-editor':
         if (config.openDataEditor) {
-          runCommand('extension.data.edit', config.data)
+          runCommand(DFDLDebugDataEditor.commandStr, config.data)
         }
         break
       case 'infoset-view':

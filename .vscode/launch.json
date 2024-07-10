@@ -53,6 +53,24 @@
 			"args": [],
 			"jvmOptions": [],
 			"env": {}
-		}
+		},
+		{
+			"type": "node",
+			"request": "launch",
+			"name": "Debug Mocha Tests",
+			"program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+			"args": [
+					"--require",
+					"ts-node/register",
+					"--timeout",
+					"999999",
+					"--colors",
+					"${workspaceFolder}/src/dataEditor/omegaEdit/tests/service.spec.ts"
+			],
+			"internalConsoleOptions": "openOnSessionStart",
+			"skipFiles": [
+					"<node_internals>/**"
+			]
+	}
 	]
 }
