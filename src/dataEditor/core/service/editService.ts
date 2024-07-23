@@ -8,9 +8,14 @@ export interface EditHandler {
   delete(): void
 }
 export interface EditService {
-  register(source: DataSource): Promise<void>
+  register(source: DataSource): Promise<EditServiceClient>
   activeUsers(): number
 }
+export interface EditServiceClient {
+  id(): string
+  request: (request: any) => any
+}
+
 export interface DataSource {}
 export interface GetDataSourceStrategy {
   get(): Promise<DataSource>

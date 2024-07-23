@@ -1,5 +1,5 @@
 export interface DataEditorUI {
-  configuration(): any
-  configure(configItem: string, value: any): Promise<void>
+  onInputEvent: (input: any) => any
+  updateUI: (data: any) => any
 }
 // export function CreateDataEditorUI(): Promise<DataEditorUI> {}

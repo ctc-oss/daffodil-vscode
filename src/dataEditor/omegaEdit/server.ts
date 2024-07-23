@@ -23,23 +23,19 @@ export class Connection {
     readonly port: number
   ) {}
 }
-let totalSessionCount = 0
-class Heartbeat {
-  readonly heartbeatIntervalId: NodeJS.Timeout | number | undefined
-  constructor() {
-    this.heartbeatIntervalId = setInterval(() => {}, 1000)
-  }
-}
-export class OmegaEditServer {
-  private service: OmegaEditService | undefined = undefined
 
-  constructor(readonly config: ServerConfig) {}
+export class OmegaEditServer {
+  private service: OmegaEditService
+  constructor(readonly config: ServerConfig) {
+    this.service = new OmegaEditService()
+  }
   getService(): Promise<OmegaEditService> {
-    return new Promise((res) => {
-      const ret = this.service ? res(this.service) : res(new OmegaEditService())
+    return new Promise((res, rej) => {
+      this.service ? res(this.service) : rej('No service was initialzied!')
     })
   }
 }
+
 export class ServerConfig {
   readonly conn: Connection
   readonly logFile: FilePath
@@ -140,7 +136,7 @@ function generateLogbackConfigFile(server: ServerConfig): string {
   const logbackConfig = `<?xml version="1.0" encoding="UTF-8"?>\n
 <configuration>
     <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-        <file>${server.logFile.fileName()}</file>
+        <file>${serverLogFile}</file>
         <encoder>
             <pattern>[%date{ISO8601}] [%level] [%logger] [%marker] [%thread] - %msg MDC: {%mdc}%n</pattern>
         </encoder>
@@ -203,12 +199,12 @@ async function serverStart(server: ServerConfig) {
   //   process.env.OMEGA_EDIT_SERVER_LOG_LEVEL ||
   //   process.env.OMEGA_EDIT_LOG_LEVEL ||
   //   config.get<string>('logLevel', 'info')
-  const logConfigFile = generateLogbackConfigFile(server)
-  if (!fs.existsSync(logConfigFile)) {
-    // clearInterval(animationIntervalId)
-    // statusBarItem.dispose()
-    throw new Error(`Log config file '${logConfigFile}' not found`)
-  }
+  // const logConfigFile =
+  // if (!fs.existsSync(logConfigFile)) {
+  // clearInterval(animationIntervalId)
+  // statusBarItem.dispose()
+  //   throw new Error(`Log config file '${logConfigFile}' not found`)
+  // }
 
   // Start the server and wait up to 10 seconds for it to start
   const serverPid = (await Promise.race([
@@ -216,7 +212,7 @@ async function serverStart(server: ServerConfig) {
       server.conn.port,
       server.conn.host,
       getPidFile(server.conn.port),
-      logConfigFile
+      generateLogbackConfigFile(server)
     ),
     new Promise((_resolve, reject) => {
       setTimeout(() => {

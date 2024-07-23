@@ -1,43 +1,65 @@
-import { createSession } from '@omega-edit/client'
+import { createSession, IServerHeartbeat } from '@omega-edit/client'
 import { FilePath, FilePathSourceStrategy } from '.'
-import { EditService, ServiceUser } from '../core/service/editService'
+import {
+  EditService,
+  EditServiceClient,
+  ServiceUser,
+} from '../core/service/editService'
 import { Session } from './session'
-export class OmegaEditSession {
-  constructor(readonly id: string) {}
-}
-export type HeartbeatProvider = () => Promise<{}>
-export interface OmegaEditServiceClient {
-  readonly session: Session
-  onDidReceiveHeartbeat: () => any
-  request(type: string): any
+
+export class OmegaEditSession implements EditServiceClient {
+  constructor(
+    private sessionId: string,
+    readonly request: (request: any) => any
+  ) {}
+  id(): string {
+    return this.sessionId
+  }
 }
 
 // Service handles multiple ServiceUsers (Session)
 export class OmegaEditService implements EditService {
   constructor() {}
-  // activeSessions: Map<OmegaEditServiceClient, Session> = new Map()
-  activeSessions: Session[] = []
-  register(source: FilePath): Promise<void> {
+  activeSessions: OmegaEditSession[] = []
+  register(source: FilePath): Promise<OmegaEditSession> {
     /* register client to receive heartbeats */
     return new Promise(async (res, rej) => {
       const session = await this.createSession(source)
       // this.activeSessions.set(client, session)
-      this.activeSessions.push(session)
-      res()
+      // this.activeSessions.push(session)
+      res(session)
     })
   }
   activeUsers(): number {
     throw new Error('Method not implemented.')
   }
 
-  private createSession(file: FilePath): Promise<Session> {
+  private createSession(file: FilePath): Promise<OmegaEditSession> {
     return new Promise(async (res, rej) => {
-      const { getSessionId } = await createSession(
+      const response = await createSession(
         file.fullPath(),
         undefined,
         undefined /* need config */
       )
-      res(new Session(getSessionId()))
+      const id = response.getSessionId()
+      res(
+        new OmegaEditSession(id, (req) => {
+          this.requestHandler(req)
+        })
+      )
     })
   }
+  private requestHandler(request: any) {
+    console.log(`received request ${request}`)
+  }
+  // sessionCount() {
+  //   return this.activeSessions.length
+  // }
+  // activeSessionIds(): string[] {
+  //   let ret: string[] = []
+  //   this.activeSessions.forEach((session) => {
+  //     ret.push(session.id)
+  //   })
+  //   return ret
+  // }
 }

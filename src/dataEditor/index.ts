@@ -6,7 +6,10 @@ import {
   EditorCommand,
 } from './core/editor/dataEditor'
 import * as editor_config from './config'
-import { StandaloneEditor, StandaloneInitializer } from './standaloneEditor'
+import {
+  StandaloneEditor,
+  StandaloneInitializer,
+} from './standalone/standaloneEditor'
 
 const editorCommands: Map<
   EditorCommand['command'],

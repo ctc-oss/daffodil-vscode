@@ -1,6 +1,7 @@
 import {
   DataSource,
   EditService,
+  EditServiceClient,
   GetDataSourceStrategy,
   ServiceUser,
 } from '../service/editService'
@@ -17,12 +18,10 @@ export type EditorCommand = {
 
 export abstract class DataEditor implements ServiceUser<DataSource> {
   constructor(
-    protected source_: DataSource,
-    editService: EditService
-  ) {
-    editService.register(this.source_)
-  }
+    protected serviceClient: EditServiceClient,
+    protected ui: DataEditorUI
+  ) {}
   dataSource(): DataSource {
-    return this.source_
+    throw ''
   }
 }

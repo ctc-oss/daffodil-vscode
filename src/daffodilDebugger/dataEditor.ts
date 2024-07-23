@@ -3,7 +3,7 @@ import {
   DataEditor,
   DataEditorInitializer,
 } from '../dataEditor/core/editor/dataEditor'
-import { WebviewPanelEditorUI } from '../dataEditor/standaloneEditor'
+import { WebviewPanelEditorUI } from '../dataEditor/standalone/standaloneEditor'
 import { GetDataSourceStrategy } from '../dataEditor/omegaEdit'
 import { RegisterEditor } from '../dataEditor'
 import { getCurrentConfig } from '../utils'
