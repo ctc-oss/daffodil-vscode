@@ -10,6 +10,8 @@ import {
   StandaloneEditor,
   StandaloneInitializer,
 } from './standalone/standaloneEditor'
+import { OmegaEditServer } from './omegaEdit/tests/utils/fixtures'
+import { OmegaEditServerManager } from './omegaEdit/server'
 
 const editorCommands: Map<
   EditorCommand['command'],
@@ -22,7 +24,9 @@ export function RegisterEditor(command: EditorCommand): void {
 class DataEditorManager implements vscode.Disposable {
   private editors: DataEditor[] = []
   private disposables: vscode.Disposable[] = []
-  constructor() {
+  constructor(readonly ctx: vscode.ExtensionContext) {
+    ctx.subscriptions.push(this)
+
     RegisterEditor(DefaultEditorCommand)
   }
   dispose(): void {
@@ -35,7 +39,7 @@ class DataEditorManager implements vscode.Disposable {
     initializer: DataEditorInitializer<D>
   ): Promise<void> {
     return new Promise(async (resolve, reject) => {
-      const editor = await initializer.Initialize()
+      const editor = await initializer.Initialize(this.ctx)
       this.editors.push(editor)
       resolve()
     })
@@ -75,8 +79,8 @@ function registerAllEditorCommands(ctx: vscode.ExtensionContext) {
 }
 export function activate(ctx: vscode.ExtensionContext) {
   const config = editor_config.extractConfigurationVariables() // Omega Edit Server specific configurations
-  Manager = new DataEditorManager()
+  Manager = new DataEditorManager(ctx)
 
   registerAllEditorCommands(ctx)
-  ctx.subscriptions.push(Manager)
+  ctx.subscriptions.push(OmegaEditServerManager.disposeAllServers())
 }

@@ -5,13 +5,7 @@ import { SvelteWebviewInitializer } from '../svelteWebviewInitializer'
 export class WebviewPanelEditorUI implements DataEditorUI {
   private panel: WebviewPanel
   private svelteWebviewInitializer: SvelteWebviewInitializer
-  constructor(
-    ctx: ExtensionContext,
-    title: string,
-    clientRequestHandle: (request: any) => any,
-    focus: boolean = true
-  ) {
-    this.onInputEvent = clientRequestHandle
+  constructor(ctx: ExtensionContext, title: string, focus: boolean = true) {
     this.panel = window.createWebviewPanel(
       'dataEditorView',
       title, // Target file from selector
@@ -26,18 +20,22 @@ export class WebviewPanelEditorUI implements DataEditorUI {
     )
     this.panel.webview.onDidReceiveMessage(
       async (msg) => {
+        console.log(`UI Input Received: ${msg}`)
         const response = await this.onInputEvent(msg)
         this.updateUI(response)
       } /* Standalone and DFDLDebug difference */
     )
     this.svelteWebviewInitializer = new SvelteWebviewInitializer(ctx)
-    this.svelteWebviewInitializer.initialize(
-      'standalone-data-editorf',
-      this.panel.webview
-    )
+    this.svelteWebviewInitializer.initialize('dataEditor', this.panel.webview)
   }
-  onInputEvent: (input: any) => any
+  onInputEvent: (input: any) => any = () => {
+    throw 'unimplemented input event handler'
+  }
   updateUI(data: any) {
+    console.log(`Data from EXT: ${data}`)
     this.panel.webview.postMessage(data)
+  }
+  onClosed(disposal: (e: void) => any) {
+    this.panel.onDidDispose(disposal)
   }
 }

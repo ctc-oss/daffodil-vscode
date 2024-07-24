@@ -12,6 +12,7 @@ import {
   IServerInfo,
   startServer,
   stopProcessUsingPID,
+  stopServerGraceful,
 } from '@omega-edit/client'
 import { IConfig } from '../config'
 import { IHeartbeatInfo } from '../include/server/heartbeat/HeartBeatInfo'
@@ -28,11 +29,17 @@ export class OmegaEditServer {
   private service: OmegaEditService
   constructor(readonly config: ServerConfig) {
     this.service = new OmegaEditService()
+    this.service.onAllSessionsClosed(() => {
+      serverStop(this.config)
+    })
   }
   getService(): Promise<OmegaEditService> {
     return new Promise((res, rej) => {
       this.service ? res(this.service) : rej('No service was initialzied!')
     })
+  }
+  readonly dispose = () => {
+    serverStop(this.config)
   }
 }
 
@@ -53,7 +60,13 @@ export class ServerConfig {
 export type GetServerConfigStrategy = () => Promise<ServerConfig>
 
 const activeServers: Map<ServerConfig, OmegaEditServer> = new Map()
-
+const ServerDisposeAll = {
+  dispose: () => {
+    activeServers.forEach((server) => {
+      server.dispose()
+    })
+  },
+}
 export class OmegaEditServerManager {
   static Connect(config: () => IConfig): Promise<OmegaEditServer> {
     return new Promise(async (res, rej) => {
@@ -65,6 +78,9 @@ export class OmegaEditServerManager {
       await serverStart(ret.config)
       res(ret)
     })
+  }
+  static disposeAllServers() {
+    return ServerDisposeAll
   }
 }
 

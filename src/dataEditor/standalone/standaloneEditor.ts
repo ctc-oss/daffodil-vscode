@@ -4,15 +4,19 @@ import * as vscode from 'vscode'
 import { OmegaEditServerManager } from '../omegaEdit/server'
 import { FilePath, FilePathSourceStrategy } from '../omegaEdit'
 import { DataEditor, DataEditorInitializer } from '../core/editor/dataEditor'
-import { OmegaEditService } from '../omegaEdit/editService'
+import { OmegaEditService, OmegaEditSession } from '../omegaEdit/editService'
 import { extractConfigurationVariables } from '../config'
 import { EditServiceClient } from '../core/service/editService'
 import { WebviewPanelEditorUI } from '../webview/editorWebviewPanel'
 
 export class StandaloneEditor extends DataEditor implements vscode.Disposable {
   static readonly commandStr = 'extension.data.edit'
-  constructor(serviceClient: EditServiceClient, ui: WebviewPanelEditorUI) {
+  constructor(serviceClient: OmegaEditSession, ui: WebviewPanelEditorUI) {
     super(serviceClient, ui)
+    this.ui.onClosed(() => {
+      this.serviceClient.close()
+    })
+    this.serviceClient.request({ command: 'getFileInfo' })
     // const ui: UI = {
     //   onDidReceiveMessage: (msg) => {
     //     if(msg.type === 'edit') service.process(msg, (response) => {
@@ -28,28 +32,22 @@ export class StandaloneEditor extends DataEditor implements vscode.Disposable {
 }
 
 export class StandaloneInitializer extends DataEditorInitializer<StandaloneEditor> {
-  constructor(
-    private getCtx: () => vscode.ExtensionContext,
-    readonly getTarget: FilePathSourceStrategy
-  ) {
+  constructor(readonly getTarget: FilePathSourceStrategy) {
     super()
   }
-  Initialize(): Promise<StandaloneEditor> {
+  Initialize(ctx: vscode.ExtensionContext): Promise<StandaloneEditor> {
     return new Promise(async (resolve, reject) => {
       const target = await this.getTarget.get()
       const server = await OmegaEditServerManager.Connect(
         extractConfigurationVariables
       )
       const service = await server.getService()
+
       const client = await service.register(target)
       resolve(
         new StandaloneEditor(
-          await service.register(target),
-          new WebviewPanelEditorUI(
-            this.getCtx(),
-            target.fileName(),
-            client.request
-          )
+          client,
+          new WebviewPanelEditorUI(ctx, target.fileName())
         )
       )
     })

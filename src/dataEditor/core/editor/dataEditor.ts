@@ -1,14 +1,13 @@
+import { ExtensionContext } from 'vscode'
 import {
   DataSource,
-  EditService,
   EditServiceClient,
-  GetDataSourceStrategy,
   ServiceUser,
 } from '../service/editService'
 import { DataEditorUI } from './editorUI'
 
 export abstract class DataEditorInitializer<D extends DataEditor = DataEditor> {
-  abstract Initialize(): Promise<D>
+  abstract Initialize(ctx: ExtensionContext): Promise<D>
 }
 
 export type EditorCommand = {
@@ -20,7 +19,14 @@ export abstract class DataEditor implements ServiceUser<DataSource> {
   constructor(
     protected serviceClient: EditServiceClient,
     protected ui: DataEditorUI
-  ) {}
+  ) {
+    serviceClient.onDidProcessRequest = (response) => {
+      this.ui.updateUI(response)
+    }
+    ui.onInputEvent = (input) => {
+      this.serviceClient.request(input)
+    }
+  }
   dataSource(): DataSource {
     throw ''
   }

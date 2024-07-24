@@ -12,8 +12,10 @@ export interface EditService {
   activeUsers(): number
 }
 export interface EditServiceClient {
+  close(): void
   id(): string
   request: (request: any) => any
+  onDidProcessRequest: (response: any) => any
 }
 
 export interface DataSource {}
