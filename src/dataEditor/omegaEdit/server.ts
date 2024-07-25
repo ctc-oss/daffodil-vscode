@@ -30,7 +30,7 @@ export class Connection {
 export class OmegaEditServer {
   private service: OmegaEditService
   constructor(readonly config: ServerConfig) {
-    this.service = new OmegaEditService()
+    this.service = new OmegaEditService(new FilePath(config.checkpointPath))
     this.service.onAllSessionsClosed(() => {
       serverStop(this.config)
     })

@@ -32,7 +32,9 @@ export class OmegaEditSession implements EditServiceClient {
 type SessionIdType = ReturnType<OmegaEditSession['id']>
 // Service handles multiple ServiceUsers (Session)
 export class OmegaEditService implements EditService {
-  constructor() {}
+  constructor(
+    readonly checkpointDirectory: FilePath = FilePath.SystemTmpDirectory()
+  ) {}
   private Events: EventEmitter = new EventEmitter()
   private activeSessions: Map<SessionIdType, FilePath> = new Map()
 
@@ -45,7 +47,7 @@ export class OmegaEditService implements EditService {
   register(source: FilePath): Promise<OmegaEditSession> {
     /* register client to receive heartbeats */
     return new Promise(async (res, rej) => {
-      const session = await this.createSession(source)
+      const session = await this.createSession(source, this.checkpointDirectory)
       // this.activeSessions.set(client, session)
       // this.activeSessions.push(session)
       res(session)
@@ -55,12 +57,15 @@ export class OmegaEditService implements EditService {
     throw new Error('Method not implemented.')
   }
 
-  private createSession(file: FilePath): Promise<OmegaEditSession> {
+  private createSession(
+    file: FilePath,
+    checkpointPath: FilePath
+  ): Promise<OmegaEditSession> {
     return new Promise(async (res, rej) => {
       const response = await createSession(
         file.fullPath(),
         undefined,
-        undefined /* need config */
+        checkpointPath.fullPath() /* need config */
       )
       const id = response.getSessionId()
       this.activeSessions.set(id, file)
