@@ -34,12 +34,14 @@ type SessionIdType = ReturnType<OmegaEditSession['id']>
 export class OmegaEditService implements EditService {
   constructor() {}
   private Events: EventEmitter = new EventEmitter()
+  private activeSessions: Map<SessionIdType, FilePath> = new Map()
+
   onAllSessionsClosed(listener: () => void) {
     this.Events.on('allSessionsClosed', () => {
       listener()
     })
   }
-  activeSessions: Map<SessionIdType, FilePath> = new Map()
+
   register(source: FilePath): Promise<OmegaEditSession> {
     /* register client to receive heartbeats */
     return new Promise(async (res, rej) => {
@@ -75,10 +77,12 @@ export class OmegaEditService implements EditService {
       )
     })
   }
+
   private removeSession(sessionId: SessionIdType) {
     this.activeSessions.delete(sessionId)
     if (this.activeSessions.size == 0) this.Events.emit('allSessionsClosed')
   }
+
   private requestHandler(sessionId: SessionIdType, request: any): Promise<any> {
     console.log(`received request ${{ ...request }}`)
     return new Promise(async (res, rej) => {

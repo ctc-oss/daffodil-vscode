@@ -5,11 +5,13 @@ import * as fs from 'fs'
 import * as os from 'os'
 import XDGAppPaths from 'xdg-app-paths'
 import {
+  createSimpleFileLogger,
   getClientVersion,
   getServerHeartbeat,
   getServerInfo,
   IServerHeartbeat,
   IServerInfo,
+  setLogger,
   startServer,
   stopProcessUsingPID,
   stopServerGraceful,
@@ -43,16 +45,26 @@ export class OmegaEditServer {
   }
 }
 
+function setupLogging(config: ServerConfig): Promise<void> {
+  return new Promise((res, rej) => {
+    const filePath = config.logFile.fullPath()
+    const level = config.logLevel
+    rotateLogFiles(filePath)
+    setLogger(createSimpleFileLogger(filePath, level))
+    res()
+  })
+}
 export class ServerConfig {
   readonly conn: Connection
   readonly logFile: FilePath
   readonly logLevel: string
   readonly checkpointPath: string
+
   constructor(config: () => IConfig) {
     const { checkpointPath, logFile, logLevel, port } = config()
     this.conn = new Connection('127.0.0.1', port)
     this.logFile = new FilePath(logFile)
-    this.logLevel = logLevel.toUpperCase()
+    this.logLevel = logLevel
     this.checkpointPath = checkpointPath
   }
 }
@@ -71,10 +83,12 @@ export class OmegaEditServerManager {
   static Connect(config: () => IConfig): Promise<OmegaEditServer> {
     return new Promise(async (res, rej) => {
       const serverConfig = new ServerConfig(config)
+      const loggerSetupComplete = setupLogging(serverConfig)
       const query = activeServers.get(serverConfig)
       if (query) res(query)
 
       const ret = new OmegaEditServer(serverConfig)
+      await loggerSetupComplete
       await serverStart(ret.config)
       res(ret)
     })
@@ -157,7 +171,7 @@ function generateLogbackConfigFile(server: ServerConfig): string {
             <pattern>[%date{ISO8601}] [%level] [%logger] [%marker] [%thread] - %msg MDC: {%mdc}%n</pattern>
         </encoder>
     </appender>
-    <root level="${server.logLevel}">
+    <root level="${server.logLevel.toUpperCase()}">
         <appender-ref ref="FILE" />
     </root>
 </configuration>
