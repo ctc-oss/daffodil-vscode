@@ -76,13 +76,14 @@ limitations under the License.
         heartbeat.serverUptime = msg.data.data.serverUptime
         heartbeat.serverUsedMemory = msg.data.data.serverUsedMemory
         heartbeat.sessionCount = msg.data.data.sessionCount
-        heartbeat.omegaEditPort = msg.data.data.serverInfo.omegaEditPort
-        heartbeat.serverVersion = msg.data.data.serverInfo.serverVersion
-        heartbeat.serverHostname = msg.data.data.serverInfo.serverHostname
-        heartbeat.serverProcessId = msg.data.data.serverInfo.serverProcessId
-        heartbeat.jvmVersion = msg.data.data.serverInfo.jvmVersion
-        heartbeat.jvmVendor = msg.data.data.serverInfo.jvmVendor
-        heartbeat.jvmPath = msg.data.data.serverInfo.jvmPath
+        // heartbeat.omegaEditPort = msg.data.data.serverInfo.omegaEditPort
+        heartbeat.omegaEditPort = msg.data.data.port
+        heartbeat.serverVersion = msg.data.data.server.serverVersion
+        heartbeat.serverHostname = msg.data.data.server.serverHostname
+        heartbeat.serverProcessId = msg.data.data.server.serverProcessId
+        heartbeat.jvmVersion = msg.data.data.server.jvmVersion
+        heartbeat.jvmVendor = msg.data.data.server.jvmVendor
+        heartbeat.jvmPath = msg.data.data.server.jvmPath
         heartbeat.availableProcessors =
           msg.data.data.serverInfo.availableProcessors
 

@@ -305,6 +305,11 @@ limitations under the License.
         } as ViewportData_t
 
         break
+      case undefined:
+        if(msg.data.asyncData){
+          const response: Promise<any> = msg.data.asyncData
+            response.then(data => {console.log(data)})
+        }
     }
   })
 </script>

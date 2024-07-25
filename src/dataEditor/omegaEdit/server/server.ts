@@ -1,36 +1,46 @@
-import { FilePath } from '.'
-import { OmegaEditService } from './editService'
+import { FilePath } from '..'
+import { OmegaEditService } from '../service/editService'
 import path from 'path'
 import * as fs from 'fs'
 import * as os from 'os'
-import XDGAppPaths from 'xdg-app-paths'
 import {
-  createSimpleFileLogger,
   getClientVersion,
   getServerHeartbeat,
   getServerInfo,
   IServerHeartbeat,
   IServerInfo,
-  setLogger,
   startServer,
   stopProcessUsingPID,
-  stopServerGraceful,
 } from '@omega-edit/client'
-import { IConfig } from '../config'
-import { IHeartbeatInfo } from '../include/server/heartbeat/HeartBeatInfo'
-export const APP_DATA_PATH: string = XDGAppPaths({ name: 'omega_edit' }).data()
+import { IConfig } from '../../config'
+import { IHeartbeatInfo } from '../../include/server/heartbeat/HeartBeatInfo'
+import { ServerConfig } from './config'
+import {
+  APP_DATA_PATH,
+  generateLogbackConfigFile,
+  setupLogging,
+} from './logging'
 
-export class Connection {
-  constructor(
-    readonly host: string,
-    readonly port: number
-  ) {}
+const activeServers: Map<ServerConfig, OmegaEditServer> = new Map()
+const ServerDisposeAll = {
+  dispose: () => {
+    activeServers.forEach((server) => {
+      server.dispose()
+    })
+  },
 }
 
 export class OmegaEditServer {
   private service: OmegaEditService
-  constructor(readonly config: ServerConfig) {
-    this.service = new OmegaEditService(new FilePath(config.checkpointPath))
+
+  constructor(
+    readonly config: ServerConfig,
+    readonly serverInfo: IServerInfo
+  ) {
+    this.service = new OmegaEditService( // send whole config?
+      { server: this.serverInfo, port: config.conn.port },
+      new FilePath(config.checkpointPath)
+    )
     this.service.onAllSessionsClosed(() => {
       serverStop(this.config)
     })
@@ -45,40 +55,6 @@ export class OmegaEditServer {
   }
 }
 
-function setupLogging(config: ServerConfig): Promise<void> {
-  return new Promise((res, rej) => {
-    const filePath = config.logFile.fullPath()
-    const level = config.logLevel
-    rotateLogFiles(filePath)
-    setLogger(createSimpleFileLogger(filePath, level))
-    res()
-  })
-}
-export class ServerConfig {
-  readonly conn: Connection
-  readonly logFile: FilePath
-  readonly logLevel: string
-  readonly checkpointPath: string
-
-  constructor(config: () => IConfig) {
-    const { checkpointPath, logFile, logLevel, port } = config()
-    this.conn = new Connection('127.0.0.1', port)
-    this.logFile = new FilePath(logFile)
-    this.logLevel = logLevel
-    this.checkpointPath = checkpointPath
-  }
-}
-
-export type GetServerConfigStrategy = () => Promise<ServerConfig>
-
-const activeServers: Map<ServerConfig, OmegaEditServer> = new Map()
-const ServerDisposeAll = {
-  dispose: () => {
-    activeServers.forEach((server) => {
-      server.dispose()
-    })
-  },
-}
 export class OmegaEditServerManager {
   static Connect(config: () => IConfig): Promise<OmegaEditServer> {
     return new Promise(async (res, rej) => {
@@ -87,10 +63,10 @@ export class OmegaEditServerManager {
       const query = activeServers.get(serverConfig)
       if (query) res(query)
 
-      const ret = new OmegaEditServer(serverConfig)
       await loggerSetupComplete
-      await serverStart(ret.config)
-      res(ret)
+      await serverStart(serverConfig, (info) => {
+        res(new OmegaEditServer(serverConfig, info))
+      })
     })
   }
   static disposeAllServers() {
@@ -119,71 +95,6 @@ function removeDirectory(dirPath: string): void {
     fs.rmdirSync(dirPath)
   }
 }
-const MAX_LOG_FILES = 5
-function rotateLogFiles(logFile: string): void {
-  interface LogFile {
-    path: string
-    ctime: Date
-  }
-
-  // assert(
-  //   MAX_LOG_FILES > 0,
-  //   'Maximum number of log files must be greater than 0'
-  // )
-
-  if (fs.existsSync(logFile)) {
-    const logDir = path.dirname(logFile)
-    const logFileName = path.basename(logFile)
-
-    // Get list of existing log files
-    const logFiles: LogFile[] = fs
-      .readdirSync(logDir)
-      .filter((file) => file.startsWith(logFileName) && file !== logFileName)
-      .map((file) => ({
-        path: path.join(logDir, file),
-        ctime: fs.statSync(path.join(logDir, file)).ctime,
-      }))
-      .sort((a, b) => b.ctime.getTime() - a.ctime.getTime())
-
-    // Delete oldest log files if maximum number of log files is exceeded
-    while (logFiles.length >= MAX_LOG_FILES) {
-      const fileToDelete = logFiles.pop() as LogFile
-      fs.unlinkSync(fileToDelete.path)
-    }
-
-    // Rename current log file with timestamp and create a new empty file
-    const timestamp = new Date().toISOString().replace(/:/g, '-')
-    fs.renameSync(logFile, path.join(logDir, `${logFileName}.${timestamp}`))
-  }
-}
-
-function generateLogbackConfigFile(server: ServerConfig): string {
-  const serverLogFile = path.join(APP_DATA_PATH, `serv-${server.conn.port}.log`)
-  const dirname = path.dirname(server.logFile.fullPath())
-  if (!fs.existsSync(dirname)) {
-    fs.mkdirSync(dirname, { recursive: true })
-  }
-  const logbackConfig = `<?xml version="1.0" encoding="UTF-8"?>\n
-<configuration>
-    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-        <file>${serverLogFile}</file>
-        <encoder>
-            <pattern>[%date{ISO8601}] [%level] [%logger] [%marker] [%thread] - %msg MDC: {%mdc}%n</pattern>
-        </encoder>
-    </appender>
-    <root level="${server.logLevel.toUpperCase()}">
-        <appender-ref ref="FILE" />
-    </root>
-</configuration>
-`
-  const logbackConfigFile = path.join(
-    APP_DATA_PATH,
-    `serv-${server.conn.port}.logconf.xml`
-  )
-  rotateLogFiles(server.logFile.fullPath())
-  fs.writeFileSync(logbackConfigFile, logbackConfig)
-  return logbackConfigFile // Return the path to the logback config file
-}
 
 async function serverStop(server: ServerConfig) {
   const serverPidFile = getPidFile(server.conn.port)
@@ -207,7 +118,10 @@ async function serverStop(server: ServerConfig) {
   }
 }
 const SERVER_START_TIMEOUT = 15
-async function serverStart(server: ServerConfig) {
+async function serverStart(
+  server: ServerConfig,
+  callback: (info: IServerInfo) => any
+) {
   // await serverStop()
   // const serverStartingText = `Ωedit server starting on port ${server.conn.port}`
   // const statusBarItem = vscode.window.createStatusBarItem(
@@ -307,6 +221,7 @@ async function serverStart(server: ServerConfig) {
   await getHeartbeat((hb) => {
     console.log(hb)
   })
+  callback(serverInfo)
   // statusBarItem.text = `Ωedit server v${serverVersion} ready on port ${omegaEditPort} with PID ${serverInfo.serverProcessId}`
   // setTimeout(() => {
   // statusBarItem.dispose()

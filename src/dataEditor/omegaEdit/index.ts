@@ -1,6 +1,7 @@
 import path from 'path'
 import * as os from 'os'
 import { DataSource, GetDataSourceStrategy } from '../core/service/editService'
+
 export class FilePath implements DataSource {
   private baseName: string
   constructor(private filepath: string) {
@@ -13,9 +14,7 @@ export class FilePath implements DataSource {
     return this.baseName
   }
 }
-export interface FilePathSourceStrategy extends GetDataSourceStrategy {
-  get(): Promise<FilePath>
-}
+
 export namespace FilePath {
   export const SystemTmpDirectory = (): FilePath => {
     return new FilePath(os.tmpdir())
@@ -23,4 +22,8 @@ export namespace FilePath {
   export const CurrentDirectory = (): FilePath => {
     return new FilePath('.')
   }
+}
+
+export interface FilePathSourceStrategy extends GetDataSourceStrategy {
+  get(): Promise<FilePath>
 }

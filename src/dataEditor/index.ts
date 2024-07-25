@@ -10,17 +10,13 @@ import {
   StandaloneEditor,
   StandaloneInitializer,
 } from './standalone/standaloneEditor'
-import { OmegaEditServer } from './omegaEdit/tests/utils/fixtures'
-import { OmegaEditServerManager } from './omegaEdit/server'
+import { OmegaEditServerManager } from './omegaEdit/server/server'
 
 const editorCommands: Map<
   EditorCommand['command'],
   EditorCommand['initializer']
 > = new Map()
 
-export function RegisterEditor(command: EditorCommand): void {
-  editorCommands.set(command.command, command.initializer)
-}
 class DataEditorManager implements vscode.Disposable {
   private editors: DataEditor[] = []
   private disposables: vscode.Disposable[] = []
@@ -45,6 +41,22 @@ class DataEditorManager implements vscode.Disposable {
     })
   }
 }
+
+let Manager: DataEditorManager
+
+function registerAllEditorCommands(ctx: vscode.ExtensionContext) {
+  editorCommands.forEach((initer, command) => {
+    ctx.subscriptions.push(
+      vscode.commands.registerCommand(command, async () => {
+        await Manager.Run(initer)
+      })
+    )
+  })
+}
+
+export function RegisterEditor(command: EditorCommand): void {
+  editorCommands.set(command.command, command.initializer)
+}
 export const VSCodeFileSelector: FilePathSourceStrategy = {
   get: () => {
     return new Promise(async (resolve, reject) => {
@@ -66,19 +78,7 @@ const DefaultEditorCommand: EditorCommand = {
   initializer: new StandaloneInitializer(VSCodeFileSelector),
 }
 
-let Manager: DataEditorManager
-
-function registerAllEditorCommands(ctx: vscode.ExtensionContext) {
-  editorCommands.forEach((initer, command) => {
-    ctx.subscriptions.push(
-      vscode.commands.registerCommand(command, async () => {
-        await Manager.Run(initer)
-      })
-    )
-  })
-}
 export function activate(ctx: vscode.ExtensionContext) {
-  const config = editor_config.extractConfigurationVariables() // Omega Edit Server specific configurations
   Manager = new DataEditorManager(ctx)
 
   registerAllEditorCommands(ctx)

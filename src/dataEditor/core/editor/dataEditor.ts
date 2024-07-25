@@ -20,9 +20,10 @@ export abstract class DataEditor implements ServiceUser<DataSource> {
     protected serviceClient: EditServiceClient,
     protected ui: DataEditorUI
   ) {
-    serviceClient.onDidProcessRequest = (response) => {
+    serviceClient.onDidProcess = (response) => {
       this.ui.updateUI(response)
     }
+
     ui.onInputEvent = (input) => {
       this.serviceClient.request(input)
     }

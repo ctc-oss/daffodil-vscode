@@ -1,30 +1,30 @@
 import * as vscode from 'vscode'
-// import { DataEditorUI } from './core/editor/editorUI'
-// import { OmegaEditService } from './omegaEdit/editService'
-import { OmegaEditServerManager } from '../omegaEdit/server'
-import { FilePath, FilePathSourceStrategy } from '../omegaEdit'
+import { OmegaEditServerManager } from '../omegaEdit/server/server'
+import { FilePathSourceStrategy } from '../omegaEdit'
 import { DataEditor, DataEditorInitializer } from '../core/editor/dataEditor'
-import { OmegaEditService, OmegaEditSession } from '../omegaEdit/editService'
 import { extractConfigurationVariables } from '../config'
-import { EditServiceClient } from '../core/service/editService'
 import { WebviewPanelEditorUI } from '../webview/editorWebviewPanel'
+import { OmegaEditSession } from '../omegaEdit/service/session'
 
 export class StandaloneEditor extends DataEditor implements vscode.Disposable {
   static readonly commandStr = 'extension.data.edit'
   constructor(serviceClient: OmegaEditSession, ui: WebviewPanelEditorUI) {
     super(serviceClient, ui)
+    ui.sendAsync(
+      new Promise<number>((res) => {
+        setTimeout(() => {
+          console.log('Resolving now!')
+          res(420)
+        }, 3000)
+      })
+    )
     this.ui.onClosed(() => {
       this.serviceClient.close()
     })
+    serviceClient.onRequestProcessed = (asyncResponse) => {
+      ui.sendAsync(asyncResponse)
+    }
     this.serviceClient.request({ command: 'getFileInfo' })
-    // const ui: UI = {
-    //   onDidReceiveMessage: (msg) => {
-    //     if(msg.type === 'edit') service.process(msg, (response) => {
-    //       ui.send(response)
-    //     })
-    //   },
-    //   send: (msg) => { console.log(msg) }
-    // }
   }
   dispose() {
     // this.editService.dispose()
