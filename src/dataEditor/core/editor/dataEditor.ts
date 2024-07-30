@@ -1,9 +1,5 @@
 import { ExtensionContext } from 'vscode'
-import {
-  DataSource,
-  EditServiceClient,
-  ServiceUser,
-} from '../service/editService'
+import { DataSource, EditServiceClient } from '../service/editService'
 import { DataEditorUI } from './editorUI'
 
 export abstract class DataEditorInitializer<D extends DataEditor = DataEditor> {
@@ -15,7 +11,7 @@ export type EditorCommand = {
   initializer: DataEditorInitializer
 }
 
-export abstract class DataEditor implements ServiceUser<DataSource> {
+export abstract class DataEditor {
   constructor(
     protected serviceClient: EditServiceClient,
     protected ui: DataEditorUI

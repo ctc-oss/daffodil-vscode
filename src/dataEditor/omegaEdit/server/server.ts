@@ -20,6 +20,7 @@ import {
   generateLogbackConfigFile,
   setupLogging,
 } from './logging'
+import { Heartbeat } from './heartbeat'
 
 const activeServers: Map<ServerConfig, OmegaEditServer> = new Map()
 const ServerDisposeAll = {
@@ -37,7 +38,9 @@ export class OmegaEditServer {
     readonly config: ServerConfig,
     readonly serverInfo: IServerInfo
   ) {
+    const heartbeat = new Heartbeat(getServerHeartbeat)
     this.service = new OmegaEditService( // send whole config?
+      heartbeat,
       { server: this.serverInfo, port: config.conn.port },
       new FilePath(config.checkpointPath)
     )

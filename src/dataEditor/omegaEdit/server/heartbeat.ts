@@ -15,20 +15,19 @@ let ActiveHeartbeat: Heartbeat | undefined
 const Receivers: HeartbeatCallback[] = []
 
 export class Heartbeat {
-  private readonly msInterval = 1000
-  private heartbeat: IServerHeartbeat = InitialHeartbeat
-  private retrieveInterval: NodeJS.Timeout
-  private constructor(getSessionIds: () => string[]) {
-    this.retrieveInterval = setInterval(() => {
-      getServerHeartbeat(getSessionIds(), 1000)
-    }, this.msInterval)
+  private running: boolean = false
+  private intervalId: NodeJS.Timeout | undefined = undefined
+  private lastHeartbeat: IServerHeartbeat = InitialHeartbeat
+
+  constructor(readonly ping: (ids: string[]) => Promise<IServerHeartbeat>) {}
+  start(getArgs: () => string[]) {
+    this.intervalId = setInterval(async () => {
+      this.lastHeartbeat = await this.ping(getArgs())
+      this.onUpdate(this.lastHeartbeat)
+    }, 1000)
   }
-  static Start(getSessionIds: () => string[]) {
-    if (ActiveHeartbeat)
-      throw 'Server heartbeat is already active. Use `onReceive(...)` to do something with it'
-    ActiveHeartbeat = new Heartbeat(getSessionIds)
-  }
-  static OnReceive(listener: (heartbeat: IServerHeartbeat) => any) {
-    Receivers.push(listener)
+  onUpdate: (hb: IServerHeartbeat) => any = () => {}
+  getLast() {
+    return this.lastHeartbeat
   }
 }

@@ -1,5 +1,4 @@
 import { EditServiceClient } from '../../core/service/editService'
-import { ServiceRequestHandler } from './requestHandler'
 
 export type SessionIdType = ReturnType<OmegaEditSession['id']>
 
@@ -7,10 +6,7 @@ export class OmegaEditSession implements EditServiceClient {
   heartbeatInterval: NodeJS.Timeout | undefined = undefined
   constructor(
     private sessionId: SessionIdType,
-    private serviceRequestHandler: (
-      session: SessionIdType,
-      request: any
-    ) => Promise<any>,
+    private serviceRequestHandler: (request: any) => Promise<any>,
     readonly close: () => void
   ) {
     this.heartbeatInterval = setInterval(() => {
@@ -30,7 +26,8 @@ export class OmegaEditSession implements EditServiceClient {
   }
 
   async request(request: any, decorator?: (response: any) => any) {
-    const response = await this.serviceRequestHandler(this.sessionId, request)
+    const sessionRequest = { ...request, sessionId: this.sessionId }
+    const response = await this.serviceRequestHandler(sessionRequest)
     this.onDidProcess(response)
     this.onRequestProcessed
   }

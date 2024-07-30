@@ -10,6 +10,8 @@ import { EditService } from '../../core/service/editService'
 import { OmegaEditSession, SessionIdType } from './session'
 import EventEmitter from 'events'
 import { OmegaEditEvent, OmegaEditEventManager } from './serviceEvents'
+import { Heartbeat } from '../server/heartbeat'
+import { ServiceRequestHandler } from './requestHandler'
 
 const InitialHeartbeat: IServerHeartbeat = {
   latency: 0,
@@ -34,11 +36,10 @@ export class OmegaEditService implements EditService {
   private heartbeatInterval: NodeJS.Timeout | undefined = undefined
   private eventManager = new OmegaEditEventManager()
   constructor(
+    private heartbeat_: Heartbeat,
     readonly serviceInfo: ServiceInfo,
     readonly checkpointDirectory: FilePath = FilePath.SystemTmpDirectory()
-  ) {
-    // this.addListenerToEvent()
-  }
+  ) {}
   addListenerToEvent<E extends keyof OmegaEditEvent>(
     event: E,
     listener: (resp) => any
@@ -54,21 +55,23 @@ export class OmegaEditService implements EditService {
 
   register(source: FilePath): Promise<OmegaEditSession> {
     if (this.activeSessions.size == 0) {
-      const intervalMsMultiplier =
-        this.activeSessions.size <= 0 ? 1 : this.activeSessions.size
+      // const intervalMsMultiplier =
+      //   this.activeSessions.size <= 0 ? 1 : this.activeSessions.size
       // Heartbeat.Start(() => {
       //   return this.sessionIds()
       // })
-
-      this.heartbeatInterval = setInterval(() => {
-        getServerHeartbeat(this.sessionIds(), 1000)
-          .catch((err) => {
-            throw err
-          })
-          .then((heartbeat) => {
-            this.heartbeat = heartbeat
-          })
-      }, intervalMsMultiplier * 1000)
+      this.heartbeat_.start(() => {
+        return this.sessionIds()
+      })
+      // this.heartbeatInterval = setInterval(() => {
+      //   getServerHeartbeat(this.sessionIds(), 1000)
+      //     .catch((err) => {
+      //       throw err
+      //     })
+      //     .then((heartbeat) => {
+      //       this.heartbeat = heartbeat
+      //     })
+      // }, intervalMsMultiplier * 1000)
     }
     return new Promise(async (res, rej) => {
       const session = await this.createSession(source, this.checkpointDirectory)
@@ -97,8 +100,8 @@ export class OmegaEditService implements EditService {
       )
       const id = response.getSessionId()
       this.activeSessions.set(id, file)
-      const requestHandlerFn = async (id, req) => {
-        return this.requestHandler(id, req)
+      const requestHandlerFn = async (req) => {
+        return this.requestHandler(req)
       }
       const sessionCloseCallback = () => {
         this.removeSession(id)
@@ -113,44 +116,58 @@ export class OmegaEditService implements EditService {
   }
 
   /** Extract this functionality to another class */
-  private requestHandler(sessionId: SessionIdType, request: any): Promise<any> {
-    console.log(`received request ${{ ...request }}`)
-    return new Promise(async (res, rej) => {
-      if (request.command === 'getServerHeartbeat') {
-        res({
-          command: 4,
-          data: { ...this.heartbeat, ...this.serviceInfo },
+  private requestHandler(request: any): Promise<any> {
+    switch (request.command) {
+      case 'getFileInfo':
+        return ServiceRequestHandler.getHandle('getFileInfo')(
+          request.sessionId,
+          this.activeSessions.get(request.sessionId)!
+        )
+      case 'getServerHeartbeat':
+        return ServiceRequestHandler.getHandle('getServerHeartbeat')()
+      default:
+        return new Promise((_, rej) => {
+          rej('Unknown request command')
         })
-      }
-      if (request.command === 'getFileInfo') {
-        const count = await getCounts(sessionId, [
-          1, //CountKind.COUNT_COMPUTED_FILE_SIZE,
-          7, //CountKind.COUNT_CHANGE_TRANSACTIONS,
-          8, //CountKind.COUNT_UNDO_TRANSACTIONS,
-        ])
-        const file = this.activeSessions.get(sessionId)
-        let data = {
-          fileName: file ? file.fullPath() : 'No file',
-          computedFileSize: 0,
-          changeCount: 0,
-          undoCount: 0,
-        }
-        count.forEach((count) => {
-          switch (count.getKind()) {
-            case 1: //CountKind.COUNT_COMPUTED_FILE_SIZE:
-              data.computedFileSize = count.getCount()
-              break
-            case 7: //CountKind.COUNT_CHANGE_TRANSACTIONS:
-              data.changeCount = count.getCount()
-              break
-            case 8: //CountKind.COUNT_UNDO_TRANSACTIONS:
-              data.undoCount = count.getCount()
-              break
-          }
-        })
-        res({ command: 3, data: data })
-      }
-      rej({ msg: `no ${request.command} handler found` })
-    })
+    }
+    // const handler = ServiceRequestHandler.getHandle('viewportSeekTo')
+    // return new Promise(async (res, rej) => {
+
+    //   if (request.command === 'getServerHeartbeat') {
+    //     res({
+    //       command: 4,
+    //       data: { ...this.heartbeat_.getLast(), ...this.serviceInfo },
+    //     })
+    //   }
+    //   if (request.command === 'getFileInfo') {
+    //     const count = await getCounts(sessionId, [
+    //       1, //CountKind.COUNT_COMPUTED_FILE_SIZE,
+    //       7, //CountKind.COUNT_CHANGE_TRANSACTIONS,
+    //       8, //CountKind.COUNT_UNDO_TRANSACTIONS,
+    //     ])
+    //     const file = this.activeSessions.get(sessionId)
+    //     let data = {
+    //       fileName: file ? file.fullPath() : 'No file',
+    //       computedFileSize: 0,
+    //       changeCount: 0,
+    //       undoCount: 0,
+    //     }
+    //     count.forEach((count) => {
+    //       switch (count.getKind()) {
+    //         case 1: //CountKind.COUNT_COMPUTED_FILE_SIZE:
+    //           data.computedFileSize = count.getCount()
+    //           break
+    //         case 7: //CountKind.COUNT_CHANGE_TRANSACTIONS:
+    //           data.changeCount = count.getCount()
+    //           break
+    //         case 8: //CountKind.COUNT_UNDO_TRANSACTIONS:
+    //           data.undoCount = count.getCount()
+    //           break
+    //       }
+    //     })
+    //     res({ command: 3, data: data })
+    //   }
+    //   rej({ msg: `no ${request.command} handler found` })
+    // })
   }
 }
