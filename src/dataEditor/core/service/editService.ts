@@ -7,6 +7,7 @@ export interface EditService {
   register(source: DataSource): Promise<EditServiceClient>
 }
 export interface EditServiceClient {
+  addResponseListener(listener: (response: any) => any): void
   close(): void
   id(): string
   request: (request: any) => any

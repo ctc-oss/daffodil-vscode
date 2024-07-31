@@ -16,9 +16,9 @@ export abstract class DataEditor {
     protected serviceClient: EditServiceClient,
     protected ui: DataEditorUI
   ) {
-    serviceClient.onDidProcess = (response) => {
+    serviceClient.addResponseListener((response) => {
       this.ui.updateUI(response)
-    }
+    })
 
     ui.onInputEvent = (input) => {
       this.serviceClient.request(input)

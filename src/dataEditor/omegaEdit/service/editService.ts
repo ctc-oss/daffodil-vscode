@@ -1,17 +1,28 @@
 import {
+  ALL_EVENTS,
   createSession,
+  createViewport,
+  CreateViewportRequest,
+  EditorClient,
+  EventSubscriptionRequest,
+  getClient,
   getCounts,
   getServerHeartbeat,
+  getViewportData,
   IServerHeartbeat,
   IServerInfo,
+  resumeViewportEvents,
+  ViewportDataRequest,
+  ViewportEvent,
+  ViewportEventKind,
 } from '@omega-edit/client'
 import { FilePath } from '..'
 import { EditService } from '../../core/service/editService'
 import { OmegaEditSession, SessionIdType } from './session'
 import EventEmitter from 'events'
-import { OmegaEditEvent, OmegaEditEventManager } from './serviceEvents'
 import { Heartbeat } from '../server/heartbeat'
-import { ServiceRequestHandler } from './requestHandler'
+import { ServiceRequestHandler } from './requests.ts/requestHandler'
+import { MessageCommand } from '../../../svelte/src/utilities/message'
 
 const InitialHeartbeat: IServerHeartbeat = {
   latency: 0,
@@ -34,18 +45,12 @@ export class OmegaEditService implements EditService {
   private activeSessions: Map<SessionIdType, FilePath> = new Map()
   private heartbeat: IServerHeartbeat = InitialHeartbeat
   private heartbeatInterval: NodeJS.Timeout | undefined = undefined
-  private eventManager = new OmegaEditEventManager()
   constructor(
+    private client: EditorClient,
     private heartbeat_: Heartbeat,
     readonly serviceInfo: ServiceInfo,
     readonly checkpointDirectory: FilePath = FilePath.SystemTmpDirectory()
   ) {}
-  addListenerToEvent<E extends keyof OmegaEditEvent>(
-    event: E,
-    listener: (resp) => any
-  ) {
-    this.eventManager.on(event, listener)
-  }
   onAllSessionsClosed(listener: () => void) {
     clearInterval(this.heartbeatInterval)
     this.Events.on('allSessionsClosed', () => {
@@ -55,27 +60,54 @@ export class OmegaEditService implements EditService {
 
   register(source: FilePath): Promise<OmegaEditSession> {
     if (this.activeSessions.size == 0) {
-      // const intervalMsMultiplier =
-      //   this.activeSessions.size <= 0 ? 1 : this.activeSessions.size
-      // Heartbeat.Start(() => {
-      //   return this.sessionIds()
-      // })
       this.heartbeat_.start(() => {
         return this.sessionIds()
       })
-      // this.heartbeatInterval = setInterval(() => {
-      //   getServerHeartbeat(this.sessionIds(), 1000)
-      //     .catch((err) => {
-      //       throw err
-      //     })
-      //     .then((heartbeat) => {
-      //       this.heartbeat = heartbeat
-      //     })
-      // }, intervalMsMultiplier * 1000)
     }
     return new Promise(async (res, rej) => {
       const session = await this.createSession(source, this.checkpointDirectory)
-
+      const response = await createViewport(
+        undefined,
+        session.id(),
+        0,
+        1024,
+        false
+      )
+      const vpId = response.getViewportId()
+      this.client
+        .subscribeToViewportEvents(
+          new EventSubscriptionRequest()
+            .setId(response.getViewportId())
+            .setInterest(ALL_EVENTS & ~ViewportEventKind.VIEWPORT_EVT_MODIFY)
+        )
+        .on('data', (data: ViewportEvent) => {
+          const vpdata = data.getData_asU8()
+          console.log(`got vpdata: ${vpdata}`)
+          session.onDidProcess({
+            command: MessageCommand.viewportRefresh,
+            data: data.getData_asU8(),
+          })
+        })
+        .on('error', (err) => {
+          console.log('Viewport Subscribe err: ', err)
+        })
+        .on('status', (status) => {
+          console.log(status.details)
+        })
+        .on('resume', () => {
+          console.log('Viewport Events Resuming')
+        })
+      getViewportData(vpId).then((r) => {
+        session.onDidProcess({
+          command: 20,
+          data: {
+            viewportData: r.getData_asU8(),
+            viewportOffset: r.getOffset(),
+            viewportLength: r.getLength(),
+            viewportFollowingByteCount: r.getFollowingByteCount(),
+          },
+        })
+      })
       res(session)
     })
   }
@@ -98,6 +130,7 @@ export class OmegaEditService implements EditService {
         undefined,
         checkpointPath.fullPath() /* need config */
       )
+
       const id = response.getSessionId()
       this.activeSessions.set(id, file)
       const requestHandlerFn = async (req) => {

@@ -43,10 +43,10 @@ export class StandaloneInitializer extends DataEditorInitializer<StandaloneEdito
       )
       const service = await server.getService()
 
-      const client = await service.register(target)
+      const session = await service.register(target)
       resolve(
         new StandaloneEditor(
-          client,
+          session,
           new WebviewPanelEditorUI(ctx, target.fileName())
         )
       )

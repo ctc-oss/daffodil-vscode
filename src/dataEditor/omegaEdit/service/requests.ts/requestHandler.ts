@@ -1,6 +1,7 @@
 import { getCounts } from '@omega-edit/client'
-import { FilePath } from '..'
-import { SessionIdType } from './session'
+import { FilePath } from '../..'
+import { SessionIdType } from '../session'
+import { ViewportCreateHandler } from './viewport'
 
 type CommandResponse<Args, ResponseType> = (
   args?: Args
@@ -62,6 +63,7 @@ const RequestCommandMap = {
   getServerHeartbeat: ServerHeartbeatHandler,
   getFileInfo: FileInfoHandler,
   viewportSeekTo: ViewportSeekHandler,
+  viewportCreate: ViewportCreateHandler,
 }
 type CommandResponseType<T> = T extends Promise<infer R> ? T : never
 type CommandKey<K> = K extends keyof typeof RequestCommandMap ? K : never

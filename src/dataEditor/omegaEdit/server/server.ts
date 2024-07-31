@@ -4,6 +4,8 @@ import path from 'path'
 import * as fs from 'fs'
 import * as os from 'os'
 import {
+  EditorClient,
+  getClient,
   getClientVersion,
   getServerHeartbeat,
   getServerInfo,
@@ -33,13 +35,14 @@ const ServerDisposeAll = {
 
 export class OmegaEditServer {
   private service: OmegaEditService
-
   constructor(
+    private client: EditorClient,
     readonly config: ServerConfig,
     readonly serverInfo: IServerInfo
   ) {
     const heartbeat = new Heartbeat(getServerHeartbeat)
     this.service = new OmegaEditService( // send whole config?
+      this.client,
       heartbeat,
       { server: this.serverInfo, port: config.conn.port },
       new FilePath(config.checkpointPath)
@@ -67,8 +70,12 @@ export class OmegaEditServerManager {
       if (query) res(query)
 
       await loggerSetupComplete
-      await serverStart(serverConfig, (info) => {
-        res(new OmegaEditServer(serverConfig, info))
+      await serverStart(serverConfig, async (info) => {
+        const client = await getClient(
+          serverConfig.conn.port,
+          serverConfig.conn.host
+        )
+        res(new OmegaEditServer(client, serverConfig, info))
       })
     })
   }
