@@ -85,7 +85,7 @@ limitations under the License.
         heartbeat.jvmVendor = msg.data.data.server.jvmVendor
         heartbeat.jvmPath = msg.data.data.server.jvmPath
         heartbeat.availableProcessors =
-          msg.data.data.serverInfo.availableProcessors
+          msg.data.data.server.availableProcessors
 
         // set the serverTimestamp to 0 after 5 seconds of no heartbeat to indicate that no heartbeat has been received
         clearTimeout(timerId)

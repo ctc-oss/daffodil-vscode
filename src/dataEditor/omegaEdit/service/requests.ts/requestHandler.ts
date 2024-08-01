@@ -1,4 +1,4 @@
-import { getCounts } from '@omega-edit/client'
+import { getCounts, IServerHeartbeat } from '@omega-edit/client'
 import { FilePath } from '../..'
 import { SessionIdType } from '../session'
 import { ViewportCreateHandler } from './viewport'
@@ -6,20 +6,20 @@ import { ViewportCreateHandler } from './viewport'
 type CommandResponse<Args, ResponseType> = (
   args?: Args
 ) => Promise<ResponseType>
-const ServerHeartbeatHandler: CommandResponse<undefined, {}> = () => {
-  return new Promise((res, rej) => {
-    res({
-      command: 4,
-      data: {},
-    })
-  })
+
+interface ServiceRequest {
+  readonly command: string
 }
+
+const ServerHeartbeatHandler = (hb: IServerHeartbeat) => {}
+
 type FileInfo = {
   name: string
   computedFileSize: number
   changeCount: number
   undoCount: number
 }
+
 const FileInfoHandler = (sessionId: SessionIdType, file: FilePath) => {
   return new Promise(async (res, rej) => {
     const count = await getCounts(sessionId, [

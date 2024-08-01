@@ -50,9 +50,12 @@ export class OmegaEditService implements EditService {
     private heartbeat_: Heartbeat,
     readonly serviceInfo: ServiceInfo,
     readonly checkpointDirectory: FilePath = FilePath.SystemTmpDirectory()
-  ) {}
+  ) {
+    this.Events.on('allSessionsClosed', () => {
+      clearInterval(this.heartbeatInterval)
+    })
+  }
   onAllSessionsClosed(listener: () => void) {
-    clearInterval(this.heartbeatInterval)
     this.Events.on('allSessionsClosed', () => {
       listener()
     })
@@ -91,12 +94,6 @@ export class OmegaEditService implements EditService {
         .on('error', (err) => {
           console.log('Viewport Subscribe err: ', err)
         })
-        .on('status', (status) => {
-          console.log(status.details)
-        })
-        .on('resume', () => {
-          console.log('Viewport Events Resuming')
-        })
       getViewportData(vpId).then((r) => {
         session.onDidProcess({
           command: 20,
@@ -133,9 +130,11 @@ export class OmegaEditService implements EditService {
 
       const id = response.getSessionId()
       this.activeSessions.set(id, file)
+
       const requestHandlerFn = async (req) => {
         return this.requestHandler(req)
       }
+
       const sessionCloseCallback = () => {
         this.removeSession(id)
       }
@@ -157,50 +156,16 @@ export class OmegaEditService implements EditService {
           this.activeSessions.get(request.sessionId)!
         )
       case 'getServerHeartbeat':
-        return ServiceRequestHandler.getHandle('getServerHeartbeat')()
+        return new Promise((res, rej) => {
+          res({
+            command: 4,
+            data: { ...this.heartbeat_.getLast(), ...this.serviceInfo },
+          })
+        })
       default:
         return new Promise((_, rej) => {
-          rej('Unknown request command')
+          rej(`Unknown request command: ${request.command}`)
         })
     }
-    // const handler = ServiceRequestHandler.getHandle('viewportSeekTo')
-    // return new Promise(async (res, rej) => {
-
-    //   if (request.command === 'getServerHeartbeat') {
-    //     res({
-    //       command: 4,
-    //       data: { ...this.heartbeat_.getLast(), ...this.serviceInfo },
-    //     })
-    //   }
-    //   if (request.command === 'getFileInfo') {
-    //     const count = await getCounts(sessionId, [
-    //       1, //CountKind.COUNT_COMPUTED_FILE_SIZE,
-    //       7, //CountKind.COUNT_CHANGE_TRANSACTIONS,
-    //       8, //CountKind.COUNT_UNDO_TRANSACTIONS,
-    //     ])
-    //     const file = this.activeSessions.get(sessionId)
-    //     let data = {
-    //       fileName: file ? file.fullPath() : 'No file',
-    //       computedFileSize: 0,
-    //       changeCount: 0,
-    //       undoCount: 0,
-    //     }
-    //     count.forEach((count) => {
-    //       switch (count.getKind()) {
-    //         case 1: //CountKind.COUNT_COMPUTED_FILE_SIZE:
-    //           data.computedFileSize = count.getCount()
-    //           break
-    //         case 7: //CountKind.COUNT_CHANGE_TRANSACTIONS:
-    //           data.changeCount = count.getCount()
-    //           break
-    //         case 8: //CountKind.COUNT_UNDO_TRANSACTIONS:
-    //           data.undoCount = count.getCount()
-    //           break
-    //       }
-    //     })
-    //     res({ command: 3, data: data })
-    //   }
-    //   rej({ msg: `no ${request.command} handler found` })
-    // })
   }
 }

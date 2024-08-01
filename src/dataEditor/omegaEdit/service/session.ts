@@ -14,7 +14,7 @@ export class OmegaEditSession implements EditServiceClient {
   constructor(
     private sessionId: SessionIdType,
     private serviceRequestHandler: (request: any) => Promise<any>,
-    readonly close: () => void
+    readonly onClose: () => void
   ) {
     this.heartbeatInterval = setInterval(() => {
       this.request({ command: 'getServerHeartbeat' })
@@ -54,6 +54,12 @@ export class OmegaEditSession implements EditServiceClient {
     const response = await this.serviceRequestHandler(sessionRequest)
     this.onDidProcess(response)
     this.onRequestProcessed
+  }
+  close() {
+    clearInterval(this.heartbeatInterval)
+    this.requestResponseCallbacks = []
+    this.responseBacklog = []
+    this.onClose()
   }
 }
 

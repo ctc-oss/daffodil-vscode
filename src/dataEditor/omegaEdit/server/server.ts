@@ -35,6 +35,7 @@ const ServerDisposeAll = {
 
 export class OmegaEditServer {
   private service: OmegaEditService
+  private disposables: Array<() => any> = []
   constructor(
     private client: EditorClient,
     readonly config: ServerConfig,
@@ -50,6 +51,14 @@ export class OmegaEditServer {
     this.service.onAllSessionsClosed(() => {
       serverStop(this.config)
     })
+    this.disposables.push(
+      () => {
+        heartbeat.stop()
+      },
+      () => {
+        serverStop(this.config)
+      }
+    )
   }
   getService(): Promise<OmegaEditService> {
     return new Promise((res, rej) => {
@@ -57,7 +66,9 @@ export class OmegaEditServer {
     })
   }
   readonly dispose = () => {
-    serverStop(this.config)
+    this.disposables.forEach((disposal) => {
+      disposal()
+    })
   }
 }
 

@@ -26,9 +26,6 @@ export class StandaloneEditor extends DataEditor implements vscode.Disposable {
     }
     this.serviceClient.request({ command: 'getFileInfo' })
   }
-  dispose() {
-    // this.editService.dispose()
-  }
 }
 
 export class StandaloneInitializer extends DataEditorInitializer<StandaloneEditor> {
@@ -42,8 +39,9 @@ export class StandaloneInitializer extends DataEditorInitializer<StandaloneEdito
         extractConfigurationVariables
       )
       const service = await server.getService()
-
       const session = await service.register(target)
+      ctx.subscriptions.push(server)
+
       resolve(
         new StandaloneEditor(
           session,

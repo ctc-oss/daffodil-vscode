@@ -30,4 +30,7 @@ export class Heartbeat {
   getLast() {
     return this.lastHeartbeat
   }
+  stop() {
+    clearInterval(this.intervalId)
+  }
 }

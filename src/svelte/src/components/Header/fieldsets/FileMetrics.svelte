@@ -69,8 +69,8 @@ limitations under the License.
           // reset the profiler if changes have been made
           isProfilerOpen = false
           startOffset = length = 0
-          if ('fileName' in msg.data.data) {
-            $fileMetrics.name = msg.data.data.fileName
+          if ('name' in msg.data.data) {
+            $fileMetrics.name = msg.data.data.name
           }
           if ('type' in msg.data.data) {
             $fileMetrics.type = msg.data.data.type

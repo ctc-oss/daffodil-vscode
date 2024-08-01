@@ -33,7 +33,9 @@ export class WebviewPanelEditorUI implements DataEditorUI {
   }
 
   updateUI(data: any) {
-    this.panel.webview.postMessage(data)
+    this.panel.webview.postMessage(data).then(undefined, (rejected) => {
+      console.log(`Panel rejected postMessage: ${rejected}`)
+    })
   }
 
   /// `postMessage` can only send JSON serializable data
@@ -45,6 +47,9 @@ export class WebviewPanelEditorUI implements DataEditorUI {
     })
   }
   onClosed(disposal: (e: void) => any) {
-    this.panel.onDidDispose(disposal)
+    this.panel.onDidDispose(() => {
+      disposal()
+      this.panel.dispose()
+    })
   }
 }
