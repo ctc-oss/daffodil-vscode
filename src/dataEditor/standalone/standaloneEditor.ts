@@ -5,6 +5,7 @@ import { DataEditor, DataEditorInitializer } from '../core/editor/dataEditor'
 import { extractConfigurationVariables } from '../config'
 import { WebviewPanelEditorUI } from '../webview/editorWebviewPanel'
 import { OmegaEditSession } from '../omegaEdit/service/session'
+import { MessageCommand } from '../../svelte/src/utilities/message'
 
 export class StandaloneEditor extends DataEditor implements vscode.Disposable {
   static readonly commandStr = 'extension.data.edit'
@@ -24,7 +25,7 @@ export class StandaloneEditor extends DataEditor implements vscode.Disposable {
     serviceClient.onRequestProcessed = (asyncResponse) => {
       ui.sendAsync(asyncResponse)
     }
-    this.serviceClient.request({ command: 'getFileInfo' })
+    this.serviceClient.request({ command: MessageCommand.fileInfo })
   }
 }
 

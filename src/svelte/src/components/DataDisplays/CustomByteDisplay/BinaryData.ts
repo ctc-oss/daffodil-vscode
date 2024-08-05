@@ -82,6 +82,7 @@ export const RADIX_REGEX_MATCH_STR = {
 }
 
 export class ViewportData_t {
+  id = ''
   data = new Uint8Array(0)
   fileOffset = -1
   length = -1

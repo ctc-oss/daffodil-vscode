@@ -49,7 +49,7 @@ export class OmegaEditServer {
       new FilePath(config.checkpointPath)
     )
     this.service.onAllSessionsClosed(() => {
-      serverStop(this.config)
+      this.dispose()
     })
     this.disposables.push(
       () => {
@@ -172,6 +172,7 @@ async function serverStart(
   // }
 
   // Start the server and wait up to 10 seconds for it to start
+  let serverTimeoutId: NodeJS.Timeout | undefined = undefined
   const serverPid = (await Promise.race([
     startServer(
       server.conn.port,
@@ -180,7 +181,7 @@ async function serverStart(
       generateLogbackConfigFile(server)
     ),
     new Promise((_resolve, reject) => {
-      setTimeout(() => {
+      serverTimeoutId = setTimeout(() => {
         reject((): Error => {
           return new Error(
             `Server startup timed out after ${SERVER_START_TIMEOUT} seconds`
@@ -194,6 +195,7 @@ async function serverStart(
     // statusBarItem.dispose()
     throw new Error('Server failed to start or PID is invalid')
   }
+  clearTimeout(serverTimeoutId)
   // this makes sure the server if fully online and ready to take requests
   // statusBarItem.text = `Initializing Ωedit server on port ${omegaEditPort}`
   for (let i = 1; i <= 60; ++i) {

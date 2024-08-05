@@ -1,3 +1,4 @@
+import { MessageCommand } from '../../../svelte/src/utilities/message'
 import { EditServiceClient } from '../../core/service/editService'
 
 export type SessionIdType = ReturnType<OmegaEditSession['id']>
@@ -17,7 +18,7 @@ export class OmegaEditSession implements EditServiceClient {
     readonly onClose: () => void
   ) {
     this.heartbeatInterval = setInterval(() => {
-      this.request({ command: 'getServerHeartbeat' })
+      this.request({ command: MessageCommand.heartbeat })
     }, 1000)
   }
   onDidProcess(response: any) {
@@ -49,11 +50,10 @@ export class OmegaEditSession implements EditServiceClient {
   addResponseListener(listener: (response: any) => any) {
     this.requestResponseCallbacks.push(listener)
   }
-  async request(request: any, decorator?: (response: any) => any) {
+  async request(request: any) {
     const sessionRequest = { ...request, sessionId: this.sessionId }
     const response = await this.serviceRequestHandler(sessionRequest)
-    this.onDidProcess(response)
-    this.onRequestProcessed
+    if (response) this.onDidProcess(response)
   }
   close() {
     clearInterval(this.heartbeatInterval)

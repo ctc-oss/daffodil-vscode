@@ -1,7 +1,8 @@
-import { getCounts, IServerHeartbeat } from '@omega-edit/client'
+import { getCounts, IServerHeartbeat, modifyViewport } from '@omega-edit/client'
 import { FilePath } from '../..'
 import { SessionIdType } from '../session'
 import { ViewportCreateHandler } from './viewport'
+import { MessageCommand } from '../../../../svelte/src/utilities/message'
 
 type CommandResponse<Args, ResponseType> = (
   args?: Args
@@ -49,13 +50,18 @@ const FileInfoHandler = (sessionId: SessionIdType, file: FilePath) => {
     res({ command: 3, data: data })
   })
 }
-const ViewportSeekHandler: (offset: number) => Promise<{ data: Uint8Array }> = (
-  offset: number
-) => {
+const ViewportSeekHandler: (
+  id: string,
+  offset: number,
+  bytesPerRow: number
+) => Promise<void> = (id: string, offset: number, bytesPerRow: number) => {
   return new Promise((res, rej) => {
-    res({
-      data: new Uint8Array(16),
-    })
+    const startOffset = Math.max(0, offset - (offset % bytesPerRow))
+    modifyViewport(id, startOffset, 1024)
+      .then((_) => {
+        res()
+      })
+      .catch((err) => rej(err))
   })
 }
 

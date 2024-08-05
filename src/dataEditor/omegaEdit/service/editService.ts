@@ -13,6 +13,7 @@ import {
   IServerInfo,
   resumeViewportEvents,
   ViewportDataRequest,
+  ViewportDataResponse,
   ViewportEvent,
   ViewportEventKind,
 } from '@omega-edit/client'
@@ -81,23 +82,46 @@ export class OmegaEditService implements EditService {
         .subscribeToViewportEvents(
           new EventSubscriptionRequest()
             .setId(response.getViewportId())
-            .setInterest(ALL_EVENTS & ~ViewportEventKind.VIEWPORT_EVT_MODIFY)
+            .setInterest(ALL_EVENTS)
+          // .setInterest(ALL_EVENTS & ~ViewportEventKind.VIEWPORT_EVT_MODIFY)
         )
-        .on('data', (data: ViewportEvent) => {
-          const vpdata = data.getData_asU8()
-          console.log(`got vpdata: ${vpdata}`)
-          session.onDidProcess({
-            command: MessageCommand.viewportRefresh,
-            data: data.getData_asU8(),
+        .on('data', (vpdata: ViewportEvent) => {
+          // vpdata.getViewportId(): "49fb04aa-4b06-4300-b9bc-ae9f69d332a3"
+          const vpid = session.id() + ':' + vpdata.getViewportId() // ViewportEvent.getViewportId() and ViewportDataResponse.getViewportId() return different id structures... why?
+          console.log(vpid)
+          getViewportData(vpid).then((r) => {
+            session.onDidProcess({
+              command: 20,
+              data: {
+                viewportId: r.getViewportId(),
+                viewportData: r.getData_asU8(),
+                viewportOffset: r.getOffset(),
+                viewportLength: r.getLength(),
+                viewportFollowingByteCount: r.getFollowingByteCount(),
+              },
+            })
           })
+          // console.log(`got vpdata: ${vpdata}`)
+          // session.onDidProcess({
+          //   command: MessageCommand.viewportRefresh,
+          //   data: {
+          //     viewportId: vpdata.getViewportId(),
+          //     viewportData: vpdata.getData_asU8(),
+          //     viewportOffset: vpdata.getOffset(),
+          //     viewportLength: vpdata.getLength(),
+          //     viewportFollowingByteCount: vpdata.getFollowingByteCount(), Does not exist on subscription for some reason...
+          //   },
+          // })
         })
         .on('error', (err) => {
           console.log('Viewport Subscribe err: ', err)
         })
+      // vpid: "L2hvbWUvb3Jpb24vQ29kZS9jdGMvZGZkbC9kYWZmb2RpbC12c2NvZGUveWFybi5sb2Nr:49fb04aa-4b06-4300-b9bc-ae9f69d332a3"
       getViewportData(vpId).then((r) => {
         session.onDidProcess({
           command: 20,
           data: {
+            viewportId: r.getViewportId(),
             viewportData: r.getData_asU8(),
             viewportOffset: r.getOffset(),
             viewportLength: r.getLength(),
@@ -150,18 +174,24 @@ export class OmegaEditService implements EditService {
   /** Extract this functionality to another class */
   private requestHandler(request: any): Promise<any> {
     switch (request.command) {
-      case 'getFileInfo':
+      case MessageCommand.fileInfo:
         return ServiceRequestHandler.getHandle('getFileInfo')(
           request.sessionId,
           this.activeSessions.get(request.sessionId)!
         )
-      case 'getServerHeartbeat':
+      case MessageCommand.heartbeat:
         return new Promise((res, rej) => {
           res({
             command: 4,
             data: { ...this.heartbeat_.getLast(), ...this.serviceInfo },
           })
         })
+      case MessageCommand.scrollViewport:
+        return ServiceRequestHandler.getHandle('viewportSeekTo')(
+          request.data.id,
+          request.data.scrollOffset,
+          request.data.bytesPerRow
+        )
       default:
         return new Promise((_, rej) => {
           rej(`Unknown request command: ${request.command}`)

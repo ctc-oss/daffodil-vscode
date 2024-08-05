@@ -151,6 +151,7 @@ limitations under the License.
     vscode.postMessage({
       command: MessageCommand.scrollViewport,
       data: {
+        id: $viewport.id,
         scrollOffset: fetchOffset,
         bytesPerRow: $bytesPerRow,
         numLinesDisplayed: $dataDislayLineAmount,
@@ -170,6 +171,7 @@ limitations under the License.
     vscode.postMessage({
       command: MessageCommand.scrollViewport,
       data: {
+        id: $viewport.id,
         scrollOffset: navigationData.nextViewportOffset,
         bytesPerRow: $bytesPerRow,
       },
@@ -298,6 +300,7 @@ limitations under the License.
       case MessageCommand.viewportRefresh:
         // the viewport has been refreshed, so the editor views need to be updated
         $viewport = {
+          id: msg.data.data.viewportId,
           data: msg.data.data.viewportData,
           fileOffset: msg.data.data.viewportOffset,
           length: msg.data.data.viewportLength,
