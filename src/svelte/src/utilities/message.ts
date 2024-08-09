@@ -49,3 +49,54 @@ export type EditorMessage = {
   command: MessageCommand
   data: Record<string, any>
 }
+
+export interface ServiceRequest {
+  command: MessageCommand
+  content?: any
+}
+
+interface SessionRequest {}
+interface SessionRequest {
+  fileInfo: { sessionId: string; file: string }
+}
+interface ViewportRequest {
+  seek: { viewportId: string; offset: number; bytesPerRow: number }
+}
+
+interface ServiceRequests {
+  session_fileInfo: { sessionId: string; file: string }
+  viewport_seek: { viewportId: string; offset: number; bytesPerRow: number }
+}
+type SessionRequests = Extract<keyof ServiceRequests, `session_${string}`>
+type ViewportRequests = Extract<keyof ServiceRequests, `viewport_${string}`>
+type RequestType = {
+  [K in keyof ServiceRequests as ServiceRequests[K] extends (
+    ...args: any[]
+  ) => any
+    ? K
+    : never]: ServiceRequests[K]
+}
+export function CreateServiceRequest<
+  T extends SessionRequests | ViewportRequests,
+>(type: T, content: ServiceRequests[T]) {}
+// CreateServiceRequest("viewport_seek", )
+export function CreateRequest<T extends keyof ServiceRequests>(
+  type: T,
+  content: ServiceRequests[T]
+) {}
+
+export type RequestStrategy = (request: ServiceRequests) => any
+
+export abstract class DataEditorRequester {
+  constructor(
+    readonly SendCallback: <T extends keyof ServiceRequests>(
+      request: ServiceRequests[T]
+    ) => any
+  ) {}
+  public CreateRequest<T extends keyof ServiceRequests>(
+    type: T,
+    content: ServiceRequests[T]
+  ) {
+    this.SendCallback(content)
+  }
+}

@@ -1,5 +1,5 @@
 import { Disposable, ExtensionContext } from 'vscode'
-import { DataSource, EditServiceClient } from '../service/editService'
+import { EditServiceClient } from '../service/editService'
 import { DataEditorUI } from './editorUI'
 
 export abstract class DataEditorInitializer<D extends DataEditor = DataEditor> {
@@ -29,8 +29,5 @@ export abstract class DataEditor implements Disposable {
   }
   dispose() {
     this.serviceClient.close()
-  }
-  dataSource(): DataSource {
-    throw ''
   }
 }

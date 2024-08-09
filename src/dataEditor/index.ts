@@ -5,7 +5,6 @@ import {
   DataEditorInitializer,
   EditorCommand,
 } from './core/editor/dataEditor'
-import * as editor_config from './config'
 import {
   StandaloneEditor,
   StandaloneInitializer,

@@ -2,20 +2,12 @@ import {
   ALL_EVENTS,
   createSession,
   createViewport,
-  CreateViewportRequest,
   EditorClient,
   EventSubscriptionRequest,
-  getClient,
-  getCounts,
-  getServerHeartbeat,
   getViewportData,
   IServerHeartbeat,
   IServerInfo,
-  resumeViewportEvents,
-  ViewportDataRequest,
-  ViewportDataResponse,
   ViewportEvent,
-  ViewportEventKind,
 } from '@omega-edit/client'
 import { FilePath } from '..'
 import { EditService } from '../../core/service/editService'
@@ -23,7 +15,10 @@ import { OmegaEditSession, SessionIdType } from './session'
 import EventEmitter from 'events'
 import { Heartbeat } from '../server/heartbeat'
 import { ServiceRequestHandler } from './requests.ts/requestHandler'
-import { MessageCommand } from '../../../svelte/src/utilities/message'
+import {
+  MessageCommand,
+  ServiceRequest,
+} from '../../../svelte/src/utilities/message'
 
 const InitialHeartbeat: IServerHeartbeat = {
   latency: 0,
@@ -172,12 +167,17 @@ export class OmegaEditService implements EditService {
   }
 
   /** Extract this functionality to another class */
-  private requestHandler(request: any): Promise<any> {
+  private requestHandler(request: ServiceRequest): Promise<any> {
+    // return ServiceRequestHandler.getRequestHandler(request.command)(
+    //   request.data
+    // )
     switch (request.command) {
       case MessageCommand.fileInfo:
-        return ServiceRequestHandler.getHandle('getFileInfo')(
-          request.sessionId,
-          this.activeSessions.get(request.sessionId)!
+        const id = request.content.sessionId
+        const sessionFile = this.activeSessions.get(request.content.sessionId)!
+        return ServiceRequestHandler.processRequest('getFileInfo')(
+          id,
+          sessionFile
         )
       case MessageCommand.heartbeat:
         return new Promise((res, rej) => {
@@ -187,11 +187,32 @@ export class OmegaEditService implements EditService {
           })
         })
       case MessageCommand.scrollViewport:
-        return ServiceRequestHandler.getHandle('viewportSeekTo')(
-          request.data.id,
-          request.data.scrollOffset,
-          request.data.bytesPerRow
+        return ServiceRequestHandler.processRequest('viewportSeekTo')(
+          request.content.id,
+          request.content.scrollOffset,
+          request.content.bytesPerRow
         )
+      case MessageCommand.search:
+        return ServiceRequestHandler.processRequest('viewportSearch')(
+          request.content.id,
+          request.content
+        )
+      case MessageCommand.applyChanges:
+        const { sessionId, offset, data } = request.content!
+        ServiceRequestHandler.processRequest('applyChanges')(
+          sessionId,
+          offset,
+          data
+        ).then(() => {
+          return this.requestHandler({
+            command: MessageCommand.fileInfo,
+            content: sessionId,
+          })
+        })
+      // return ServiceRequestHandler.getHandle('dataSearch')(
+      //   request.id,
+      //   request.query
+      // )
       default:
         return new Promise((_, rej) => {
           rej(`Unknown request command: ${request.command}`)

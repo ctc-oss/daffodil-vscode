@@ -42,7 +42,7 @@ limitations under the License.
     UIThemeCSSClass,
     darkUITheme,
   } from '../utilities/colorScheme'
-  import { MessageCommand } from '../utilities/message'
+  import { CreateRequest, DataEditorRequester, MessageCommand } from '../utilities/message'
   import { vscode } from '../utilities/vscode'
   import Header from './Header/Header.svelte'
   import Main from './Main.svelte'
@@ -64,6 +64,14 @@ limitations under the License.
   import Help from './layouts/Help.svelte'
 
   $: $UIThemeCSSClass = $darkUITheme ? CSSThemeClass.Dark : CSSThemeClass.Light
+  class ExtensionMessagePoster extends DataEditorRequester{
+    constructor(){
+      super((r) => {
+        vscode.postMessage(r)
+      })
+    }
+  }
+  const ExtensionMessager = new ExtensionMessagePoster()
 
   function requestEditedData() {
     if ($requestable) {
@@ -148,6 +156,18 @@ limitations under the License.
       fetchOffset
     )
 
+    CreateRequest('viewport_seek', {
+      viewportId: $viewport.id,
+      bytesPerRow: $bytesPerRow,
+      offset: fetchOffset
+    })
+
+    ExtensionMessager.CreateRequest('viewport_seek', {
+      viewportId: $viewport.id,
+      offset: fetchOffset,
+      bytesPerRow: $bytesPerRow,
+    })
+    
     vscode.postMessage({
       command: MessageCommand.scrollViewport,
       data: {

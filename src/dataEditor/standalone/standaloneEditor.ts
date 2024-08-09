@@ -11,20 +11,9 @@ export class StandaloneEditor extends DataEditor implements vscode.Disposable {
   static readonly commandStr = 'extension.data.edit'
   constructor(serviceClient: OmegaEditSession, ui: WebviewPanelEditorUI) {
     super(serviceClient, ui)
-    ui.sendAsync(
-      new Promise<number>((res) => {
-        setTimeout(() => {
-          console.log('Resolving now!')
-          res(420)
-        }, 3000)
-      })
-    )
     this.ui.onClosed(() => {
       this.serviceClient.close()
     })
-    serviceClient.onRequestProcessed = (asyncResponse) => {
-      ui.sendAsync(asyncResponse)
-    }
     this.serviceClient.request({ command: MessageCommand.fileInfo })
   }
 }
