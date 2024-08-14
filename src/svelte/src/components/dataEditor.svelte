@@ -62,6 +62,13 @@ limitations under the License.
   } from './DataDisplays/CustomByteDisplay/BinaryData'
   import { byte_count_divisible_offset } from '../utilities/display'
   import Help from './layouts/Help.svelte'
+  import { DataEditorMessenger } from 'dataEditor/messages'
+  const ExtensionMessenger = new DataEditorMessenger((type, msg) => {
+    vscode.postMessage({
+      command: type,
+      data: {...msg}
+    })
+  })
 
   $: $UIThemeCSSClass = $darkUITheme ? CSSThemeClass.Dark : CSSThemeClass.Light
 
@@ -218,6 +225,12 @@ limitations under the License.
         editedData = new Uint8Array(0)
         break
     }
+
+    ExtensionMessenger.send('applyChanges', {
+      editedSegment: editedData,
+      offset: editedOffset,
+      originalSegment: originalData
+    }) 
 
     vscode.postMessage({
       command: MessageCommand.applyChanges,

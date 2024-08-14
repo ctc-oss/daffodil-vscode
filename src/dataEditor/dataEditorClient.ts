@@ -161,6 +161,10 @@ export class DataEditorClient implements vscode.Disposable {
       retainContextWhenHidden: true,
     })
     this.panel.webview.onDidReceiveMessage(this.messageReceiver, this)
+    this.panel.webview.onDidReceiveMessage((msg) => {
+      if (msg.command === 'applyChanges')
+        console.log('Successfully received ApplyChanges Message!')
+    })
     this.panel.onDidDispose(async () => {
       await this.dispose()
     })

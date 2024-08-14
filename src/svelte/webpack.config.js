@@ -25,6 +25,11 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin')
 const path = require('path')
 
+const localModulePath = (module) => {
+  return path.resolve(__dirname, '../../', 'src', module)
+}
+const dataEditorModuleAlias = localModulePath('dataEditor')
+
 module.exports = (env) => /** @type WebpackConfig */ {
   const isDev = !!(env && env.development)
 
@@ -37,6 +42,7 @@ module.exports = (env) => /** @type WebpackConfig */ {
       alias: {
         svelte: path.resolve(__dirname, '../../', 'node_modules', 'svelte'),
         src: path.resolve(__dirname, 'src'),
+        dataEditor: dataEditorModuleAlias,
       },
       extensions: ['.ts', '.mjs', '.js', '.css', '.svelte'],
       mainFields: ['svelte', 'browser', 'module', 'main'],
