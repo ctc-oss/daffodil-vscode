@@ -18,7 +18,10 @@
 import * as vscode from 'vscode'
 
 export class SvelteWebviewInitializer {
-  constructor(private context: vscode.ExtensionContext) {}
+  constructor(
+    private context: vscode.ExtensionContext,
+    readonly id: string
+  ) {}
 
   initialize(view: string, webView: vscode.Webview): void {
     webView.options = this.getWebViewOptions(this.context, view)
@@ -50,7 +53,7 @@ export class SvelteWebviewInitializer {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link href="${stylesUri}" rel="stylesheet" type="text/css" />
     </head>
-    <body>
+    <body id="${this.id}">
     </body>
     <script type="module" nonce="${nonce}" src="${scriptUri}"></script>
 </html>

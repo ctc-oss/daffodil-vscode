@@ -88,6 +88,13 @@ import {
 } from './include/server/ServerInfo'
 import { isDFDLDebugSessionActive } from './include/utils'
 import { SvelteWebviewInitializer } from './svelteWebviewInitializer'
+import {
+  DataEditorEventManager,
+  DataEditorMessenger,
+  DataEditorResponder,
+} from './messages'
+import { DefaultInputListeners } from './eventResponder'
+import { EventEmitter } from 'stream'
 
 // *****************************************************************************
 // global constants
@@ -138,7 +145,13 @@ export function activate(ctx: vscode.ExtensionContext): void {
 // *****************************************************************************
 
 export class DataEditorClient implements vscode.Disposable {
+  // private messenger = new DataEditorMessenger((type, msg) => {
+  //   this.panel.webview.postMessage({ ...msg })
+  //   this.panel.webview.html.
+  // })
+
   public panel: vscode.WebviewPanel
+  private eventResponder: DataEditorResponder
   private svelteWebviewInitializer: SvelteWebviewInitializer
   private displayState: DisplayState
   private currentViewportId: string
@@ -154,6 +167,12 @@ export class DataEditorClient implements vscode.Disposable {
     private configVars: editor_config.IConfig,
     fileToEdit: string = ''
   ) {
+    // let intCount = 0
+    // const id = setInterval(() => {
+    //   console.log("Sending test 'saveSegment'")
+    //   this.messenger.send('saveSegment', { length: 69, startOffset: 420 })
+    //   if (++intCount > 10) clearInterval(id)
+    // }, 5000)
     const column =
       fileToEdit !== '' ? vscode.ViewColumn.Two : vscode.ViewColumn.Active
     this.panel = vscode.window.createWebviewPanel(this.view, title, column, {
@@ -182,7 +201,14 @@ export class DataEditorClient implements vscode.Disposable {
     )
     context.subscriptions.push(this)
 
-    this.svelteWebviewInitializer = new SvelteWebviewInitializer(context)
+    const { responder, requester } = DataEditorEventManager.EventChannel(
+      this.omegaSessionId
+    )
+
+    this.svelteWebviewInitializer = new SvelteWebviewInitializer(
+      context,
+      this.omegaSessionId
+    )
     this.svelteWebviewInitializer.initialize(this.view, this.panel.webview)
     this.currentViewportId = ''
     this.fileToEdit = fileToEdit

@@ -13,6 +13,15 @@ export type RequestEditedData = {
   radix: DisplayRadix
   editMode: EditByteModes
 }
+
+// export type RequestEditedData = [
+//   viewportId: string,
+//   startOffset: number,
+//   selectionSize: number,
+//   editedContentStr: string,
+//   radix: DisplayRadix,
+//   editMode: EditByteModes,
+// ]
 export type ScrollViewport = {
   scrollToOffset: number
   bytesPerRow: number

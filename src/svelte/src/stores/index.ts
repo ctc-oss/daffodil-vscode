@@ -190,6 +190,7 @@ export const visableViewports = writable('all' as VisibleViewports)
 export const searchResultsUpdated = writable(false)
 
 export const dfdlBytePos = writable(-1)
+
 /**************************************************************************/
 /*                          Derived Stores                                */
 /**************************************************************************/
