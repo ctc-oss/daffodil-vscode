@@ -1,7 +1,6 @@
-import { EventEmitter } from 'stream'
 import type * as msg_types from './dataEditorMessages.d.ts'
 
-export interface DataEditorMessage {
+export interface DataEditorRequests {
   clearChanges: undefined
   redoChange: undefined
   undoChange: undefined
@@ -16,6 +15,7 @@ export interface DataEditorMessage {
   search: msg_types.Search
   replace: msg_types.Replace
 }
+export interface DataEditorResponses {}
 /// Events that the extension should handle and emit a Response Event
 export interface DataEditorRequestEvents {
   clearChanges: []
@@ -32,100 +32,82 @@ export interface DataEditorRequestEvents {
   search: [msg_types.Search]
   replace: [msg_types.Replace]
 }
-export interface DataEditorResponseEvents {
-  requestEditedData: [response: { bytes: Uint8Array; str: string }]
-}
 
-export class DataEditorMessenger {
-  private emitter = new EventEmitter<DataEditorRequestEvents>()
-  constructor(private sendMessage: MessengerStrategy) {}
-  send<T extends keyof DataEditorMessage>(
-    type: T,
-    ...[content]: DataEditorMessage[T] extends undefined
-      ? []
-      : [content: DataEditorMessage[T]]
-  ) {
-    if (!content) this.sendMessage(type, content)
-    else this.sendMessage(type)
-  }
-}
-
-export class UIRequestSender {
-  private emitter = new EventEmitter<DataEditorRequestEvents>()
-  constructor() {
-    // this.getEmitter('applyChanges')()
-  }
-  getEmitter<T extends keyof DataEditorRequestEvents>(type: T) {
-    return this.emitter.emit<T>
-  }
-}
-export type MessengerStrategy = (type: string, msg?: object) => any
-export type DataEditorRequester = EventEmitter<DataEditorRequestEvents>
-export type DataEditorResponder = EventEmitter<DataEditorResponseEvents>
-export abstract class DataEditorRequestEventMap<
-  Requests extends DataEditorMessage,
-> {
+class ChannelMember<OutEvents, InEvents> {
   constructor(
-    private map: {
-      [K in keyof Requests]: (req: Requests[K]) => void
-    }
+    readonly send: <R extends keyof OutEvents>(
+      type: R,
+      data: OutEvents[R]
+    ) => void,
+    readonly on: <R extends keyof InEvents>(
+      type: R,
+      listener: (data: InEvents[R]) => void
+    ) => void
   ) {}
-  abstract on<K extends keyof Requests>(
-    event: K,
-    listener: (req: Requests[K]) => void
-  )
 }
-class DataEditorEventChannel {
-  constructor(
-    readonly id: string,
-    private requester_: DataEditorRequester = new EventEmitter<DataEditorRequestEvents>(),
-    private responder_: DataEditorResponder = new EventEmitter<DataEditorResponseEvents>()
-  ) {}
-  get requester() {
-    return this.requester_
+class EventChannel<Req, Res> {
+  private __requester: ChannelMember<Req, Res> | undefined
+  private __requestMap:
+    | { [K in keyof Res]: (request: Res[K]) => void }
+    | undefined
+  private __responder: ChannelMember<Res, Req> | undefined
+  private __responseMap:
+    | { [K in keyof Req]: (request: Req[K]) => void }
+    | undefined
+  constructor() {}
+  private __setRequestMap(map: {
+    [K in keyof Res]: (request: Res[K]) => void
+  }) {
+    this.__requestMap = map
   }
-  get responder() {
-    return this.responder_
+  private __setResponseMap(map: {
+    [K in keyof Req]: (request: Req[K]) => void
+  }) {
+    this.__responseMap = map
   }
-
-  set requester(req: DataEditorRequester) {
-    if (this.requester)
-      throw `A requester already exists for event channel [${this.id}]`
-    this.requester = req
+  createRequester(map: { [K in keyof Res]: (request: Res[K]) => void }) {
+    this.__setRequestMap(map)
+    this.__requester = new ChannelMember<Req, Res>(
+      (type, data) => {
+        this.__responseMap![type](data)
+      },
+      (type, listener) => {
+        this.__requestMap![type] = listener
+      }
+    )
+    return this.__requester
   }
-  set responder(res: DataEditorResponder) {
-    if (this.responder)
-      throw `A responder already exists for event channel [${this.id}]`
-    this.responder = res
+  createResponder(map: { [K in keyof Req]: (request: Req[K]) => void }) {
+    this.__setResponseMap(map)
+    this.__responder = new ChannelMember<Res, Req>(
+      (type, data) => {
+        this.__requestMap![type](data)
+      },
+      (type, listener) => {
+        this.__responseMap![type] = listener
+      }
+    )
+    return this.__responder
   }
 }
-const EventChannels: Map<string, DataEditorEventChannel> = new Map()
 
-export class DataEditorEventManager {
-  // responder = new EventEmitter<DataEditorResponseEvents>()
-  private constructor() {}
-  static EventChannel(id: string): DataEditorEventChannel {
-    if (!EventChannels.get(id))
-      EventChannels.set(id, new DataEditorEventChannel(id))
-    return EventChannels.get(id)!
-  }
+const EventChannels: Map<
+  string,
+  EventChannel<DataEditorRequests, DataEditorResponses>
+> = new Map()
+export function CreateDataEditorChannel<
+  RequestEvents extends DataEditorRequests,
+  ResponseEvents extends DataEditorResponses,
+>(sessionId: string) {
+  return new EventChannel<RequestEvents, ResponseEvents>()
 }
-export const DataEditorInputEvent = new EventEmitter<DataEditorRequestEvents>()
-/*
-EXT
-    - Handles certain messages that are received from UI.
-    - Should declare to UI what messages can be created.
-    - Derived EXT classes can define additional events (how to customize listeners in UI w/o listening to all?)
 
-UI
-    - Post messages to EXT when an input event is triggered
-    - Handle EXT response messages.
-*/
-// const SvelteEventEmitter = new EventEmitter<DataEditorRequestEvents>()
-// // SvelteEventEmitter.on('...') // Register event listeners for each input event
-// SvelteEventEmitter.on('requestEditedData', (args) => {
-//   // specific event operation
-//   this.responder.emit('requestEditedData', {
-//     bytes: Uint8Array.from([0xff]),
-//     str: (0xff).toString(),
-//   })
+type ChannelReturn<FN> = FN extends (
+  id: string
+) => EventChannel<infer Req, infer Res>
+  ? EventChannel<Req, Res>
+  : never
+
+function GetChannel(id: string): ReturnType<typeof EventChannels.get> {
+  return EventChannels.get(id)
+}

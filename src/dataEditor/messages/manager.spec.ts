@@ -1,41 +1,14 @@
 import assert from 'assert'
-import EventEmitter from 'events'
 import { describe } from 'mocha'
 
 interface RequestEvents {
-  ping: []
-  scroll: [data: { offset: number }]
-  multidata: [data: { str: string; bin: Uint8Array; num: number }]
+  ping: {}
+  scroll: { offset: number }
+  multidata: { str: string; bin: Uint8Array; num: number }
 }
 interface ResponseEvents {
-  pong: []
-  'file-info': [data: { filename: string; size: number }]
-}
-type EventMap = { [K: string]: [any] }
-type RequestListener<E> = {
-  on<Key extends string & keyof E>(
-    event: Key,
-    listener: (content: E[Key]) => void
-  ): void
-}
-class RequestEmitter extends EventEmitter {}
-class Requester<EventTypes> {
-  constructor(
-    public __channelNotify: <R extends keyof EventTypes>(
-      type: R,
-      data: EventTypes[R]
-    ) => void
-  ) {}
-  request<R extends keyof EventTypes>(type: R, data: EventTypes[R]) {}
-}
-class Responder<EventTypes> {
-  constructor(
-    public __channelNotify: <R extends keyof EventTypes>(
-      type: R,
-      data: EventTypes[R]
-    ) => void
-  ) {}
-  respond<R extends keyof EventTypes>(type: R, data: EventTypes[R]) {}
+  pong: {}
+  'file-info': { filename: string; size: number }
 }
 class ChannelMember<OutEvents, InEvents> {
   constructor(
@@ -51,11 +24,18 @@ class ChannelMember<OutEvents, InEvents> {
 }
 class EventChannel<Req, Res> {
   __requester: ChannelMember<Req, Res> | undefined
-  __requestMap: { [K in keyof Res]: (request: Res[K]) => void }
+  __requestMap: { [K in keyof Res]: (request: Res[K]) => void } | undefined
   __responder: ChannelMember<Res, Req> | undefined
-  __responseMap: { [K in keyof Req]: (request: Req[K]) => void }
+  __responseMap: { [K in keyof Req]: (request: Req[K]) => void } | undefined
   constructor() {}
-  createRequester() {
+  __setRequestMap(map: { [K in keyof Res]: (request: Res[K]) => void }) {
+    this.__requestMap = map
+  }
+  __setResponseMap(map: { [K in keyof Req]: (request: Req[K]) => void }) {
+    this.__responseMap = map
+  }
+  createRequester(map: { [K in keyof Res]: (request: Res[K]) => void }) {
+    this.__setRequestMap(map)
     this.__requester = new ChannelMember<Req, Res>(
       (type, data) => {
         this.__responseMap![type](data)
@@ -66,18 +46,51 @@ class EventChannel<Req, Res> {
     )
     return this.__requester
   }
-  createResponder() {
-    this.__responder = new ChannelMember<Res, Req>((type, data) => {
-      this.__requestMap![type](data)
-    })
+  createResponder(map: { [K in keyof Req]: (request: Req[K]) => void }) {
+    this.__setResponseMap(map)
+    this.__responder = new ChannelMember<Res, Req>(
+      (type, data) => {
+        this.__requestMap![type](data)
+      },
+      (type, listener) => {
+        this.__responseMap![type] = listener
+      }
+    )
     return this.__responder
   }
 }
 
-// class EventChannelManager {
-//   static CreateChannel<Req, Res>(): EventChannel
-// }
 describe('', () => {
   const ec = new EventChannel<RequestEvents, ResponseEvents>()
-  const req = ec.createRequester().send('ping', [])
+  const req = ec.createRequester({
+    pong: () => {
+      console.log('Req got pong!')
+    },
+    'file-info': function (request: { filename: string; size: number }): void {
+      throw new Error('Function not implemented.')
+    },
+  })
+  const res = ec.createResponder({
+    ping: function (request: {}): void {
+      console.log('Responder got ping!')
+      assert(true)
+    },
+    scroll: function (request: { offset: number }): void {
+      console.log('Responder got scroll!')
+      assert(true)
+      res.send('pong', {})
+    },
+    multidata: function (request: {
+      str: string
+      bin: Uint8Array
+      num: number
+    }): void {
+      throw new Error('Function not implemented.')
+    },
+  })
+  assert(req)
+  assert(res)
+
+  req.send('ping', {})
+  req.send('scroll', { offset: 0x420 })
 })
