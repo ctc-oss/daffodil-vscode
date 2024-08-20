@@ -16,22 +16,6 @@ export interface DataEditorRequests {
   replace: msg_types.Replace
 }
 export interface DataEditorResponses {}
-/// Events that the extension should handle and emit a Response Event
-export interface DataEditorRequestEvents {
-  clearChanges: []
-  redoChange: []
-  undoChange: []
-  saveAs: []
-  save: []
-  applyChanges: [msg_types.ApplyChanges]
-  requestEditedData: [msg_types.RequestEditedData]
-  scrollViewport: [msg_types.ScrollViewport]
-  editorOnChange: [msg_types.EditorOnChange]
-  saveSegment: [msg_types.SaveSegment]
-  profile: [msg_types.Profile]
-  search: [msg_types.Search]
-  replace: [msg_types.Replace]
-}
 
 class ChannelMember<OutEvents, InEvents> {
   constructor(
@@ -91,10 +75,6 @@ class EventChannel<Req, Res> {
   }
 }
 
-const EventChannels: Map<
-  string,
-  EventChannel<DataEditorRequests, DataEditorResponses>
-> = new Map()
 export function CreateDataEditorChannel<
   RequestEvents extends DataEditorRequests,
   ResponseEvents extends DataEditorResponses,
@@ -102,12 +82,51 @@ export function CreateDataEditorChannel<
   return new EventChannel<RequestEvents, ResponseEvents>()
 }
 
-type ChannelReturn<FN> = FN extends (
-  id: string
-) => EventChannel<infer Req, infer Res>
-  ? EventChannel<Req, Res>
-  : never
+export interface EventChannelTypes {
+  default: { request: DataEditorRequests; response: DataEditorResponses }
+}
+export interface DebuggerResponses extends DataEditorResponses {
+  bytesPos1b: { pos: number }
+}
 
-function GetChannel(id: string): ReturnType<typeof EventChannels.get> {
-  return EventChannels.get(id)
+export interface EventChannelTypes {
+  debugger: { request: DataEditorRequests; response: DebuggerResponses }
+}
+
+type EventChannelList = {
+  [Type in keyof EventChannelTypes]: {
+    id: string
+    channel: EventChannelTypes[Type]
+  }[]
+}
+
+const EventChannels: EventChannelList = {
+  default: [],
+  debugger: [],
+}
+type RequestType<Channel extends keyof EventChannelTypes> =
+  EventChannelTypes[Channel]['request']
+type ResponseType<Channel extends keyof EventChannelTypes> =
+  EventChannelTypes[Channel]['response']
+export function CreateEventChannel<ChannelType extends keyof EventChannelTypes>(
+  c: ChannelType,
+  id: string,
+  requestMap?: RequestType<ChannelType>,
+  responseMap?: ResponseType<ChannelType>
+): EventChannel<RequestType<ChannelType>, ResponseType<ChannelType>> {
+  const channel = new EventChannel<
+    RequestType<ChannelType>,
+    ResponseType<ChannelType>
+  >()
+  return channel
+}
+export function GetEventChannel<ChannelType extends keyof EventChannelTypes>(
+  type: ChannelType,
+  id: string
+) {
+  const channel = EventChannels[type].find((channel) => {
+    return channel.id === id
+  })
+  if (!channel) throw `Channel <"${id}"> not found`
+  return channel
 }

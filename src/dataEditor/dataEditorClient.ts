@@ -89,6 +89,7 @@ import {
 import { isDFDLDebugSessionActive } from './include/utils'
 import { SvelteWebviewInitializer } from './svelteWebviewInitializer'
 import {
+  CreateEventChannel,
   DataEditorEventManager,
   DataEditorMessenger,
   DataEditorResponder,
@@ -201,10 +202,16 @@ export class DataEditorClient implements vscode.Disposable {
     )
     context.subscriptions.push(this)
 
-    const { responder, requester } = DataEditorEventManager.EventChannel(
-      this.omegaSessionId
-    )
+    // const { responder, requester } = DataEditorEventManager.EventChannel(
+    //   this.omegaSessionId
+    // )
 
+    const channel = CreateEventChannel(
+      'default',
+      this.omegaSessionId
+    ).createRequester({
+      // translate current message receiver to default map
+    })
     this.svelteWebviewInitializer = new SvelteWebviewInitializer(
       context,
       this.omegaSessionId

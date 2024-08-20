@@ -1,19 +1,4 @@
-import {
-  DataEditorRequestEventMap,
-  type DataEditorMessage,
-  type DataEditorRequestEvents,
-} from 'dataEditor/messages'
-import type {
-  ApplyChanges,
-  RequestEditedData,
-  ScrollViewport,
-  EditorOnChange,
-  SaveSegment,
-  Profile,
-  Search,
-  Replace,
-} from 'dataEditor/messages/dataEditorMessages'
-import { EventEmitter } from 'stream'
+import { GetEventChannel, type EventChannelTypes } from 'dataEditor/messages'
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -66,95 +51,8 @@ export type EditorMessage = {
   data: Record<string, any>
 }
 
-// export const SvelteUIRequester = CreateRequester()
-// SvelteUIRequester.emit('applyChanges', {})
-export function EventChannelId(doc: Document) {
-  return doc.body.id
+export function GetSvelteChannelMember(doc: Document) {
+  // id: '[KEY]-[ID]'
+  const pair = doc.body.id.split('-')
+  GetEventChannel(pair[0] as keyof EventChannelTypes, pair[1])
 }
-const RequestEventEmitter = new EventEmitter<DataEditorRequestEvents>()
-type RequestMap = {
-  [K in keyof DataEditorRequestEvents]: (
-    ...request: DataEditorRequestEvents[K]
-  ) => void
-}
-export const RequestMap: RequestMap = {
-  clearChanges: function (): void {
-    RequestEventEmitter.emit('clearChanges')
-  },
-  redoChange: function (): void {
-    RequestEventEmitter.emit('redoChange')
-  },
-  undoChange: function (): void {
-    RequestEventEmitter.emit('undoChange')
-  },
-  saveAs: function (): void {
-    RequestEventEmitter.emit('saveAs')
-  },
-  save: function (): void {
-    RequestEventEmitter.emit('save')
-  },
-  applyChanges: function (request: ApplyChanges): void {
-    RequestEventEmitter.emit('applyChanges', { ...request })
-  },
-  requestEditedData: function (request: RequestEditedData): void {
-    throw new Error('Function not implemented.')
-  },
-  scrollViewport: function (request: ScrollViewport): void {
-    throw new Error('Function not implemented.')
-  },
-  editorOnChange: function (request: EditorOnChange): void {
-    throw new Error('Function not implemented.')
-  },
-  saveSegment: function (request: SaveSegment): void {
-    throw new Error('Function not implemented.')
-  },
-  profile: function (request: Profile): void {
-    throw new Error('Function not implemented.')
-  },
-  search: function (request: Search): void {
-    throw new Error('Function not implemented.')
-  },
-  replace: function (request: Replace): void {
-    throw new Error('Function not implemented.')
-  },
-}
-class SvelteRequestMap extends DataEditorRequestEventMap<DataEditorMessage> {
-  on<K extends keyof DataEditorMessage>(
-    event: K,
-    listener: (req: DataEditorMessage[K]) => void
-  ) {
-    RequestEventEmitter.on(event, (r) => {
-      listener(r)
-    })
-  }
-  // protected map = RequestMap
-  constructor() {
-    super({ ...RequestMap })
-  }
-}
-class RequestEvents {
-  constructor(map: RequestMap = RequestMap) {}
-  on<K extends keyof RequestMap>(
-    type: K,
-    listener: (...request: DataEditorRequestEvents[K]) => void
-  ) {}
-}
-class ResponseEvents {}
-
-class EventChannel {
-  constructor(
-    readonly id: string,
-    public req: DataEditorRequestEventMap<DataEditorMessage>,
-    public res: ResponseEvents
-  ) {}
-}
-const EC = new EventChannel(
-  'test',
-  new SvelteRequestMap(),
-  new ResponseEvents()
-)
-EC.req.on('applyChanges', (r) => {
-  // some op
-  localRes.emit('applyChanges', {})
-})
-// EC.res.on() // UI uses this to attach response listeners
