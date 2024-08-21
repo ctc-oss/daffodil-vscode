@@ -42,7 +42,7 @@ limitations under the License.
     UIThemeCSSClass,
     darkUITheme,
   } from '../utilities/colorScheme'
-  import { EventChannelId, MessageCommand, RequestMap } from '../utilities/message'
+  import { ExtractChannelId, GetRequester, MessageCommand } from '../utilities/message'
   import { vscode } from '../utilities/vscode'
   import Header from './Header/Header.svelte'
   import Main from './Main.svelte'
@@ -62,16 +62,17 @@ limitations under the License.
   } from './DataDisplays/CustomByteDisplay/BinaryData'
   import { byte_count_divisible_offset } from '../utilities/display'
   import Help from './layouts/Help.svelte'
-  import { DataEditorEventManager, DataEditorInputEvent, DataEditorMessenger, type DataEditorMessage } from 'dataEditor/messages'
-  const ExtensionMessenger = new DataEditorMessenger((type, msg) => {
-    vscode.postMessage({
-      command: type,
-      data: {...msg}
-    })
-  })
+  import { ChannelEvent } from 'dataEditor/messages'
   
-  DataEditorEventManager.EventChannel(EventChannelId(document)).requester = RequestMap
-
+ChannelEvent.on('added', (msg) => {
+  console.log(`SVELTE Channel was definitely added w/ ID ${msg.id}`)
+})
+  const [channelType, id] = ExtractChannelId(document)
+  const channelRequester = GetRequester(channelType, id)
+  channelRequester.on('pong', () => {
+    console.log("Event Channel Pong Received!")
+  })
+  channelRequester.send('ping', {fromId: document.body.id})
   $: $UIThemeCSSClass = $darkUITheme ? CSSThemeClass.Dark : CSSThemeClass.Light
 
   function requestEditedData() {
@@ -228,12 +229,6 @@ limitations under the License.
         break
     }
 
-    ExtensionMessenger.send('applyChanges', {
-      editedSegment: editedData,
-      offset: editedOffset,
-      originalSegment: originalData
-    }) 
-
     vscode.postMessage({
       command: MessageCommand.applyChanges,
       data: {
@@ -288,10 +283,6 @@ limitations under the License.
         return
     }
   }
-  window.addEventListener('message', <T extends keyof DataEditorMessage>(msg: MessageEvent<DataEditorMessage[T]>) => {
-    console.log("DataEditorMessage Specialized Window Event Listener")
-    const editorMsg = msg.data
-  })
   window.addEventListener('message', (msg) => {
     if(msg.data.eventChannelId) {
 

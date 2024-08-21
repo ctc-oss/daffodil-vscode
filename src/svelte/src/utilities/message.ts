@@ -1,4 +1,6 @@
-import { GetEventChannel, type EventChannelTypes } from 'dataEditor/messages'
+import { ChannelEvent, GetEventChannel } from 'dataEditor/messages'
+import type { AvailableChannelTypes } from 'dataEditor/messages/dataEditorMessages'
+import { writable } from 'svelte/store'
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -51,8 +53,22 @@ export type EditorMessage = {
   data: Record<string, any>
 }
 
-export function GetSvelteChannelMember(doc: Document) {
-  // id: '[KEY]-[ID]'
-  const pair = doc.body.id.split('-')
-  GetEventChannel(pair[0] as keyof EventChannelTypes, pair[1])
+export const GetRequester = <Type extends keyof AvailableChannelTypes>(
+  tag: Type,
+  id: string
+) => {
+  return GetEventChannel<Type>(tag, id).GetRequester()
 }
+export const ExtractChannelId = (
+  doc: Document
+): [keyof AvailableChannelTypes, string] => {
+  const info = doc.body.id.split('-')
+  const channelType = info[0] as keyof AvailableChannelTypes
+  const id = info[1]
+  return [channelType, id]
+}
+const channelRequester = writable()
+ChannelEvent.on('added', (msg) => {
+  channelRequester.set(msg.channel)
+  console.log('Channel added ', msg.id, msg.channel)
+})

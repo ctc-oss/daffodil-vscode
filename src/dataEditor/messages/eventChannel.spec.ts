@@ -2,94 +2,138 @@ import assert from 'assert'
 import { describe } from 'mocha'
 import { EventEmitter } from 'stream'
 
-interface RequestEmitter<RequestTypes> {
-  on<R extends keyof RequestTypes>(
-    event: R,
-    listener: (...args: ) => any
-  ): any
+interface RequestMap {
+  ping: void
+  simple: { num: number }
 }
-interface ResponseEmitter<ResponseTypes> {
-  on(event: string, listener: (...args: any[]) => any): any
+interface ResponseMap {
+  pong: void
+  fileInfo: { filename: string; size: number }
 }
-
-/// The extension handles all data anyways so it should define both request and response types, or the requester could send any arbitrary request event
-class EventChannel<RequestTypes, ResponseTypes> {
-  __req: RequestEmitter<RequestTypes> | undefined = undefined
-  __res: ResponseEmitter<ResponseTypes> | undefined = undefined
+interface EventChannelMember<OutgoingEventMap, IncomingEventMap> {
+  onReceived<K extends keyof IncomingEventMap & string>(
+    event: K,
+    listener: (arg: IncomingEventMap[K]) => void
+  ): void
+  send<K extends keyof OutgoingEventMap & string>(
+    event: K,
+    data: OutgoingEventMap[K]
+  ): void
+}
+// class Requester implements EventChannelMember<RequestMap, ResponseMap> {
+//   readonly __emitter = new EventEmitter()
+//   send<K extends keyof RequestMap>(event: K, data: RequestMap[K]): void {
+//     this.__emitter.emit(event, data)
+//   }
+//   onReceived<K extends keyof ResponseMap & string>(
+//     event: K,
+//     listener: (data: ResponseMap[K]) => void
+//   ) {
+//     this.__emitter.on(event, listener)
+//   }
+// }
+// class Responder implements EventChannelMember<ResponseMap, RequestMap> {
+//   readonly __emitter = new EventEmitter()
+//   onReceived<K extends 'ping' | 'simple'>(
+//     event: K,
+//     listener: (arg: RequestMap[K]) => void
+//   ): void {
+//     throw new Error('Method not implemented.')
+//   }
+//   send<K extends 'pong' | 'fileInfo'>(event: K, data: ResponseMap[K]): void {
+//     throw new Error('Method not implemented.')
+//   }
+// }
+/// Holds an event emitter that emits both Request and Response Events
+class EventChannel<RequestTypeMap, ResponseTypeMap> {
+  readonly __emitter = new EventEmitter()
+  __req: EventChannelMember<RequestTypeMap, ResponseTypeMap> | undefined =
+    undefined
+  __res: EventChannelMember<ResponseTypeMap, RequestTypeMap> | undefined =
+    undefined
+  // constructor(readonly id: string){}
   constructor() {}
-  setRequester(req: RequestEmitter<RequestTypes>) {
-    if (this.__req) throw 'A Requester already exists on this channel'
-    this.__req = req
+  GetRequester() {
+    this.__req = {
+      onReceived: this.__emitter.on,
+      send: this.__emitter.emit,
+    }
+    return this.__req
   }
-  setResponder(res: ResponseEmitter<ResponseTypes>) {
-    if (this.__res) throw 'A Responder already exists on this channel'
-    this.__res = res
+  GetResponder() {
+    this.__res = {
+      onReceived: this.__emitter.on,
+      send: this.__emitter.emit,
+    }
+    return this.__res
   }
-
 }
+namespace DataEditorChannels {
+  export interface AvailableChannelTypes {
+    default: { request: RequestMap; response: ResponseMap }
+  }
+  type RequestType<Channel extends keyof AvailableChannelTypes> =
+    AvailableChannelTypes[Channel]['request']
+  type ResponseType<Channel extends keyof AvailableChannelTypes> =
+    AvailableChannelTypes[Channel]['response']
 
-const EventChannelMap: Map<string, EventChannel<any, any>> = new Map()
-class EventManager {
-  static CreateChannel<Req, Res>(id: string): EventChannel<Req, Res> {
-    const channel = new EventChannel<Req, Res>()
-    EventChannelMap.set(id, channel)
+  type EventChannelList = {
+    [Type in keyof AvailableChannelTypes]: {
+      id: string
+      channel: EventChannel<RequestType<Type>, ResponseType<Type>>
+    }[]
+  }
+  export const Channels: EventChannelList = {
+    default: [],
+  }
+
+  export function Create<Type extends keyof AvailableChannelTypes>(
+    type: Type,
+    id: string
+  ): EventChannel<RequestType<Type>, ResponseType<Type>> {
+    const channel = new EventChannel<RequestType<Type>, ResponseType<Type>>()
+    Channels[type].push({ channel, id })
     return channel
   }
-  static GetChannel<ID extends string>(id: string): EventChannel<EventChannelMap[ID],Res> {
-    if (!EventChannelMap.get(id)) throw `No Channel with ID = ${id}` 
-    return EventChannelMap.get(id)!
+  export function Get<Type extends keyof AvailableChannelTypes>(
+    type: Type,
+    id: string
+  ) {
+    const channel = Channels[type].find((channel) => {
+      return channel.id == id
+    })
+    if (!channel) throw `No Channel exists with ID: ${id}`
+    return channel
   }
 }
-
-interface UIEvents {
-  e1: []
-  save: [data: { filename: string }]
-  shutdown: [data: { filename: string; time: number }]
-}
-class UIEventEmitter implements RequestEmitter<UIEvents> {
-  constructor(private __emitter: EventEmitter<UIEvents>) {}
-  // __emitter = new EventEmitter<UIEvents>()
-  on = this.__emitter.on
-}
-class UI {
-  readonly __docID = 'session-id'
-  __emitter = new EventEmitter<UIEvents>()
-  requester: RequestEmitter<UIEvents> = new UIEventEmitter(this.__emitter)
-  constructor() {
-    EventManager.GetChannel(this.__docID).__req = this.requester
-  }
-  simulateResponseListenerAdd() {}
-  simulateInputReceived() {
-    this.__emitter.emit('shutdown', { filename: 'testfile/name.bin', time: 0 })
-  }
-}
-interface ExtResponses {
-  'data-refresh': [data: { encoding: string; offset: number; data: Uint8Array }]
-  'file-info': [data: { filename: string; filesize: number }]
-}
-class ExtResponder implements ResponseEmitter<ExtResponses> {
-  __emitter = new EventEmitter<ExtResponses>()
-  on = this.__emitter.on
-}
-class Ext {
-  readonly __sessionId = 'session-id'
-  responder: ResponseEmitter<ExtResponses> = new ExtResponder()
-  constructor() {
-    const channel = EventManager.CreateChannel<UIEvents, ExtResponses>(this.__sessionId)
-  }
-}
-const ui = new UI()
-describe('Event Channel Behavior', () => {
-  describe('Manager', () => {
-    it('Should create a channel if one does not already exist', () => {
-      const channel = EventManager.GetChannel(ui.__docID)
-      assert.equal(EventChannelMap.size, 1)
-      assert(EventChannelMap.get(ui.__docID))
-      assert(channel)
-      EventChannelMap.clear()
+describe('EventChannel Behavior', () => {
+  const TestChannelId = 'test-id'
+  it('Should be managed from a static manager instance', () => {
+    DataEditorChannels.Create('default', TestChannelId)
+    assert(
+      DataEditorChannels.Channels.default.length == 1,
+      'Default channel was not created'
+    )
+    assert(
+      DataEditorChannels.Channels.default[0].id == TestChannelId,
+      'Channel ID incorrect'
+    )
+  })
+  it('Should throw if attempting to get a channel that does not exist', () => {
+    assert.throws(() => {
+      try {
+        DataEditorChannels.Get('default', '')
+      } catch (e) {
+        throw e
+      }
     })
   })
-  it('Should allow a requester to add listeners to events that the responder emits', () => {})
-  it('Should allow a responder to add listeners to events that the requester emits', () => {})
-  it('Should contain requester and responder abstractions', () => {})
+  it('Should provide templated types for the respective channel member getter', () => {
+    const channel = new EventChannel<RequestMap, ResponseMap>()
+    const req = channel.GetRequester()
+    assert(req)
+    channel.GetRequester().onReceived('fileInfo', (info) => {
+      assert(info.filename)
+    })
+  })
 })

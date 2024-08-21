@@ -53,9 +53,10 @@ export class SvelteWebviewInitializer {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link href="${stylesUri}" rel="stylesheet" type="text/css" />
     </head>
-    <body id="${this.id}">
+    <body id="default-${this.id}">
     </body>
     <script type="module" nonce="${nonce}" src="${scriptUri}"></script>
+    <script type="module" nonce="${nonce}" src="${this.getSvelteAppDistributionFolderUri(context).toString() + '/ext/extension.js'}"></script>
 </html>
 `
   }

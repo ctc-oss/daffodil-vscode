@@ -1,132 +1,150 @@
-import type * as msg_types from './dataEditorMessages.d.ts'
+import EventEmitter from 'events'
+import type { DisplayRadix, EditByteModes } from 'dataEditor/include/types'
 
-export interface DataEditorRequests {
+export type ApplyChanges = {
+  offset: number
+  originalSegment: Uint8Array | never[]
+  editedSegment: Uint8Array
+}
+export type RequestEditedData = {
+  viewportId: string
+  startOffset: number
+  selectionSize: number
+  editedContentStr: string
+  radix: DisplayRadix
+  editMode: EditByteModes
+}
+
+export type ScrollViewport = {
+  scrollToOffset: number
+  bytesPerRow: number
+  numLinesDisplayed: number
+}
+export type EditorOnChange = {
+  fileOffset: number
+  selectionData: Uint8Array
+  encoding: string
+  selectionSize: number
+  editMode: EditByteModes
+}
+export type SaveSegment = {
+  startOffset: number
+  length: number
+}
+export type Profile = {
+  startOffset: number
+  length: number
+}
+export interface Search {
+  searchDataStr: string
+  caseInsensitive: boolean
+  isReverse: boolean
+  encoding: string
+  searchStartOffset: number
+  searchLength: number
+  limit: number
+}
+export interface Replace extends Search {
+  replaceDataStr: string
+  overwriteOnly: boolean
+}
+export interface BaseDataEditorRequests {
+  ping: { fromId: string }
   clearChanges: undefined
   redoChange: undefined
   undoChange: undefined
   saveAs: undefined
   save: undefined
-  applyChanges: msg_types.ApplyChanges
-  requestEditedData: msg_types.RequestEditedData
-  scrollViewport: msg_types.ScrollViewport
-  editorOnChange: msg_types.EditorOnChange
-  saveSegment: msg_types.SaveSegment
-  profile: msg_types.Profile
-  search: msg_types.Search
-  replace: msg_types.Replace
+  applyChanges: ApplyChanges
+  requestEditedData: RequestEditedData
+  scrollViewport: ScrollViewport
+  editorOnChange: EditorOnChange
+  saveSegment: SaveSegment
+  profile: Profile
+  search: Search
+  replace: Replace
 }
-export interface DataEditorResponses {}
+export interface BaseDataEditorResponses {
+  pong: { fromId: string }
+}
+/** 
+### Data Editor Event Channel Types
+#### Extending a custom channel type
 
-class ChannelMember<OutEvents, InEvents> {
-  constructor(
-    readonly send: <R extends keyof OutEvents>(
-      type: R,
-      data: OutEvents[R]
-    ) => void,
-    readonly on: <R extends keyof InEvents>(
-      type: R,
-      listener: (data: InEvents[R]) => void
-    ) => void
-  ) {}
+*/
+export interface AvailableChannelTypes {
+  default: {
+    request: BaseDataEditorRequests
+    response: BaseDataEditorResponses
+  }
 }
-class EventChannel<Req, Res> {
-  private __requester: ChannelMember<Req, Res> | undefined
-  private __requestMap:
-    | { [K in keyof Res]: (request: Res[K]) => void }
-    | undefined
-  private __responder: ChannelMember<Res, Req> | undefined
-  private __responseMap:
-    | { [K in keyof Req]: (request: Req[K]) => void }
-    | undefined
+
+export type ChannelRequestType<Channel extends keyof AvailableChannelTypes> =
+  AvailableChannelTypes[Channel]['request']
+
+export type ChannelResponseType<Channel extends keyof AvailableChannelTypes> =
+  AvailableChannelTypes[Channel]['response']
+
+export interface EventChannelMember<OutgoingEventMap, IncomingEventMap> {
+  on<K extends keyof IncomingEventMap & string>(
+    event: K,
+    listener: (arg: IncomingEventMap[K]) => void
+  ): void
+  send<K extends keyof OutgoingEventMap & string>(
+    event: K,
+    data: OutgoingEventMap[K]
+  ): void
+}
+
+/// Holds an event emitter that emits both Request and Response Events
+class EventChannel<RequestTypeMap, ResponseTypeMap> {
+  readonly __emitter = new EventEmitter()
+  private __req: EventChannelMember<RequestTypeMap, ResponseTypeMap> = {
+    on: this.__emitter.on,
+    send: this.__emitter.emit,
+  }
+  private __res: EventChannelMember<ResponseTypeMap, RequestTypeMap> = {
+    on: this.__emitter.on,
+    send: this.__emitter.emit,
+  }
   constructor() {}
-  private __setRequestMap(map: {
-    [K in keyof Res]: (request: Res[K]) => void
-  }) {
-    this.__requestMap = map
+  GetRequester() {
+    return this.__req
   }
-  private __setResponseMap(map: {
-    [K in keyof Req]: (request: Req[K]) => void
-  }) {
-    this.__responseMap = map
+  GetResponder() {
+    return this.__res
   }
-  createRequester(map: { [K in keyof Res]: (request: Res[K]) => void }) {
-    this.__setRequestMap(map)
-    this.__requester = new ChannelMember<Req, Res>(
-      (type, data) => {
-        this.__responseMap![type](data)
-      },
-      (type, listener) => {
-        this.__requestMap![type] = listener
-      }
-    )
-    return this.__requester
-  }
-  createResponder(map: { [K in keyof Req]: (request: Req[K]) => void }) {
-    this.__setResponseMap(map)
-    this.__responder = new ChannelMember<Res, Req>(
-      (type, data) => {
-        this.__requestMap![type](data)
-      },
-      (type, listener) => {
-        this.__responseMap![type] = listener
-      }
-    )
-    return this.__responder
-  }
-}
-
-export function CreateDataEditorChannel<
-  RequestEvents extends DataEditorRequests,
-  ResponseEvents extends DataEditorResponses,
->(sessionId: string) {
-  return new EventChannel<RequestEvents, ResponseEvents>()
-}
-
-export interface EventChannelTypes {
-  default: { request: DataEditorRequests; response: DataEditorResponses }
-}
-export interface DebuggerResponses extends DataEditorResponses {
-  bytesPos1b: { pos: number }
-}
-
-export interface EventChannelTypes {
-  debugger: { request: DataEditorRequests; response: DebuggerResponses }
 }
 
 type EventChannelList = {
-  [Type in keyof EventChannelTypes]: {
+  [Type in keyof AvailableChannelTypes]: {
     id: string
-    channel: EventChannelTypes[Type]
+    channel: EventChannel<ChannelRequestType<Type>, ChannelResponseType<Type>>
   }[]
 }
-
-const EventChannels: EventChannelList = {
+const ActiveChannels: EventChannelList = {
   default: [],
-  debugger: [],
 }
-type RequestType<Channel extends keyof EventChannelTypes> =
-  EventChannelTypes[Channel]['request']
-type ResponseType<Channel extends keyof EventChannelTypes> =
-  EventChannelTypes[Channel]['response']
-export function CreateEventChannel<ChannelType extends keyof EventChannelTypes>(
-  c: ChannelType,
-  id: string,
-  requestMap?: RequestType<ChannelType>,
-  responseMap?: ResponseType<ChannelType>
-): EventChannel<RequestType<ChannelType>, ResponseType<ChannelType>> {
-  const channel = new EventChannel<
-    RequestType<ChannelType>,
-    ResponseType<ChannelType>
-  >()
-  return channel
-}
-export function GetEventChannel<ChannelType extends keyof EventChannelTypes>(
-  type: ChannelType,
+export const ChannelEvent = new EventEmitter()
+export function CreateEventChannel<Type extends keyof AvailableChannelTypes>(
+  type: Type,
   id: string
-) {
-  const channel = EventChannels[type].find((channel) => {
-    return channel.id === id
-  })
-  if (!channel) throw `Channel <"${id}"> not found`
+): EventChannel<ChannelRequestType<Type>, ChannelResponseType<Type>> {
+  const channel = new EventChannel<
+    ChannelRequestType<Type>,
+    ChannelResponseType<Type>
+  >()
+  ActiveChannels[type].push({ channel, id })
+  ChannelEvent.emit('added', { channel, id })
   return channel
+}
+export function GetEventChannel<Type extends keyof AvailableChannelTypes>(
+  type: Type,
+  id: string
+): EventChannel<ChannelRequestType<Type>, ChannelResponseType<Type>> {
+  const member = ActiveChannels[type].find((channel) => {
+    return channel.id == id
+  })
+  if (!member) throw `No Channel exists with ID: ${id}`
+  return member.channel
 }

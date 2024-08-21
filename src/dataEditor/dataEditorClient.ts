@@ -88,14 +88,12 @@ import {
 } from './include/server/ServerInfo'
 import { isDFDLDebugSessionActive } from './include/utils'
 import { SvelteWebviewInitializer } from './svelteWebviewInitializer'
+import { CreateEventChannel } from './messages'
 import {
-  CreateEventChannel,
-  DataEditorEventManager,
-  DataEditorMessenger,
-  DataEditorResponder,
-} from './messages'
-import { DefaultInputListeners } from './eventResponder'
-import { EventEmitter } from 'stream'
+  EventChannelMember,
+  BaseDataEditorRequests,
+  BaseDataEditorResponses,
+} from './messages/dataEditorMessages'
 
 // *****************************************************************************
 // global constants
@@ -152,7 +150,10 @@ export class DataEditorClient implements vscode.Disposable {
   // })
 
   public panel: vscode.WebviewPanel
-  private eventResponder: DataEditorResponder
+  private channelResponder: EventChannelMember<
+    BaseDataEditorResponses,
+    BaseDataEditorRequests
+  >
   private svelteWebviewInitializer: SvelteWebviewInitializer
   private displayState: DisplayState
   private currentViewportId: string
@@ -202,19 +203,18 @@ export class DataEditorClient implements vscode.Disposable {
     )
     context.subscriptions.push(this)
 
-    // const { responder, requester } = DataEditorEventManager.EventChannel(
-    //   this.omegaSessionId
-    // )
-
-    const channel = CreateEventChannel(
+    this.channelResponder = CreateEventChannel(
       'default',
-      this.omegaSessionId
-    ).createRequester({
-      // translate current message receiver to default map
+      `editor1`
+    ).GetResponder()
+    this.channelResponder.on('ping', (msg) => {
+      console.log(`Got ping request, sending pong: ${msg.fromId}`)
+      this.channelResponder.send('pong', { fromId: msg.fromId })
     })
+
     this.svelteWebviewInitializer = new SvelteWebviewInitializer(
       context,
-      this.omegaSessionId
+      'editor1'
     )
     this.svelteWebviewInitializer.initialize(this.view, this.panel.webview)
     this.currentViewportId = ''
