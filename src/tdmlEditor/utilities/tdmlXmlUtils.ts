@@ -19,6 +19,7 @@ import { readFileSync, writeFileSync } from 'fs'
 import os from 'os'
 import { join, resolve, sep, relative, dirname } from 'path'
 import { Element, ElementCompact, js2xml, xml2js } from 'xml-js'
+import * as vscode from 'vscode'
 
 /*
  * Note that the functions in this file assumes the structure of a TDML file
@@ -290,11 +291,13 @@ export async function copyTestCase(
   )
 
   if (sourceTestSuite === undefined) {
-    throw `No test suite found in source XML buffer`
+      vscode.window.showErrorMessage('TDML ERROR: No test suite found in source XML buffer')
+      throw `No test suite found in source XML buffer`
   }
 
   if (sourceTestSuite.length !== 1) {
-    throw `More than one test suite found in source XML buffer`
+      vscode.window.showErrorMessage('TDML ERROR: More than one test suite found in source XML buffer')
+      throw `More than one test suite found in source XML buffer`
   }
 
   const sourceTestCase = sourceTestSuite[0].elements?.filter((childNode) =>
@@ -302,11 +305,13 @@ export async function copyTestCase(
   )
 
   if (sourceTestCase === undefined) {
-    throw `No test case found in source XML buffer`
+      vscode.window.showErrorMessage('TDML ERROR: No test case found in source XML buffer')
+      throw `No test case found in source XML buffer`
   }
 
   if (sourceTestCase.length !== 1) {
-    throw `More than one test case found in source XML buffer`
+      vscode.window.showErrorMessage('TDML ERROR: More than one test case found in source XML buffer')
+      throw `More than one test case found in source XML buffer`
   }
 
   const rootNode = (xmlObj as Element).elements?.filter((node) =>
@@ -379,11 +384,13 @@ export async function copyTestCase(
     )
 
     if (destinationTestSuite === undefined) {
-      throw `No test suites found in destination XML buffer`
+        vscode.window.showErrorMessage('TDML ERROR: No test suites found in destination XML buffer')
+        throw `No test suites found in destination XML buffer`
     }
 
     if (destinationTestSuite.length !== 1) {
-      throw `More than one test suite found in destination XML buffer`
+        vscode.window.showErrorMessage('TDML ERROR: More than one test suite found in destination XML buffer')
+        throw `More than one test suite found in destination XML buffer`
     }
 
     const destinationTestCases = destinationTestSuite[0].elements?.filter(
@@ -398,6 +405,7 @@ export async function copyTestCase(
         testCase.attributes[testCaseNameAttribute] ===
           sourceTestCase[0].attributes[testCaseNameAttribute]
       ) {
+        vscode.window.showErrorMessage('TDML ERROR: Duplicate Test Case Name')
         throw `Duplicate Test Case Name Found`
       }
     })
