@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { DFDL_ASSERT_ELEMENT_NAME } from 'consts/dfdlElements'
+
 // prettier-ignore
 export const attributeCompletion = (
     additionalItems, 
@@ -523,7 +525,7 @@ export const attributeCompletion = (
       {
         item: 'testKind',
         snippetString: spacingChar + 'testKind="${1|expression,pattern|}"$0' + afterChar,
-        markdownString: 'Specifies whether a DFDL expression or DFDL regular expression pattern is used in the dfdl:assert',
+        markdownString: `Specifies whether a DFDL expression or DFDL regular expression pattern is used in ${DFDL_ASSERT_ELEMENT_NAME}`,
       },
       {
         item: 'test',
@@ -543,7 +545,7 @@ export const attributeCompletion = (
       {
         item: 'failureType',
         snippetString: spacingChar + 'failureType="${1|processingError,recoverableError|}"$0' + afterChar,
-        markdownString: 'Specifies the type of failure that occurs when the dfdl:assert is unsuccessful',
+        markdownString: `Specifies the type of failure that occurs when the ${DFDL_ASSERT_ELEMENT_NAME} is unsuccessful`,
       },
       {
         item: 'schemaLocation',

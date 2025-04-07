@@ -33,6 +33,11 @@ import {
   cursorAfterEquals,
 } from './utils'
 import { elementCompletion } from './intellisense/elementItems'
+import {
+  DFDL_ASSERT_ELEMENT_NAME,
+  DFDL_DEFINE_VARIABLE_ELEMENT_NAME,
+  DFDL_DISCRIMINATOR_ELEMENT_NAME,
+} from 'consts/dfdlElements'
 
 export function getElementCompletionProvider(dfdlFormatString: string) {
   return vscode.languages.registerCompletionItemProvider(
@@ -318,7 +323,7 @@ function nearestOpenTagChildElements(
           return getElementCompletionItems(
             [
               'dfdl:defineFormat',
-              'dfdl:defineVariable',
+              DFDL_DEFINE_VARIABLE_ELEMENT_NAME,
               'dfdl:defineEscapeScheme',
               'dfdl:format',
             ],
@@ -329,8 +334,8 @@ function nearestOpenTagChildElements(
         case 'element':
           return getElementCompletionItems(
             [
-              'dfdl:assert',
-              'dfdl:discriminator',
+              DFDL_ASSERT_ELEMENT_NAME,
+              DFDL_DISCRIMINATOR_ELEMENT_NAME,
               'dfdl:element',
               'dfdl:setVariable',
               'dfdl:property',
@@ -342,8 +347,8 @@ function nearestOpenTagChildElements(
         case 'sequence':
           return getElementCompletionItems(
             [
-              'dfdl:assert',
-              'dfdl:discriminator',
+              DFDL_ASSERT_ELEMENT_NAME,
+              DFDL_DISCRIMINATOR_ELEMENT_NAME,
               'dfdl:newVariableInstance',
               'dfdl:sequence',
             ],
@@ -354,9 +359,9 @@ function nearestOpenTagChildElements(
         case 'choice':
           return getElementCompletionItems(
             [
-              'dfdl:assert',
+              DFDL_ASSERT_ELEMENT_NAME,
               'dfdl:choice',
-              'dfdl:discriminator',
+              DFDL_DISCRIMINATOR_ELEMENT_NAME,
               'dfdl:newVariableInstance',
               'dfdl:setVariable',
             ],
@@ -367,9 +372,9 @@ function nearestOpenTagChildElements(
         case 'group':
           return getElementCompletionItems(
             [
-              'dfdl:assert',
+              DFDL_ASSERT_ELEMENT_NAME,
               'dfdl:group',
-              'dfdl:discriminator',
+              DFDL_DISCRIMINATOR_ELEMENT_NAME,
               'dfdl:newVariableInstance',
               'dfdl:setVariable',
             ],
@@ -380,8 +385,8 @@ function nearestOpenTagChildElements(
         case 'simpleType':
           return getElementCompletionItems(
             [
-              'dfdl:assert',
-              'dfdl:discriminator',
+              DFDL_ASSERT_ELEMENT_NAME,
+              DFDL_DISCRIMINATOR_ELEMENT_NAME,
               'dfdl:setVariable',
               'dfdl:simpleType',
               'dfdl:property',

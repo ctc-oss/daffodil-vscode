@@ -15,6 +15,12 @@
  * limitations under the License.
  */
 
+import {
+  DFDL_ASSERT_ELEMENT_NAME,
+  DFDL_DEFINE_VARIABLE_ELEMENT_NAME,
+  DFDL_DISCRIMINATOR_ELEMENT_NAME,
+} from 'consts/dfdlElements'
+
 // prettier-ignore
 export const elementCompletion = (definedVariables, nsPrefix) => {
   return {
@@ -48,13 +54,13 @@ export const elementCompletion = (definedVariables, nsPrefix) => {
         markdownString: 'Defines a reference to a group declaration',
       },
       {
-        item: 'dfdl:assert',
-        snippetString: '<' + nsPrefix + 'assert $0',
+        item: DFDL_ASSERT_ELEMENT_NAME,
+        snippetString: `<${DFDL_ASSERT_ELEMENT_NAME} $0`,
         markdownString: 'Used to assert truths about a DFDL model',
       },
       {
-        item: 'dfdl:discriminator',
-        snippetString: '<' + nsPrefix + 'discriminator $0',
+        item: DFDL_DISCRIMINATOR_ELEMENT_NAME,
+        snippetString: `<${DFDL_DISCRIMINATOR_ELEMENT_NAME} $0`,
         markdownString: 'Used during parsing to resolve points or uncertainity, remove ambiguity during speculative parsing, improve diagnostic behavior',
       },
       {
@@ -106,8 +112,8 @@ export const elementCompletion = (definedVariables, nsPrefix) => {
         markdownString: 'Defines the name, type, and optional default value for the variable'
       },
       {
-        item: 'dfdl:defineVariable',
-        snippetString: '<' + nsPrefix + 'defineVariable name="$1"$0',
+        item: DFDL_DEFINE_VARIABLE_ELEMENT_NAME,
+        snippetString: `<${DFDL_DEFINE_VARIABLE_ELEMENT_NAME} name="$1"$0`,
         markdownString: 'Defines the name, type, and optionally default value for the variable.',
       },
       {

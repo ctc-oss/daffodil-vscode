@@ -19,6 +19,11 @@ import * as assert from 'assert'
 import { attributeCompletion } from '../../../language/providers/intellisense/attributeItems'
 import { commonCompletion } from '../../../language/providers/intellisense/commonItems'
 import { elementCompletion } from '../../../language/providers/intellisense/elementItems'
+import {
+  DFDL_ASSERT_ELEMENT_NAME,
+  DFDL_DEFINE_VARIABLE_ELEMENT_NAME,
+  DFDL_DISCRIMINATOR_ELEMENT_NAME,
+} from 'consts/dfdlElements'
 
 suite('Items Test Suite', () => {
   const expectedElementItems = [
@@ -28,8 +33,8 @@ suite('Items Test Suite', () => {
     'element ref',
     'group name',
     'group ref',
-    'dfdl:assert',
-    'dfdl:discriminator',
+    DFDL_ASSERT_ELEMENT_NAME,
+    DFDL_DISCRIMINATOR_ELEMENT_NAME,
     'dfdl:format',
     'annotation',
     'appinfo',
@@ -40,7 +45,7 @@ suite('Items Test Suite', () => {
     'sequence',
     'choice',
     'dfdl:newVariableInstance',
-    'dfdl:defineVariable',
+    DFDL_DEFINE_VARIABLE_ELEMENT_NAME,
     'dfdl:setVariable',
     'dfdl:defineFormat',
     'dfdl:defineEscapeScheme',

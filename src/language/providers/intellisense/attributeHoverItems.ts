@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { DFDL_ASSERT_ELEMENT_NAME } from 'consts/dfdlElements'
+
 export function attributeHoverValues(attributeName: string): string {
   switch (attributeName) {
     case 'name':
@@ -216,7 +218,7 @@ export function attributeHoverValues(attributeName: string): string {
     case 'dfdl:escapeCharacterPolicy':
       return 'The type of escape mechanism defined in the escape scheme'
     case 'testKind':
-      return 'Specifies whether a DFDL expression or DFDL regular expression pattern is used in the dfdl:assert'
+      return `Specifies whether a DFDL expression or DFDL regular expression pattern is used in ${DFDL_ASSERT_ELEMENT_NAME}`
     case 'test':
       return 'A DFDL expression that evaluates to true or false.'
     case 'testPattern':
@@ -224,7 +226,7 @@ export function attributeHoverValues(attributeName: string): string {
     case 'message':
       return 'Defines text for use in an error message'
     case 'failureType':
-      return 'Specifies the type of failure that occurs when the dfdl:assert is unsuccessful'
+      return `Specifies the type of failure that occurs when the ${DFDL_ASSERT_ELEMENT_NAME} is unsuccessful`
     case 'schemaLocation':
       return 'Specifies the location of the schema'
     case 'namespace':
