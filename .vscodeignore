@@ -1,0 +1,15 @@
+test-resources/**
+**/*.map
+.vscode/
+node_modules/
+src/
+tests/
+*.ts
+*.log
+*.md
+.gitignore
+**/test/**
+**/__tests__/**
+**/*.spec.*
+out/
+build/

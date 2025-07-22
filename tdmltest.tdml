@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns1:testSuite xmlns:ns1="http://www.ibm.com/xmlns/dfdl/testData" suiteName="tdmlConf" defaultRoundTrip="onePass">
+    <ns1:parserTestCase name="tdmlConf" root="file" model="src/tests/data/test.dfdl.xsd" roundTrip="onePass" description="testtdml">
+        <ns1:document>
+            <ns1:documentPart type="file">src/tests/data/test.txt</ns1:documentPart>
+        </ns1:document>
+        <ns1:infoset>
+            <ns1:dfdlInfoset type="file">testinfoset.json</ns1:dfdlInfoset>
+        </ns1:infoset>
+    </ns1:parserTestCase>
+</ns1:testSuite>
