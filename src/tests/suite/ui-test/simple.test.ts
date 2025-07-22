@@ -18,85 +18,62 @@
 import { expect } from 'chai'
 import {
   ActivityBar,
-  ContextMenu,
-  EditorView,
-  TitleBar,
+  ExtensionsViewItem,
+  ExtensionsViewSection,
 } from 'vscode-extension-tester'
 
-// there are 2 types of menus in vscode: title bar and context menus
-// a lot of page objects can open context menus using the 'openContextMenu' method
-// the title bar items also open context menus, all context menus were created equal
-// neither menu will work on mac, since they are native there
-;(process.platform === 'darwin' ? describe.skip : describe)(
-  'Example menu manipulation test',
-  () => {
-    let titleBar: TitleBar
+const pjson = {
+  name: 'apache-daffodil-vscode',
+  displayName: 'Apache Daffodil™ Extension for Visual Studio Code',
+  description:
+    'Apache Daffodil™ Extension for Visual Studio Code providing DFDL syntax highlighting, DFDL code completion, DFDL schema debugging, and data editor',
+  version: '1.4.2-SNAPSHOT',
+  daffodilVersion: '3.11.0',
+  publisher: 'asf',
+  author: 'Apache Daffodil',
+  license: 'Apache-2.0',
+}
 
-    before(() => {
-      titleBar = new TitleBar()
+// sample test code on how to look for an extension
+describe('Example extension view tests', () => {
+  let helloExtension: ExtensionsViewItem
+
+  before(async function () {
+    this.timeout(15000)
+    // open the extensions view
+    const view = await (
+      await new ActivityBar().getViewControl('Extensions')
+    )?.openView()
+    await view?.getDriver().wait(async function () {
+      return (await view.getContent().getSections()).length > 0
     })
 
-    after(async () => {
-      // we will be opening editors during the tests, close them afterwards
-      await new EditorView().closeAllEditors()
+    // we want to find the hello-world extension (this project)
+    // first we need a view section, best place to get started is the 'Installed' section
+    const extensions = (await view
+      ?.getContent()
+      .getSection('Installed')) as ExtensionsViewSection
+
+    // search for the extension, you can use any syntax vscode supports for the search field
+    // it is best to prepend @installed to the extension name if you don't want to see the results from marketplace
+    // also, getting the name directly from package.json seem like a good idea
+    await extensions.getDriver().wait(async function () {
+      helloExtension = (await extensions.findItem(
+        `@installed ${pjson.displayName}`
+      )) as ExtensionsViewItem
+      return helloExtension !== undefined
     })
+  })
 
-    describe('Title Bar', () => {
-      // the most useful method of titlebar is 'select'
-      // which selects an entire path of (possibly) nested menu items
-      it('Select a top level item', async () => {
-        // selecting a top level item opens a context menu
-        // select then returns a ContextMenu page object
-        const menu = await titleBar.select('File')
+  it('Check the extension info', async () => {
+    // now we have the extension item, we can check it shows all the fields we want
+    const author = await helloExtension.getAuthor()
+    const desc = await helloExtension.getDescription()
+    const version = await helloExtension.getVersion()
 
-        expect(menu).not.undefined
-        // lets just close the context menu for now
-        await (menu as ContextMenu).close()
-      })
-
-      // Selecting an item with no submenu just clicks it
-      it('Select a leaf item', async () => {
-        // Open settings using File > Preferences > Settings from the title bar
-        await titleBar.select('File', 'Preferences', 'Settings')
-
-        // now we can use EditorView to look at the open editors
-        // and assert that Settings did indeed open
-        const titles = await new EditorView().getOpenEditorTitles()
-        expect(titles).contains('Settings')
-      })
-
-      // Apart from selection, all menus have methods for retrieving items
-      it('Menu items', async () => {
-        // get items gives you all the menu items as MenuItem objects
-        const items = await titleBar.getItems()
-        // if you want labels/titles instead, you need to use the getLabel method
-        const titles = await Promise.all(
-          items.map(async (item) => await item.getLabel())
-        )
-        expect(titles).contains('File')
-
-        // analogically, for a single item
-        const item = await titleBar.getItem('File')
-        expect(item).not.undefined
-
-        // if an item with given label does not exist, undefined is returned
-        const nonExistent = await titleBar.getItem('this doesnt exist')
-        expect(nonExistent).undefined
-
-        // to check if a menu item with given label exists
-        expect(await titleBar.hasItem('File')).is.true
-      })
-    })
-
-    describe('Elements with context menu', async () => {
-      it('open context menu on an element', async () => {
-        // lets take an element that has a context menu and open it
-        // all page objects that support context menus will have the 'openContextMenu' method
-        const menu = await new ActivityBar().openContextMenu()
-
-        // click on one of the items
-        await menu.select('Extensions')
-      })
-    })
-  }
-)
+    // in this case we are comparing the results against the values in package.json
+    expect(author).equals(pjson.publisher)
+    expect(desc).equals(pjson.description)
+    expect(version).equals(pjson.version)
+  })
+})
