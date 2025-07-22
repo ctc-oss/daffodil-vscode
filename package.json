@@ -47,7 +47,7 @@
     "pretest": "yarn compile && yarn webpack",
     "test": "sbt test && yarn test:svelte && node ./out/tests/runTest.js",
     "test:svelte": "mocha -r ts-node/register ./src/svelte/tests/**/*.test.ts",
-    "test:ui": "extest install-vsix --vsix_file apache-daffodil-vscode-1.4.2-SNAPSHOT.vsix &&  extest run-tests ./out/tests/suite/ui-test/*.js",
+    "test:ui": "extest get-vscode && extest get-chromedriver && extest install-vsix --vsix_file apache-daffodil-vscode-1.4.2-SNAPSHOT.vsix &&  extest run-tests ./out/tests/suite/ui-test/*.js",
     "sbt": "sbt debugger/Universal/packageBin",
     "svelte:check": "svelte-check --tsconfig ./tsconfig.json",
     "update-version": "run-func build/yarn-scripts.ts updateVersion"
