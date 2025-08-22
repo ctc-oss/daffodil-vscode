@@ -42,7 +42,8 @@ lazy val commonSettings =
     version := IO.read((ThisBuild / baseDirectory).value / "VERSION").trim,
     libraryDependencies ++= Seq(
       "org.apache.daffodil" %% "daffodil-sapi" % daffodilVer,
-      "org.apache.daffodil" %% "daffodil-runtime1" % daffodilVer
+      "org.apache.daffodil" %% "daffodil-runtime1" % daffodilVer,
+      "org.fusesource.jansi" % "jansi" % "1.18"
     ),
     dependencyOverrides ++= Seq(
       "org.apache.commons" % "commons-lang3" % "3.17.0"
