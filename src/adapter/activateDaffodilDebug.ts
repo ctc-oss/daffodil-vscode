@@ -341,22 +341,32 @@ export function activateDaffodilDebug(
       'extension.dfdl-debug.getSchemaName',
       async (fileRequested = null) => {
         // Open native file explorer to allow user to select data file from anywhere on their machine
-        return await getFile(
+        const retVal = await getFile(
           fileRequested,
           'Select DFDL schema to debug',
           'Select DFDL schema to debug'
         )
+
+        if (!retVal)
+          vscode.window.showErrorMessage('Invalid DFDL schema Path selected')
+
+        return retVal
       }
     ),
     vscode.commands.registerCommand(
       'extension.dfdl-debug.getDataName',
       async (fileRequested = null) => {
         // Open native file explorer to allow user to select data file from anywhere on their machine
-        return await getFile(
+        const retVal = await getFile(
           fileRequested,
           'Select input data file to debug',
           'Select input data file to debug'
         )
+
+        if (!retVal)
+          vscode.window.showErrorMessage('Invalid data file path selected')
+
+        return retVal
       }
     ),
     vscode.commands.registerCommand('extension.dfdl-debug.showLogs', () => {
