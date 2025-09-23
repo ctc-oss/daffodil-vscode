@@ -22,6 +22,12 @@ const fs = require('fs')
 const { glob } = require('glob')
 const concurrently = require('concurrently')
 const child_process = require('child_process')
+const jsoncParse = require('jsonc-parser').parse
+
+const packageData = jsoncParse(
+  fs.readFileSync(path.resolve('package.json'), 'utf8')
+)
+const pkg_version = packageData['version']
 
 function rmFileOrDirectory(path) {
   if (fs.existsSync(path)) fs.rmSync(path, { recursive: true })
@@ -100,6 +106,37 @@ function package() {
 !node_modules/@vscode/webview-ui-toolkit/**/*
 `
   )
+}
+
+function getScalaVersions() {
+  const scalaVersions = ['2.12', '2.13']
+
+  // The scala 3 version of the debugger should only exist if JDK >= 17 is being used
+  if (fs.existsSync(`debugger/target/jvm-3/universal/stage`)) {
+    scalaVersions.push('3')
+  }
+
+  return scalaVersions
+}
+
+function moveDebuggers() {
+  getScalaVersions().forEach(async (scalaVersion) => {
+    const serverPackage = `daffodil-debugger-${scalaVersion}-${pkg_version}`
+    const jvmFolderName = `jvm-${scalaVersion}`
+    const stageFilePath = path.resolve(
+      `debugger/target/${jvmFolderName}/universal/stage`
+    )
+
+    const serverPackageFolder = path.join('dist/debuggers', serverPackage)
+
+    // remove debugger package folder if exists
+    if (fs.existsSync(serverPackageFolder)) {
+      fs.rmSync(serverPackageFolder, { recursive: true, force: true })
+    }
+
+    // Copy staged debugger files to desired location
+    fs.cpSync(stageFilePath, serverPackageFolder, { recursive: true })
+  })
 }
 
 /* START SECTION: Update version */
@@ -259,4 +296,5 @@ module.exports = {
   package: package,
   checkMissingLicenseData: checkMissingLicenseData,
   checkLicenseCompatibility: checkLicenseCompatibility,
+  moveDebuggers: moveDebuggers,
 }
