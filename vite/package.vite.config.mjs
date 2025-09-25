@@ -164,6 +164,14 @@ export default defineConfig({
     extensions: ['.ts', '.js'],
   },
 
+  css: {
+    preprocessorOptions: {
+      scss: {
+        api: 'modern-compiler',
+      },
+    },
+  },
+
   build: {
     sourcemap: true,
 
