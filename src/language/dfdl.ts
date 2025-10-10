@@ -16,7 +16,6 @@
  */
 
 import * as vscode from 'vscode'
-import * as fs from 'fs'
 import { getElementCompletionProvider } from './providers/elementCompletion'
 import { getAttributeCompletionProvider } from './providers/attributeCompletion'
 import { getCloseElementProvider } from './providers/closeElement'
@@ -25,16 +24,8 @@ import { getCloseElementSlashProvider } from './providers/closeElementSlash'
 import { getAttributeHoverProvider } from './providers/attributeHover'
 
 export function activate(context: vscode.ExtensionContext) {
-  let dfdlFormat = fs
-    .readFileSync(
-      context.asAbsolutePath(
-        './src/language/providers/intellisense/DFDLGeneralFormat.dfdl.xsd'
-      )
-    )
-    .toLocaleString()
-
   context.subscriptions.push(
-    getElementCompletionProvider(dfdlFormat),
+    getElementCompletionProvider(),
     getAttributeCompletionProvider(),
     getAttributeValueCompletionProvider(),
     getCloseElementProvider(),

@@ -16,7 +16,10 @@
  */
 
 import * as vscode from 'vscode'
-import { attributeHoverValues } from './intellisense/attributeHoverItems'
+import {
+  attributeHoverValues,
+  hasAttributeHoverValue,
+} from './intellisense/attributeHoverItems'
 import { attributeCompletion } from './intellisense/attributeItems'
 
 export function getAttributeHoverProvider() {
@@ -33,19 +36,24 @@ export function getAttributeHoverProvider() {
       attributeCompletion('', '', 'dfdl', '', '').items.forEach((r) =>
         itemNames.push(r.item)
       )
-      let testWord = ''
+
+      let currAttribute = ''
       if (word.length > 0) {
+        // Adjust the currentAttribute to contain dfdl: if needed
         if (!word.includes('dfdl:')) {
-          testWord = 'dfdl:' + word
+          currAttribute = 'dfdl:' + word
         } else {
-          testWord = word
+          // otherwise, set currAttribute to the word that's highlighted
+          currAttribute = word
         }
-        if (itemNames.includes(testWord)) {
-          return new vscode.Hover({
-            language: 'dfdl',
-            value: attributeHoverValues(testWord),
-          })
-        }
+
+        // If the currentAttribute has a hover value, then display it
+        return hasAttributeHoverValue(currAttribute)
+          ? new vscode.Hover({
+              language: 'dfdl',
+              value: attributeHoverValues(currAttribute),
+            })
+          : undefined
       }
     },
   })
