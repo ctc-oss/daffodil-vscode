@@ -35,7 +35,7 @@ import {
 } from './utils'
 import { elementCompletion } from './intellisense/elementItems'
 
-export function getElementCompletionProvider(dfdlFormatString: string) {
+export function getElementCompletionProvider() {
   return vscode.languages.registerCompletionItemProvider(
     'dfdl',
     {
