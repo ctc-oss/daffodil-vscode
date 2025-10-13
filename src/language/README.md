@@ -4,9 +4,36 @@ This document contains an overview of how intellisense works as well as a genera
 
 ## Table of Contents
 
+- [Intellisense](#intellisense)
+  - [Table of Contents](#table-of-contents)
+    - [General Intellisense Concepts](#general-intellisense-concepts)
+      - [Providers](#providers)
+      - [Registration](#registration)
+    - [DFDL](#dfdl)
+      - [High-level dfdl Intellisense Overview](#high-level-dfdl-intellisense-overview)
+        - [Provider Registration (Start Here)](#provider-registration-start-here)
+        - [Provider Implementation Locations](#provider-implementation-locations)
+        - [Helpers + Vocabulary](#helpers-vocabulary)
+        - [Context Parsing](#context-parsing)
+        - [Namespace / Prefix Handling](#namespace-prefix-handling)
+        - [Completions Construction](#completions-construction)
+        - [Hover / Documentation](#hover-documentation)
+        - [Testing](#testing)
+      - [Individual File Deep-Dives](#individual-file-deep-dives)
+        - [src/language/dfdl.ts](#srclanguagedfdlts)
+    - [TDML](#tdml)
+
 ### General Intellisense Concepts
 
-The VS Code API contains
+#### Providers
+
+Providers in the VS Code API are extension points that let you plug specific language or editor features into the editor’s pipeline (e.g., completions, hovers, formatting). Proviers are implemented and then registered in the code which gets then gets called depending on the situation the provider activates.
+
+Many providers exist. Relevant ones that are used extensively in the code pertaining to IntelliSense functionality include `completionItemProvider` which provide code suggestions and `hoverProvider` which provider hover information. More information can be found at <https://code.visualstudio.com/api/references/vscode-api>.
+
+#### Registration
+
+After a provider has its functionality implemented, it can then be registered into the extension so that its functionality can be utilized in the IntelliSense functionality pipeline. Relevant registration calls include `registerCompletionItemProvider` and `registerHoverProvider`.
 
 ### DFDL
 
@@ -18,11 +45,11 @@ This section providers a high-level view of the architecture of all relevant cod
 
 ##### Provider Registration (Start Here)
 
-`src/language/dfdl.ts` is the starting point. It wires up the extension’s language features by calling VS Code registration APIs (e.g., registerCompletionItemProvider, registerHoverProvider, and similar) that are then customized as functions that provide customized provider functinoality.
+`src/language/dfdl.ts` is the starting point. It wires up the extension’s language features by calling VS Code registration APIs (e.g., `registerCompletionItemProvider`, `registerHoverProvider`, and similar) that are then customized as functions that provide customized provider functinoality.
 
 In other words, `dfdl.ts` connects the provider implementations to VS Code for the DFDL language.
 
-##### Providers
+##### Provider Implementation Locations
 
 Autocompletion logic is split into multiple provider modules under `src/language/providers/`, each handling different completion scenarios.
 
@@ -31,6 +58,8 @@ Autocompletion logic is split into multiple provider modules under `src/language
 - `attributeValueCompletion.ts` -- provides completion suggestions for attribute values (e.g., enumerated values).
 - `closeElement.ts`, `closeElementSlash.ts` -- completions for closing tags and slash completions.
 - `attributeHover.ts` -- hover provider that shows attribute documentation/available attributes.
+
+It should be noted that there are many `registerCompletionItemProvider` calls. The implemented `completionItemProvider`s each contain logic to determine whether or not it the provider is relevant to a given situation or not.
 
 ##### Helpers + Vocabulary
 
@@ -75,6 +104,20 @@ Hover tooltips can be found under `attributeHoverValues()` in `attributeHoverIte
 ##### Testing
 
 `src/tests/suite/language/items.test.ts` contains unit-style checks that assert which items should be available in certain contexts -- useful to confirm the expected behavior of completion providers.
+
+#### Individual File Deep-Dives
+
+##### src/language/dfdl.ts
+
+The central registration file for all DFDL language features. It is executed during extension activation and registers the completion and hover providers with VS Code.
+
+It imports provider modules (element, attribute, attributeValue, closeElement, attributeHover, etc.) and registers them with appropriate trigger characters (e.g., `<`, `:`, `"`, `=`, `/`, `whitespace`).
+
+It does not perform completion logic itself — rather it wires VS Code events to the exported provider objects / functions in the provider modules.
+
+When VS Code triggers a provider callback for the DFDL language, the registered provider function from the corresponding module is invoked.
+
+This file is the “entry point” for Language features. If you want to change triggers or add another provider, this is the place to update.
 
 ### TDML
 
