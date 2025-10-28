@@ -162,7 +162,32 @@ Hover tooltips can be found under `attributeHoverValues()` in `attributeHoverIte
 
 **Provider Checks:**
 
-If you look at the structure of the `dfdl.ts`, it registers multiple providers. There checks to determine whether or not a certain provider's autocomplete suggestions are applicable to the siutaiton or not. This file's hlper functions provide check criterion. 
+If you look at the structure of the `dfdl.ts`, it registers multiple providers. There checks to determine whether or not a certain provider's autocomplete suggestions are applicable to the siutaiton or not. This file's hlper functions provide check criterion.
+
+##### src\languages\providers\attributeHover.ts
+
+**Purpose:** Hover provider that displays documentation tooltips when users hover over DFDL/XSD attribute names.
+
+**Key Functionality:**
+
+- Provides rich formatted documentation for DFDL properties and XSD attributes
+- Displays attribute descriptions, valid values, usage examples, and spec references
+- Handles both prefixed (dfdl:property) and unprefixed attribute names
+- Integrates with DFDL specification data
+- Quick reference without leaving the editor
+
+**Documentation Categories:**
+
+- XSD Core Attributes (name, ref, minOccurs, maxOccurs)
+- DFDL Length Properties (dfdl:length, dfdl:lengthKind, dfdl:lengthUnits)
+- DFDL Encoding (dfdl:encoding, dfdl:utf16Width)
+- DFDL Binary/Text Properties (dfdl:binaryNumberRep, dfdl:textNumberPattern)
+- DFDL Delimiters (dfdl:separator, dfdl:terminator, dfdl:initiator)
+- DFDL Assertions (testKind, test, testPattern)
+
+**Provider Registered:**
+
+- `getAttributeHoverProvider()`: For DFDL documents
 
 ### TDML
 
