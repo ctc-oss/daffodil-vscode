@@ -174,12 +174,16 @@ async function createDebugRunFileConfigs(
       })
     } else {
       var tdmlConfig: TDMLConfig | undefined = undefined
+      var newData: string | undefined = undefined
+      var newSchema: string | undefined = undefined
 
       if (tdmlAction) {
         tdmlConfig = { action: tdmlAction }
 
         if (tdmlAction === 'execute') {
           tdmlConfig.path = normalizedResource
+          newData = ''
+          newSchema = ''
         }
       }
 
@@ -188,13 +192,11 @@ async function createDebugRunFileConfigs(
         request: 'launch',
         type: 'dfdl',
         schema: {
-          path: tdmlConfig?.action === 'execute' ? '' : normalizedResource,
+          ...(newSchema && { path: newSchema }),
           rootName: null,
           rootNamespace: null,
         },
-        data:
-          tdmlConfig?.action === 'execute' ? '' : '${command:AskForDataName}',
-        debugServer: false,
+        ...(newData && { data: newData }),
         infosetFormat: 'xml',
         infosetOutput: {
           type: 'file',
@@ -603,10 +605,6 @@ class DaffodilConfigurationProvider
     // if launch.json is missing or empty
     if (!config.type && !config.request && !config.name) {
       config = getConfig({ name: 'Launch', request: 'launch', type: 'dfdl' })
-    }
-
-    if (!config.debugServer) {
-      config.debugServer = 4711
     }
 
     if (!config.schema) {
