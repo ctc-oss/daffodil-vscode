@@ -66,15 +66,30 @@ export class TDMLProvider implements vscode.CustomTextEditorProvider {
 
       if (e.webviewPanel.active) {
         TDMLProvider.currentUri = document.uri
+        vscode.commands.executeCommand(
+          'setContext',
+          'dfdl-debug.tdml-editor-active',
+          TDMLProvider.viewType
+        )
       } else if (
         TDMLProvider.currentUri?.toString() === document.uri.toString()
       ) {
         TDMLProvider.currentUri = undefined
+        vscode.commands.executeCommand(
+          'setContext',
+          'dfdl-debug.tdml-editor-active',
+          undefined
+        )
       }
     })
 
     if (webviewPanel.active) {
       TDMLProvider.currentUri = document.uri
+      vscode.commands.executeCommand(
+        'setContext',
+        'dfdl-debug.tdml-editor-active',
+        TDMLProvider.viewType
+      )
     }
 
     try {
