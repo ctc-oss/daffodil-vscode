@@ -341,6 +341,7 @@ limitations under the License.
       <select on:change={(event)=>{
         const target = event.currentTarget.value as ProfileTarget
         setProfileTarget(target)
+        requestSessionProfile(startOffset, length)
       }}>
         <option value="editor">Current editor</option>
         <option value="disk">On-disk file</option>

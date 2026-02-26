@@ -593,7 +593,7 @@ export class DataEditorClient implements vscode.Disposable {
           if (target === 'disk') {
             const tempSession = await createSession(
               this.fileToEdit,
-              `profile_${target}::${sessionId}`,
+              `profile_${target}::${this.omegaSessionId}`,
               checkpointPath
             )
             sessionId = tempSession.getSessionId()
