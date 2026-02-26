@@ -157,6 +157,7 @@ limitations under the License.
     })
   }
 
+    
   let lastProfileTarget: 'editor' | 'disk' | null = null
   let lastRequestedTarget: 'editor' | 'disk' = 'editor'
   function requestSessionProfile(startOffset: number, length: number) {
@@ -165,6 +166,11 @@ limitations under the License.
       `Profiling bytes from ${startOffset} to ${startOffset + length}...`,
       0
     )
+    const data: ProfileMsg = {
+      startOffset: startOffset,
+      length,
+      target: 'editor'
+    }
     vscode.postMessage({
       command: MessageCommand.profile,
       data: {

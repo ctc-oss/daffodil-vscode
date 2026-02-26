@@ -38,7 +38,7 @@
     "isolatedModules": true,
     "outDir": "tsout",
     "esModuleInterop": true,
-    "verbatimModuleSyntax": true
+    // "verbatimModuleSyntax": true
   },
   "include": ["src/**/*.ts", "src/**/*.svelte", "src/tests/**/*.test.ts"],
   "exclude": ["node_modules/*"],
