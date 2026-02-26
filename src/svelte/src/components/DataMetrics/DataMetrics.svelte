@@ -26,6 +26,7 @@ limitations under the License.
   import { radixToString, regexEditDataTest } from '../../utilities/display'
   import ISO6391 from 'iso-639-1'
   import Tooltip from '../layouts/Tooltip.svelte'
+  import profileStore from './DataMetrics.svelte'
 
   const PROFILE_DOS_EOL = 256
   const MAX_BYTE_VALUE = 255
@@ -38,6 +39,8 @@ limitations under the License.
 
   // number of bytes to profile from the start offset
   export let length: number
+  
+  export let isProfilerOpen: boolean
 
   class CharacterCountData {
     byteOrderMark: string = ''
@@ -180,10 +183,12 @@ limitations under the License.
       },
     })
   }
-  $: if (profileTarget !== lastProfileTarget) {
-    lastProfileTarget = profileTarget
-    requestSessionProfile(startOffset, length)
-  }
+  function closeProfiledData() { console.log("Closing Profiler", [isProfilerOpen, profileTarget])}
+  $: isProfilerOpen ? requestSessionProfile(startOffset, length) : closeProfiledData()
+  // $: if (profileTarget !== lastProfileTarget) {
+  //   lastProfileTarget = profileTarget
+  //   requestSessionProfile(startOffset, length)
+  // }
   function handleInputEnter(e: CustomEvent) {
     switch (e.detail.id) {
       case 'start-offset-input':
