@@ -85,6 +85,7 @@ import * as child_process from 'child_process'
 import { osCheck } from '../utils'
 import { getCurrentConfig } from '../utils'
 import { isDFDLDebugSessionActive } from './include/utils'
+import { ViewoprtState } from './include/changes/changeMemento'
 
 // *****************************************************************************
 // global constants
@@ -136,6 +137,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
 // *****************************************************************************
 
 export class DataEditorClient implements vscode.Disposable {
+  private mementoState: ViewoprtState | undefined = undefined
   public panel: vscode.WebviewPanel
   private svelteWebviewInitializer: SvelteWebviewInitializer
   private displayState: DisplayState
@@ -296,6 +298,8 @@ export class DataEditorClient implements vscode.Disposable {
     return this.omegaSessionId
   }
 
+  private restoreState(state: ViewoprtState) {}
+
   private async setupDataEditor() {
     assert(
       checkpointPath && checkpointPath.length > 0,
@@ -390,6 +394,7 @@ export class DataEditorClient implements vscode.Disposable {
         VIEWPORT_CAPACITY_MAX,
         false
       )
+
       this.currentViewportId = viewportDataResponse.getViewportId()
       assert(this.currentViewportId.length > 0, 'currentViewportId is not set')
       await viewportSubscribe(this.panel, this.currentViewportId)
