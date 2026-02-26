@@ -5,5 +5,9 @@ export type ProfileMsg = {
   target: ProfileTarget
 }
 
-export const profileStore = $state<ProfileTarget>('editor')
+let profileStore = $state<ProfileTarget>('editor')
+export const getProfileTarget = () => profileStore
+export const setProfileTarget = (target: ProfileTarget) => {
+  profileStore = target
+}
 // export function setProfileTarget(target: ProfileTarget) {}

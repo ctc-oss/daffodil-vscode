@@ -585,23 +585,25 @@ export class DataEditorClient implements vscode.Disposable {
         const length: number = message.data.length
         const target: string | undefined = message.data.target
 
-        let sessionId = this.omegaSessionId
         let isDiskProfile = false
+        let sessionId = target === 'editor' ? this.omegaSessionId : ''
         // const profileVP = createViewport(`${this.fileToEdit}_profile_${target}`, sessionId, startOffset, length, false)
-        const profileSessionId = `profile_${target}::${sessionId}`
+
         try {
           if (target === 'disk') {
             const tempSession = await createSession(
               this.fileToEdit,
-              profileSessionId,
+              `profile_${target}::${sessionId}`,
               checkpointPath
             )
-            addActiveSession(profileSessionId)
+            sessionId = tempSession.getSessionId()
+
+            addActiveSession(sessionId)
             isDiskProfile = true
           }
 
           const profileData = await this.runProfile(
-            profileSessionId,
+            this.omegaSessionId,
             startOffset,
             length
           )

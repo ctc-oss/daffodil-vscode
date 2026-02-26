@@ -15,7 +15,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
-  let profileTarget: 'editor' | 'disk' = 'editor'
   import Button from '../Inputs/Buttons/Button.svelte'
   import { vscode } from '../../utilities/vscode'
   import { MessageCommand } from '../../utilities/message'
@@ -27,6 +26,8 @@ limitations under the License.
   import ISO6391 from 'iso-639-1'
   import Tooltip from '../layouts/Tooltip.svelte'
   import profileStore from './DataMetrics.svelte'
+  import { getProfileTarget, setProfileTarget } from './DataMetrics.svelte.ts'
+  import type { ProfileMsg, ProfileTarget } from './DataMetrics.svelte.ts'
 
   const PROFILE_DOS_EOL = 256
   const MAX_BYTE_VALUE = 255
@@ -40,8 +41,7 @@ limitations under the License.
   // number of bytes to profile from the start offset
   export let length: number
   
-  export let isProfilerOpen: boolean
-
+  let profileTarget: 'editor' | 'disk' = 'editor'
   class CharacterCountData {
     byteOrderMark: string = ''
     byteOrderMarkBytes: number = 0
@@ -164,7 +164,8 @@ limitations under the License.
   let lastProfileTarget: 'editor' | 'disk' | null = null
   let lastRequestedTarget: 'editor' | 'disk' = 'editor'
   function requestSessionProfile(startOffset: number, length: number) {
-    lastRequestedTarget = profileTarget
+    // lastRequestedTarget = profileTarget
+    lastRequestedTarget = getProfileTarget()
     setStatusMessage(
       `Profiling bytes from ${startOffset} to ${startOffset + length}...`,
       0
@@ -172,23 +173,18 @@ limitations under the License.
     const data: ProfileMsg = {
       startOffset: startOffset,
       length,
-      target: 'editor'
+      target: lastRequestedTarget
     }
     vscode.postMessage({
       command: MessageCommand.profile,
-      data: {
-        startOffset,
-        length,
-        target: profileTarget === 'disk' ? 'disk' : undefined,
-      },
+      data: {...data},
     })
   }
-  function closeProfiledData() { console.log("Closing Profiler", [isProfilerOpen, profileTarget])}
-  $: isProfilerOpen ? requestSessionProfile(startOffset, length) : closeProfiledData()
-  // $: if (profileTarget !== lastProfileTarget) {
-  //   lastProfileTarget = profileTarget
-  //   requestSessionProfile(startOffset, length)
-  // }
+
+  $: if (profileTarget !== lastProfileTarget) {
+    lastProfileTarget = profileTarget
+    requestSessionProfile(startOffset, length)
+  }
   function handleInputEnter(e: CustomEvent) {
     switch (e.detail.id) {
       case 'start-offset-input':
@@ -342,7 +338,10 @@ limitations under the License.
   <div class="input-container">
     <label>
       Profile source:
-      <select bind:value={profileTarget}>
+      <select on:change={(event)=>{
+        const target = event.currentTarget.value as ProfileTarget
+        setProfileTarget(target)
+      }}>
         <option value="editor">Current editor</option>
         <option value="disk">On-disk file</option>
       </select>

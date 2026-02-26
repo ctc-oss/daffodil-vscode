@@ -129,7 +129,6 @@ limitations under the License.
 >
   {#if isProfilerOpen}
     <ByteFrequencyGraph
-      isProfilerOpen
       title="Byte Frequency Profile"
       {startOffset}
       length={Math.min(length, DATA_PROFILE_MAX_LENGTH)}
