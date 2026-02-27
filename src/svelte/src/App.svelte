@@ -44,7 +44,7 @@ limitations under the License.
     UIThemeCSSClass,
     darkUITheme,
   } from './utilities/colorScheme'
-  import { MessageCommand } from './utilities/message'
+  import { MessageCommand } from 'ext_types'
   import { vscode } from './utilities/vscode'
   import Header from './components/Header/Header.svelte'
   import Main from './Main.svelte'
@@ -64,21 +64,31 @@ limitations under the License.
   } from './components/DataDisplays/CustomByteDisplay/BinaryData'
   import { byte_count_divisible_offset } from './utilities/display'
   import Help from './components/layouts/Help.svelte'
-
+  
   function requestEditedData() {
     if ($requestable) {
-      vscode.postMessage({
-        command: MessageCommand.requestEditedData,
-        data: {
+      
+      vscode.postEditorMessage('requestEditedData', {
           selectionToFileOffset: $selectionDataStore.startOffset,
           editedContent: $editorSelection,
           viewport: $focusedViewportId,
           selectionSize: $selectionSize,
-          encoding: $editorEncoding,
+          encodingStr: $editorEncoding,
           radix: $displayRadix,
           editMode: $editMode,
-        },
       })
+      // vscode.postMessage({
+      //   command: MessageCommand.requestEditedData,
+      //   data: {
+      //     selectionToFileOffset: $selectionDataStore.startOffset,
+      //     editedContent: $editorSelection,
+      //     viewport: $focusedViewportId,
+      //     selectionSize: $selectionSize,
+      //     encoding: $editorEncoding,
+      //     radix: $displayRadix,
+      //     editMode: $editMode,
+      //   },
+      // })
     }
   }
 

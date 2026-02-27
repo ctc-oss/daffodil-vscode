@@ -64,18 +64,18 @@ import path from 'path'
 import * as vscode from 'vscode'
 import XDGAppPaths from 'xdg-app-paths'
 import { extractDaffodilEvent } from '../daffodilDebugger/daffodil'
+import { VIEWPORT_CAPACITY_MAX } from '../svelte/src/stores/configuration'
 import {
-  EditByteModes,
-  VIEWPORT_CAPACITY_MAX,
-} from '../svelte/src/stores/configuration'
-import {
-  EditorMessage,
   MessageCommand,
-  MessageLevel,
-} from '../svelte/src/utilities/message'
+  EditByteModes,
+  ExtensionMessageResponses,
+} from 'ext_types'
 import * as editor_config from './config'
 import { configureOmegaEditPort, ServerInfo } from './include/server/ServerInfo'
-import { SvelteWebviewInitializer } from './svelteWebviewInitializer'
+import {
+  SvelteUIWebviewPanel,
+  SvelteWebviewInitializer,
+} from './svelteWebviewInitializer'
 import {
   addActiveSession,
   removeActiveSession,
@@ -131,7 +131,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
 // *****************************************************************************
 
 export class DataEditorClient implements vscode.Disposable {
-  public panel: vscode.WebviewPanel
+  public panel: SvelteUIWebviewPanel
   private svelteWebviewInitializer: SvelteWebviewInitializer
   private displayState: DisplayState
   private currentViewportId: string
@@ -149,7 +149,7 @@ export class DataEditorClient implements vscode.Disposable {
     fileToEdit: string = '',
     panel: vscode.WebviewPanel
   ) {
-    this.panel = panel
+    this.panel = new SvelteUIWebviewPanel(panel)
     this.panel.webview.onDidReceiveMessage(this.messageReceiver, this)
 
     this.disposables = [

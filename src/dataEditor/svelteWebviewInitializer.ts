@@ -17,6 +17,30 @@
 
 import * as vscode from 'vscode'
 import * as fs from 'fs'
+import {
+  DataEditorMessageRequests,
+  DataEditorMessageResponses,
+  ExtensionMessageRequests,
+  ExtensionMessageResponses,
+} from 'ext_types'
+
+export class SvelteUIWebviewPanel {
+  constructor(private vscodePanel: vscode.WebviewPanel) {}
+  postEditorResponse<K extends keyof DataEditorMessageResponses>(
+    type: K,
+    message: DataEditorMessageResponses[K]
+  ) {
+    this.vscodePanel.webview.postMessage({ command: type, data: message })
+  }
+  postExtensionResponse<K extends keyof ExtensionMessageResponses>(
+    type: K,
+    message: ExtensionMessageResponses[K]
+  ) {
+    this.vscodePanel.webview.postMessage({ command: type, data: message })
+  }
+  onDidReceive
+}
+
 export class SvelteWebviewInitializer {
   constructor(private context: vscode.ExtensionContext) {}
 

@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { DataEditorMessageRequests, ExtensionMessageRequests } from 'ext_types'
 import type { WebviewApi } from 'vscode-webview'
 
 /**
@@ -53,6 +54,27 @@ class VSCodeAPIWrapper {
     }
   }
 
+  public postExtensionMessage<K extends keyof ExtensionMessageRequests>(
+    type: K,
+    message: ExtensionMessageRequests[K]
+  ) {
+    if (this.vsCodeApi) {
+      this.vsCodeApi.postMessage(message as ExtensionMessageRequests[K])
+    } else {
+      console.log(message)
+    }
+  }
+
+  public postEditorMessage<K extends keyof DataEditorMessageRequests>(
+    type: K,
+    message: DataEditorMessageRequests[K]
+  ) {
+    if (this.vsCodeApi) {
+      this.vsCodeApi.postMessage(message as DataEditorMessageRequests[K])
+    } else {
+      console.log(message)
+    }
+  }
   /**
    * Get the persistent state stored for this webview.
    *

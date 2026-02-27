@@ -15,37 +15,27 @@
  * limitations under the License.
  */
 
-export enum MessageCommand {
-  clearChanges,
-  applyChanges,
-  editorOnChange,
-  fileInfo,
-  heartbeat,
-  profile,
-  redoChange,
-  replaceResults,
-  requestEditedData,
-  save,
-  saveAs,
-  saveSegment,
-  scrollViewport,
-  search,
-  replace,
-  searchResults,
-  setUITheme,
-  showMessage,
-  undoChange,
-  updateLogicalDisplay,
-  viewportRefresh,
+export type Radixes = 'Hexadecimal' | 'Decimal' | 'Octal' | 'Binary'
+
+export type RadixValues = 16 | 10 | 8 | 2
+
+export type BytesPerRow = 16 | 8 | 24
+
+export enum EditByteModes {
+  Single = 'single',
+  Multiple = 'multiple',
+}
+export type AvailableStrEncodings =
+  | 'hex'
+  | 'binary'
+  | 'ascii'
+  | 'latin1'
+  | 'utf-8'
+  | 'utf-16'
+
+export enum EditActionRestrictions {
+  None,
+  OverwriteOnly,
 }
 
-export enum MessageLevel {
-  Error,
-  Info,
-  Warn,
-}
-
-export type EditorMessage = {
-  command: MessageCommand
-  data: Record<string, any>
-}
+export type EditAction = { name: string; value: EditActionRestrictions }
