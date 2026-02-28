@@ -15,7 +15,15 @@
  * limitations under the License.
  */
 
-import { DataEditorMessageRequests, ExtensionMessageRequests } from 'ext_types'
+import {
+  type DataEditorMessageRequests,
+  type ExtensionMessageRequests,
+  type VSEditorMessagePackage,
+  type VSExtensionMessagePackage,
+  type MessageTarget,
+  type VSMessagePackage,
+  type MessageCommandMap,
+} from 'ext_types'
 import type { WebviewApi } from 'vscode-webview'
 
 /**
@@ -46,34 +54,42 @@ class VSCodeAPIWrapper {
    *
    * @param message Arbitrary data (must be JSON serializable) to send to the extension context.
    */
-  public postMessage(message: unknown) {
-    if (this.vsCodeApi) {
-      this.vsCodeApi.postMessage(message)
-    } else {
-      console.log(message)
-    }
+  public postMessage<K extends keyof VSMessagePackage>(
+    type: VSMessagePackage[K],
+    payload: VSMessagePackage['payload']
+  ) {
+    // if (this.vsCodeApi) {
+    //   this.vsCodeApi.postMessage(message)
+    // } else {
+    //   console.log(message)
+    // }
   }
-
+  public createMessage<K extends keyof MessageCommandMap>(
+    type: K,
+    payload: K extends keyof DataEditorMessageRequests
+      ? DataEditorMessageRequests[K]
+      : ExtensionMessageRequests[K]
+  ) {}
   public postExtensionMessage<K extends keyof ExtensionMessageRequests>(
     type: K,
-    message: ExtensionMessageRequests[K]
+    msgPkg: VSExtensionMessagePackage<K>
   ) {
-    if (this.vsCodeApi) {
-      this.vsCodeApi.postMessage(message as ExtensionMessageRequests[K])
-    } else {
-      console.log(message)
-    }
+    this._postMessage({
+      command: type,
+      data: { ...msgPkg },
+    })
   }
 
   public postEditorMessage<K extends keyof DataEditorMessageRequests>(
     type: K,
-    message: DataEditorMessageRequests[K]
+    msgPkg: VSEditorMessagePackage<K>['payload'] extends object
+      ? VSEditorMessagePackage<K>['payload']
+      : undefined
   ) {
-    if (this.vsCodeApi) {
-      this.vsCodeApi.postMessage(message as DataEditorMessageRequests[K])
-    } else {
-      console.log(message)
-    }
+    this._postMessage({
+      command: type,
+      data: { ...msgPkg },
+    })
   }
   /**
    * Get the persistent state stored for this webview.
@@ -109,6 +125,14 @@ class VSCodeAPIWrapper {
     } else {
       localStorage.setItem('vscodeState', JSON.stringify(newState))
       return newState
+    }
+  }
+
+  private _postMessage(message: any) {
+    if (this.vsCodeApi) {
+      this.vsCodeApi.postMessage(message)
+    } else {
+      console.error("The 'vsCodeApi' object is invalid")
     }
   }
 }

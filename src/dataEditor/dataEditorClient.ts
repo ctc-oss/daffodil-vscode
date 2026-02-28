@@ -65,17 +65,14 @@ import * as vscode from 'vscode'
 import XDGAppPaths from 'xdg-app-paths'
 import { extractDaffodilEvent } from '../daffodilDebugger/daffodil'
 import { VIEWPORT_CAPACITY_MAX } from '../svelte/src/stores/configuration'
-import {
-  MessageCommand,
-  EditByteModes,
-  ExtensionMessageResponses,
-} from 'ext_types'
+import { EditByteModes, VSMessagePackage } from 'ext_types'
 import * as editor_config from './config'
 import { configureOmegaEditPort, ServerInfo } from './include/server/ServerInfo'
 import {
-  SvelteUIWebviewPanel,
-  SvelteWebviewInitializer,
-} from './svelteWebviewInitializer'
+  DataEditorUI,
+  getSvelteWebviewInitializer,
+  startSvelteWebviewInitializer,
+} from './ui/svelteWebviewInitializer'
 import {
   addActiveSession,
   removeActiveSession,
@@ -84,6 +81,7 @@ import { getCurrentHeartbeatInfo } from './include/server/heartbeat'
 import * as child_process from 'child_process'
 import { osCheck } from '../utils'
 import { isDFDLDebugSessionActive } from './include/utils'
+import { handleMessage } from './messageHandlers'
 
 // *****************************************************************************
 // global constants
@@ -100,7 +98,7 @@ export const APP_DATA_PATH: string = XDGAppPaths({ name: 'omega_edit' }).data()
 
 const HEARTBEAT_INTERVAL_MS: number = 1000 // 1 second (1000 ms)
 const MAX_LOG_FILES: number = 5 // Maximum number of log files to keep TODO: make this configurable
-const OPEN_EDITORS = new Map<string, vscode.WebviewPanel>()
+const OPEN_EDITORS = new Map<string, DataEditorUI>()
 
 // *****************************************************************************
 // file-scoped variables
@@ -131,9 +129,6 @@ export function activate(ctx: vscode.ExtensionContext): void {
 // *****************************************************************************
 
 export class DataEditorClient implements vscode.Disposable {
-  public panel: SvelteUIWebviewPanel
-  private svelteWebviewInitializer: SvelteWebviewInitializer
-  private displayState: DisplayState
   private currentViewportId: string
   private fileToEdit: string = ''
   private omegaSessionId = ''
@@ -143,14 +138,11 @@ export class DataEditorClient implements vscode.Disposable {
 
   constructor(
     protected context: vscode.ExtensionContext,
-    private view: string,
-    title: string,
     private configVars: editor_config.IConfig,
     fileToEdit: string = '',
-    panel: vscode.WebviewPanel
+    private panel: DataEditorUI
   ) {
-    this.panel = new SvelteUIWebviewPanel(panel)
-    this.panel.webview.onDidReceiveMessage(this.messageReceiver, this)
+    this.panel.onDidReceiveMessage(this.msgReceiver, this)
 
     this.disposables = [
       this.panel,
@@ -158,18 +150,15 @@ export class DataEditorClient implements vscode.Disposable {
         const eventAsEditorMessage = extractDaffodilEvent(e)
         if (eventAsEditorMessage === undefined) return
         const forwardAs = eventAsEditorMessage.asObject()
-        await this.panel.webview.postMessage(forwardAs)
+        // this.panel.postToUI('')
+        // await this.panel.postMessage(forwardAs)
       }),
     ]
 
     this.context.subscriptions.push(this)
 
-    this.svelteWebviewInitializer = new SvelteWebviewInitializer(context)
-    this.svelteWebviewInitializer.initialize(this.view, this.panel.webview)
-
     this.currentViewportId = ''
     this.fileToEdit = fileToEdit
-    this.displayState = new DisplayState(this.panel)
   }
   addDisposable(dispoable: vscode.Disposable) {
     this.disposables.push(dispoable)
@@ -189,32 +178,25 @@ export class DataEditorClient implements vscode.Disposable {
   }
   public static async open(
     context: vscode.ExtensionContext,
-    view: string,
     configVars: editor_config.IConfig,
     fileToEdit: string = ''
   ): Promise<DataEditorClient | undefined> {
+    startSvelteWebviewInitializer(context)
     const title = !fileToEdit ? 'Data Editor' : path.basename(fileToEdit)
 
     const column =
-      fileToEdit !== '' ? vscode.ViewColumn.Two : vscode.ViewColumn.Active
+      fileToEdit === '' ? vscode.ViewColumn.Two : vscode.ViewColumn.Active
 
-    const panel = vscode.window.createWebviewPanel(view, title, column, {
-      enableScripts: true,
-      retainContextWhenHidden: true,
+    const ui = getSvelteWebviewInitializer().createSveltePanel({
+      title,
+      column,
     })
 
-    const editor = new DataEditorClient(
-      context,
-      view,
-      title,
-      configVars,
-      fileToEdit,
-      panel
-    )
+    const editor = new DataEditorClient(context, configVars, fileToEdit, ui)
 
     await editor.initialize()
 
-    panel.onDidDispose(async () => {
+    ui.onDidDispose(async () => {
       const pathKey = path.resolve(editor.fileToEdit).toLowerCase()
       OPEN_EDITORS.delete(pathKey)
       await removeActiveSession(editor.sessionId())
@@ -400,37 +382,38 @@ export class DataEditorClient implements vscode.Disposable {
       vscode.window.showErrorMessage(msg)
     }
 
+    this.panel.postMessage
     // send the initial file info to the webview
-    await this.panel.webview.postMessage({
-      command: MessageCommand.fileInfo,
-      data: data,
-    })
+    // await this.panel.postMessage({
+    //   command: MessageCommand.fileInfo,
+    //   data: data,
+    // })
   }
 
   private async sendHeartbeat() {
     const heartbeatInfo = getCurrentHeartbeatInfo()
 
-    await this.panel.webview.postMessage({
-      command: MessageCommand.heartbeat,
-      data: {
-        latency: heartbeatInfo.latency,
-        omegaEditPort: this.configVars.port,
-        serverCpuLoadAverage: heartbeatInfo.serverCpuLoadAverage,
-        serverUptime: heartbeatInfo.serverUptime,
-        serverUsedMemory: heartbeatInfo.serverUsedMemory,
-        sessionCount: heartbeatInfo.sessionCount,
-        serverInfo: {
-          omegaEditPort: this.configVars.port,
-          serverVersion: serverInfo.serverVersion,
-          serverHostname: serverInfo.serverHostname,
-          serverProcessId: serverInfo.serverProcessId,
-          jvmVersion: serverInfo.jvmVersion,
-          jvmVendor: serverInfo.jvmVendor,
-          jvmPath: serverInfo.jvmPath,
-          availableProcessors: serverInfo.availableProcessors,
-        },
-      },
-    })
+    // await this.panel.postMessage({
+    //   command: MessageCommand.heartbeat,
+    //   data: {
+    //     latency: heartbeatInfo.latency,
+    //     omegaEditPort: this.configVars.port,
+    //     serverCpuLoadAverage: heartbeatInfo.serverCpuLoadAverage,
+    //     serverUptime: heartbeatInfo.serverUptime,
+    //     serverUsedMemory: heartbeatInfo.serverUsedMemory,
+    //     sessionCount: heartbeatInfo.sessionCount,
+    //     serverInfo: {
+    //       omegaEditPort: this.configVars.port,
+    //       serverVersion: serverInfo.serverVersion,
+    //       serverHostname: serverInfo.serverHostname,
+    //       serverProcessId: serverInfo.serverProcessId,
+    //       jvmVersion: serverInfo.jvmVersion,
+    //       jvmVendor: serverInfo.jvmVendor,
+    //       jvmPath: serverInfo.jvmPath,
+    //       availableProcessors: serverInfo.availableProcessors,
+    //     },
+    //   },
+    // })
   }
 
   private async sendChangesInfo() {
@@ -463,272 +446,267 @@ export class DataEditorClient implements vscode.Disposable {
     })
 
     // send the accumulated counts to the webview
-    await this.panel.webview.postMessage({
-      command: MessageCommand.fileInfo,
-      data: data,
-    })
+    // await this.panel.postMessage({
+    //   command: MessageCommand.fileInfo,
+    //   data: data,
+    // })
   }
 
+  private async msgReceiver(message: VSMessagePackage) {
+    handleMessage(message)
+    this.panel.postMessage()
+  }
   // handle messages from the webview
-  private async messageReceiver(message: EditorMessage) {
-    switch (message.command) {
-      case MessageCommand.showMessage:
-        switch (message.data.messageLevel as MessageLevel) {
-          case MessageLevel.Error:
-            vscode.window.showErrorMessage(message.data.message)
-            break
-          case MessageLevel.Info:
-            vscode.window.showInformationMessage(message.data.message)
-            break
-          case MessageLevel.Warn:
-            vscode.window.showWarningMessage(message.data.message)
-            break
-        }
-        break
+  // private async messageReceiver(message: EditorMessage) {
+  //   switch (message.command) {
+  //     case MessageCommand.showMessage:
+  //       break
 
-      case MessageCommand.scrollViewport:
-        await this.scrollViewport(
-          this.panel,
-          this.currentViewportId,
-          message.data.scrollOffset,
-          message.data.bytesPerRow
-        )
-        break
+  //     case MessageCommand.scrollViewport:
+  //       await this.scrollViewport(
+  //         this.panel,
+  //         this.currentViewportId,
+  //         message.data.scrollOffset,
+  //         message.data.bytesPerRow
+  //       )
+  //       break
 
-      case MessageCommand.editorOnChange:
-        {
-          this.displayState.editorEncoding = message.data.encoding
-          const encodeDataAs =
-            message.data.editMode === EditByteModes.Single
-              ? 'hex'
-              : this.displayState.editorEncoding
+  //     case MessageCommand.editorOnChange:
+  //       {
+  //         const displayState = this.panel.displayState
+  //         displayState.update('encoding', message.data.encoding)
 
-          if (
-            message.data.selectionData &&
-            message.data.selectionData.length > 0
-          ) {
-            await this.panel.webview.postMessage({
-              command: MessageCommand.editorOnChange,
-              display: dataToEncodedStr(
-                Buffer.from(message.data.selectionData),
-                encodeDataAs
-              ),
-            })
-          }
-        }
-        break
+  //         const encodeDataAs =
+  //           message.data.editMode === EditByteModes.Single
+  //             ? 'hex'
+  //             : displayState.get('encoding')
 
-      case MessageCommand.applyChanges:
-        await edit(
-          this.omegaSessionId,
-          message.data.offset,
-          message.data.originalSegment,
-          message.data.editedSegment
-        )
-        await this.sendChangesInfo()
-        break
+  //         if (
+  //           message.data.selectionData &&
+  //           message.data.selectionData.length > 0
+  //         ) {
+  //           await this.panel.postMessage({
+  //             command: MessageCommand.editorOnChange,
+  //             display: dataToEncodedStr(
+  //               Buffer.from(message.data.selectionData),
+  //               encodeDataAs
+  //             ),
+  //           })
+  //         }
+  //       }
+  //       break
 
-      case MessageCommand.undoChange:
-        await undo(this.omegaSessionId)
-        await this.sendChangesInfo()
-        this.panel.webview.postMessage({
-          command: MessageCommand.clearChanges,
-        })
-        break
+  //     case MessageCommand.applyChanges:
+  //       await edit(
+  //         this.omegaSessionId,
+  //         message.data.offset,
+  //         message.data.originalSegment,
+  //         message.data.editedSegment
+  //       )
+  //       await this.sendChangesInfo()
+  //       break
 
-      case MessageCommand.redoChange:
-        await redo(this.omegaSessionId)
-        await this.sendChangesInfo()
-        this.panel.webview.postMessage({
-          command: MessageCommand.clearChanges,
-        })
-        break
+  //     case MessageCommand.undoChange:
+  //       await undo(this.omegaSessionId)
+  //       await this.sendChangesInfo()
+  //       this.panel.postMessage({
+  //         command: MessageCommand.clearChanges,
+  //       })
+  //       break
 
-      case MessageCommand.profile:
-        {
-          const startOffset: number = message.data.startOffset
-          const length: number = message.data.length
-          const byteProfile: number[] = await profileSession(
-            this.omegaSessionId,
-            startOffset,
-            length
-          )
-          const characterCount = await countCharacters(
-            this.omegaSessionId,
-            startOffset,
-            length
-          )
-          const contentTypeResponse = await getContentType(
-            this.omegaSessionId,
-            startOffset,
-            length
-          )
-          const languageResponse = await getLanguage(
-            this.omegaSessionId,
-            startOffset,
-            length,
-            characterCount.getByteOrderMark()
-          )
-          await this.panel.webview.postMessage({
-            command: MessageCommand.profile,
-            data: {
-              startOffset: startOffset,
-              length: length,
-              byteProfile: byteProfile,
-              numAscii: numAscii(byteProfile),
-              language: languageResponse.getLanguage(),
-              contentType: contentTypeResponse.getContentType(),
-              characterCount: {
-                byteOrderMark: characterCount.getByteOrderMark(),
-                byteOrderMarkBytes: characterCount.getByteOrderMarkBytes(),
-                singleByteCount: characterCount.getSingleByteChars(),
-                doubleByteCount: characterCount.getDoubleByteChars(),
-                tripleByteCount: characterCount.getTripleByteChars(),
-                quadByteCount: characterCount.getQuadByteChars(),
-                invalidBytes: characterCount.getInvalidBytes(),
-              },
-            },
-          })
-        }
-        break
+  //     case MessageCommand.redoChange:
+  //       await redo(this.omegaSessionId)
+  //       await this.sendChangesInfo()
+  //       this.panel.postMessage({
+  //         command: MessageCommand.clearChanges,
+  //       })
+  //       break
 
-      case MessageCommand.clearChanges:
-        if (
-          (await vscode.window.showInformationMessage(
-            'Are you sure you want to revert all changes?',
-            { modal: true },
-            'Yes',
-            'No'
-          )) === 'Yes'
-        ) {
-          await clear(this.omegaSessionId)
-          await this.sendChangesInfo()
-          this.panel.webview.postMessage({
-            command: MessageCommand.clearChanges,
-          })
-        }
-        break
+  //     case MessageCommand.profile:
+  //       {
+  //         const startOffset: number = message.data.startOffset
+  //         const length: number = message.data.length
+  //         const byteProfile: number[] = await profileSession(
+  //           this.omegaSessionId,
+  //           startOffset,
+  //           length
+  //         )
+  //         const characterCount = await countCharacters(
+  //           this.omegaSessionId,
+  //           startOffset,
+  //           length
+  //         )
+  //         const contentTypeResponse = await getContentType(
+  //           this.omegaSessionId,
+  //           startOffset,
+  //           length
+  //         )
+  //         const languageResponse = await getLanguage(
+  //           this.omegaSessionId,
+  //           startOffset,
+  //           length,
+  //           characterCount.getByteOrderMark()
+  //         )
+  //         await this.panel.postMessage({
+  //           command: MessageCommand.profile,
+  //           data: {
+  //             startOffset: startOffset,
+  //             length: length,
+  //             byteProfile: byteProfile,
+  //             numAscii: numAscii(byteProfile),
+  //             language: languageResponse.getLanguage(),
+  //             contentType: contentTypeResponse.getContentType(),
+  //             characterCount: {
+  //               byteOrderMark: characterCount.getByteOrderMark(),
+  //               byteOrderMarkBytes: characterCount.getByteOrderMarkBytes(),
+  //               singleByteCount: characterCount.getSingleByteChars(),
+  //               doubleByteCount: characterCount.getDoubleByteChars(),
+  //               tripleByteCount: characterCount.getTripleByteChars(),
+  //               quadByteCount: characterCount.getQuadByteChars(),
+  //               invalidBytes: characterCount.getInvalidBytes(),
+  //             },
+  //           },
+  //         })
+  //       }
+  //       break
 
-      case MessageCommand.save:
-        await this.saveFile(this.fileToEdit)
-        break
+  //     case MessageCommand.clearChanges:
+  //       if (
+  //         (await vscode.window.showInformationMessage(
+  //           'Are you sure you want to revert all changes?',
+  //           { modal: true },
+  //           'Yes',
+  //           'No'
+  //         )) === 'Yes'
+  //       ) {
+  //         await clear(this.omegaSessionId)
+  //         await this.sendChangesInfo()
+  //         this.panel.postMessage({
+  //           command: MessageCommand.clearChanges,
+  //         })
+  //       }
+  //       break
 
-      case MessageCommand.saveAs:
-        {
-          const uri = await vscode.window.showSaveDialog({
-            title: 'Save Session',
-            saveLabel: 'Save',
-          })
-          if (uri && uri.fsPath) {
-            await this.saveFile(uri.fsPath)
-          }
-        }
-        break
+  //     case MessageCommand.save:
+  //       await this.saveFile(this.fileToEdit)
+  //       break
 
-      case MessageCommand.saveSegment:
-        {
-          const uri = await vscode.window.showSaveDialog({
-            title: 'Save Segment',
-            saveLabel: 'Save',
-          })
-          if (uri && uri.fsPath) {
-            await this.saveFileSegment(
-              uri.fsPath,
-              message.data.offset,
-              message.data.length
-            )
-          }
-        }
-        break
+  //     case MessageCommand.saveAs:
+  //       {
+  //         const uri = await vscode.window.showSaveDialog({
+  //           title: 'Save Session',
+  //           saveLabel: 'Save',
+  //         })
+  //         if (uri && uri.fsPath) {
+  //           await this.saveFile(uri.fsPath)
+  //         }
+  //       }
+  //       break
 
-      case MessageCommand.requestEditedData:
-        {
-          const [selectionData, selectionDisplay] = fillRequestData(message)
+  //     case MessageCommand.saveSegment:
+  //       {
+  //         const uri = await vscode.window.showSaveDialog({
+  //           title: 'Save Segment',
+  //           saveLabel: 'Save',
+  //         })
+  //         if (uri && uri.fsPath) {
+  //           await this.saveFileSegment(
+  //             uri.fsPath,
+  //             message.data.offset,
+  //             message.data.length
+  //           )
+  //         }
+  //       }
+  //       break
 
-          await this.panel.webview.postMessage({
-            command: MessageCommand.requestEditedData,
-            data: {
-              data: Uint8Array.from(selectionData),
-              dataDisplay: selectionDisplay,
-            },
-          })
-        }
-        break
+  //     case MessageCommand.requestEditedData:
+  //       {
+  //         const [selectionData, selectionDisplay] = fillRequestData(message)
 
-      case MessageCommand.replace:
-        {
-          const searchDataBytes = encodedStrToData(
-            message.data.searchData,
-            message.data.encoding
-          )
-          const replaceDataBytes = encodedStrToData(
-            message.data.replaceData,
-            message.data.encoding
-          )
-          const nextOffset = await replaceOneSession(
-            this.omegaSessionId,
-            searchDataBytes,
-            replaceDataBytes,
-            message.data.caseInsensitive,
-            message.data.isReverse,
-            message.data.searchOffset,
-            message.data.searchLength,
-            message.data.overwriteOnly
-          )
-          if (nextOffset === -1) {
-            vscode.window.showErrorMessage('No replacement took place')
-          } else {
-            await this.sendChangesInfo()
-          }
-          await this.panel.webview.postMessage({
-            command: MessageCommand.replaceResults,
-            data: {
-              replacementsCount: nextOffset === -1 ? 0 : 1,
-              nextOffset: nextOffset,
-              searchDataBytesLength: searchDataBytes.length,
-              replaceDataBytesLength: replaceDataBytes.length,
-            },
-          })
-        }
-        break
+  //         await this.panel.postMessage({
+  //           command: MessageCommand.requestEditedData,
+  //           data: {
+  //             data: Uint8Array.from(selectionData),
+  //             dataDisplay: selectionDisplay,
+  //           },
+  //         })
+  //       }
+  //       break
 
-      case MessageCommand.search:
-        {
-          const searchDataBytes = encodedStrToData(
-            message.data.searchData,
-            message.data.encoding
-          )
-          const searchResults = await searchSession(
-            this.omegaSessionId,
-            searchDataBytes,
-            message.data.caseInsensitive,
-            message.data.isReverse,
-            message.data.searchOffset,
-            message.data.searchLength,
-            message.data.limit + 1
-          )
-          if (searchResults.length === 0) {
-            vscode.window.showInformationMessage(
-              `No more matches found for '${message.data.searchData}'`
-            )
-          }
-          let overflow = false
-          if (searchResults.length > message.data.limit) {
-            overflow = true
-            searchResults.pop()
-          }
-          await this.panel.webview.postMessage({
-            command: MessageCommand.searchResults,
-            data: {
-              searchResults: searchResults,
-              searchDataBytesLength: searchDataBytes.length,
-              overflow: overflow,
-            },
-          })
-        }
-        break
-    }
-  }
+  //     case MessageCommand.replace:
+  //       {
+  //         const searchDataBytes = encodedStrToData(
+  //           message.data.searchData,
+  //           message.data.encoding
+  //         )
+  //         const replaceDataBytes = encodedStrToData(
+  //           message.data.replaceData,
+  //           message.data.encoding
+  //         )
+  //         const nextOffset = await replaceOneSession(
+  //           this.omegaSessionId,
+  //           searchDataBytes,
+  //           replaceDataBytes,
+  //           message.data.caseInsensitive,
+  //           message.data.isReverse,
+  //           message.data.searchOffset,
+  //           message.data.searchLength,
+  //           message.data.overwriteOnly
+  //         )
+  //         if (nextOffset === -1) {
+  //           vscode.window.showErrorMessage('No replacement took place')
+  //         } else {
+  //           await this.sendChangesInfo()
+  //         }
+  //         await this.panel.postMessage({
+  //           command: MessageCommand.replaceResults,
+  //           data: {
+  //             replacementsCount: nextOffset === -1 ? 0 : 1,
+  //             nextOffset: nextOffset,
+  //             searchDataBytesLength: searchDataBytes.length,
+  //             replaceDataBytesLength: replaceDataBytes.length,
+  //           },
+  //         })
+  //       }
+  //       break
+
+  //     case MessageCommand.search:
+  //       {
+  //         const searchDataBytes = encodedStrToData(
+  //           message.data.searchData,
+  //           message.data.encoding
+  //         )
+  //         const searchResults = await searchSession(
+  //           this.omegaSessionId,
+  //           searchDataBytes,
+  //           message.data.caseInsensitive,
+  //           message.data.isReverse,
+  //           message.data.searchOffset,
+  //           message.data.searchLength,
+  //           message.data.limit + 1
+  //         )
+  //         if (searchResults.length === 0) {
+  //           vscode.window.showInformationMessage(
+  //             `No more matches found for '${message.data.searchData}'`
+  //           )
+  //         }
+  //         let overflow = false
+  //         if (searchResults.length > message.data.limit) {
+  //           overflow = true
+  //           searchResults.pop()
+  //         }
+  //         await this.panel.postMessage({
+  //           command: MessageCommand.searchResults,
+  //           data: {
+  //             searchResults: searchResults,
+  //             searchDataBytesLength: searchDataBytes.length,
+  //             overflow: overflow,
+  //           },
+  //         })
+  //       }
+  //       break
+  //   }
+  // }
 
   private async saveFileSegment(
     fileToSave: string,
@@ -848,14 +826,14 @@ export class DataEditorClient implements vscode.Disposable {
     if (saved) {
       this.fileToEdit = fileToSave
       const fileSize = await getComputedFileSize(this.omegaSessionId)
-      await this.panel.webview.postMessage({
-        command: MessageCommand.fileInfo,
-        data: {
-          computedFileSize: fileSize,
-          diskFileSize: fileSize,
-          fileName: fileToSave,
-        },
-      })
+      // await this.panel.postMessage({
+      //   command: MessageCommand.fileInfo,
+      //   data: {
+      //     computedFileSize: fileSize,
+      //     diskFileSize: fileSize,
+      //     fileName: fileToSave,
+      //   },
+      // })
       vscode.window.showInformationMessage(`Saved: ${fileToSave}`)
     } else if (cancelled) {
       vscode.window.showInformationMessage(`Cancelled save: ${fileToSave}`)
@@ -865,7 +843,7 @@ export class DataEditorClient implements vscode.Disposable {
   }
 
   private async scrollViewport(
-    panel: vscode.WebviewPanel,
+    panel: DataEditorUI,
     viewportId: string,
     offset: number,
     bytesPerRow: number
@@ -947,12 +925,7 @@ async function createDataEditorWebviewPanel(
   )
 
   // Use the new duplicate-safe open method
-  return await DataEditorClient.open(
-    ctx,
-    'dataEditor',
-    launchConfigVars,
-    fileToEdit
-  )
+  return await DataEditorClient.open(ctx, launchConfigVars, fileToEdit)
 }
 
 function rotateLogFiles(logFile: string): void {
@@ -1008,20 +981,20 @@ async function setupLogging(configVars: editor_config.Config): Promise<void> {
 }
 
 async function sendViewportRefresh(
-  panel: vscode.WebviewPanel,
+  panel: DataEditorUI,
   viewportDataResponse: ViewportDataResponse
 ): Promise<void> {
-  await panel.webview.postMessage({
-    command: MessageCommand.viewportRefresh,
-    data: {
-      viewportId: viewportDataResponse.getViewportId(),
-      fileOffset: viewportDataResponse.getOffset(),
-      length: viewportDataResponse.getLength(),
-      bytesLeft: viewportDataResponse.getFollowingByteCount(),
-      data: viewportDataResponse.getData_asU8(),
-      capacity: VIEWPORT_CAPACITY_MAX,
-    },
-  })
+  // await panel.postMessage({
+  //   command: MessageCommand.viewportRefresh,
+  //   data: {
+  //     viewportId: viewportDataResponse.getViewportId(),
+  //     fileOffset: viewportDataResponse.getOffset(),
+  //     length: viewportDataResponse.getLength(),
+  //     bytesLeft: viewportDataResponse.getFollowingByteCount(),
+  //     data: viewportDataResponse.getData_asU8(),
+  //     capacity: VIEWPORT_CAPACITY_MAX,
+  //   },
+  // })
 }
 
 /**
@@ -1029,10 +1002,7 @@ async function sendViewportRefresh(
  * @param panel webview panel to send updates to
  * @param viewportId id of the viewport to subscribe to
  */
-async function viewportSubscribe(
-  panel: vscode.WebviewPanel,
-  viewportId: string
-) {
+async function viewportSubscribe(panel: DataEditorUI, viewportId: string) {
   // subscribe to all viewport events
   client
     .subscribeToViewportEvents(
@@ -1057,59 +1027,34 @@ async function viewportSubscribe(
     })
 }
 
-class DisplayState {
-  public editorEncoding: BufferEncoding
-  public colorThemeKind: vscode.ColorThemeKind
-  private panel: vscode.WebviewPanel
+// function fillRequestData(message: EditorMessage): [Buffer, string] {
+//   let selectionByteData: Buffer
+//   let selectionByteDisplay: string
+//   if (message.data.editMode === EditByteModes.Multiple) {
+//     selectionByteData = encodedStrToData(
+//       message.data.editedContent,
+//       message.data.encoding
+//     )
+//     selectionByteDisplay = dataToEncodedStr(
+//       selectionByteData,
+//       message.data.encoding
+//     )
+//   } else {
+//     selectionByteData =
+//       message.data.viewport === 'logical'
+//         ? encodedStrToData(message.data.editedContent, 'latin1')
+//         : Buffer.from([
+//             parseInt(message.data.editedContent, message.data.radix),
+//           ])
 
-  constructor(editorPanel: vscode.WebviewPanel) {
-    this.editorEncoding = 'hex'
-    this.colorThemeKind = vscode.window.activeColorTheme.kind
-    this.panel = editorPanel
+//     selectionByteDisplay =
+//       message.data.viewport === 'logical'
+//         ? message.data.editedContent
+//         : dataToRadixStr(selectionByteData, message.data.radix)
+//   }
 
-    vscode.window.onDidChangeActiveColorTheme(async (event) => {
-      this.colorThemeKind = event.kind
-      await this.sendUIThemeUpdate()
-    }, this)
-    this.sendUIThemeUpdate()
-  }
-
-  private sendUIThemeUpdate() {
-    return this.panel.webview.postMessage({
-      command: MessageCommand.setUITheme,
-      theme: this.colorThemeKind,
-    })
-  }
-}
-
-function fillRequestData(message: EditorMessage): [Buffer, string] {
-  let selectionByteData: Buffer
-  let selectionByteDisplay: string
-  if (message.data.editMode === EditByteModes.Multiple) {
-    selectionByteData = encodedStrToData(
-      message.data.editedContent,
-      message.data.encoding
-    )
-    selectionByteDisplay = dataToEncodedStr(
-      selectionByteData,
-      message.data.encoding
-    )
-  } else {
-    selectionByteData =
-      message.data.viewport === 'logical'
-        ? encodedStrToData(message.data.editedContent, 'latin1')
-        : Buffer.from([
-            parseInt(message.data.editedContent, message.data.radix),
-          ])
-
-    selectionByteDisplay =
-      message.data.viewport === 'logical'
-        ? message.data.editedContent
-        : dataToRadixStr(selectionByteData, message.data.radix)
-  }
-
-  return [selectionByteData, selectionByteDisplay]
-}
+//   return [selectionByteData, selectionByteDisplay]
+// }
 
 function encodedStrToData(
   selectionEdits: string,

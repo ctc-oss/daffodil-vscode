@@ -1,4 +1,8 @@
-import { EditByteModes } from 'ext_types'
+import {
+  EditorMessageId,
+  EditorMessageIds,
+  ExtensionMessageId,
+} from './messageIds'
 import {
   ApplyChangesRequest,
   ChangesInfoResponse,
@@ -24,30 +28,7 @@ import {
   ViewportRefreshResponse,
 } from './messages'
 
-export enum MessageCommand {
-  clearChanges,
-  applyChanges,
-  editorOnChange,
-  fileInfo,
-  heartbeat,
-  profile,
-  redoChange,
-  replaceResults,
-  requestEditedData,
-  save,
-  saveAs,
-  saveSegment,
-  scrollViewport,
-  search,
-  replace,
-  searchResults,
-  setUITheme,
-  showMessage,
-  undoChange,
-  updateLogicalDisplay,
-  viewportRefresh,
-}
-export type ExtensionMessageCommands =
+type MessageCommands =
   | 'clearChanges'
   | 'applyChanges'
   | 'editorOnChange'
@@ -63,18 +44,12 @@ export type ExtensionMessageCommands =
   | 'scrollViewport'
   | 'search'
   | 'replace'
-  | 'searchResults'
   | 'setUITheme'
   | 'showMessage'
   | 'undoChange'
-  | 'updateLogicalDisplay'
   | 'viewportRefresh'
 
-/**
- * Key indexable interface to templated type inference of available messages sent between
- * the components of the DFDL VSCode extension.
- */
-export interface DataEditorMessageRequests {
+export interface MessageCommandMap {
   counts: never
   clearChanges: never
   applyChanges: ApplyChangesRequest
@@ -93,7 +68,45 @@ export interface DataEditorMessageRequests {
   replace: ReplaceRequest
   undoChange: UndoRequest
   viewportRefresh: never
+  showMessage: NotificationRequest
+  setUITheme: SetUIThemeRequest
 }
+
+type MessageRequestMap<Keys extends string[][number]> = { [k in Keys]: any }
+export type DataEditorMessageKeys = Exclude<
+  MessageCommands,
+  'showMessage' | 'setUITheme' | 'editorOnChange'
+>
+export type DataEditorMessageRequests = Pick<
+  MessageCommandMap,
+  DataEditorMessageKeys
+>
+
+/**
+ * Key indexable interface to templated type inference of available messages sent between
+ * the components of the DFDL VSCode extension.
+ */
+// export interface DataEditorMessageRequests
+//   extends MessageRequestMap<EditorMessageId> {
+//   counts: never
+//   clearChanges: never
+//   applyChanges: ApplyChangesRequest
+//   editorOnChange: EditorOnChangeRequest
+//   fileInfo: never // service
+//   heartbeat: never // service
+//   profile: ProfileRequest // service
+//   redoChange: never
+//   replaceResults: never
+//   requestEditedData: EditedDataRequest
+//   save: SaveRequest
+//   saveAs: SaveRequest
+//   saveSegment: SaveSegmentRequest
+//   scrollViewport: ScrollViewportRequest
+//   search: SearchRequest
+//   replace: ReplaceRequest
+//   undoChange: UndoRequest
+//   viewportRefresh: never
+// }
 export interface ExtensionMessageRequests {
   showMessage: NotificationRequest
   setUITheme: SetUIThemeRequest
@@ -104,7 +117,8 @@ export interface ExtensionMessageResponses {
   setUITheme: void
 }
 
-export interface DataEditorMessageResponses {
+export interface DataEditorMessageResponses
+  extends Record<keyof DataEditorMessageRequests, unknown> {
   clearChanges: void
   applyChanges: ChangesInfoResponse
   editorOnChange: EditorOnChangeResponse
@@ -124,3 +138,20 @@ export interface DataEditorMessageResponses {
   undoChange: void
   viewportRefresh: ViewportRefreshResponse
 }
+
+export type VSEditorMessagePackage<K extends keyof DataEditorMessageRequests> =
+  {
+    command: K
+    payload: DataEditorMessageRequests[K]
+  }
+
+export type VSExtensionMessagePackage<
+  K extends keyof ExtensionMessageRequests,
+> = {
+  command: K
+  payload: ExtensionMessageRequests[K]
+}
+
+export type VSMessagePackage =
+  | VSEditorMessagePackage<keyof DataEditorMessageRequests>
+  | VSExtensionMessagePackage<keyof ExtensionMessageRequests>

@@ -44,15 +44,9 @@ limitations under the License.
     UIThemeCSSClass,
     darkUITheme,
   } from './utilities/colorScheme'
-  import { MessageCommand } from 'ext_types'
   import { vscode } from './utilities/vscode'
   import Header from './components/Header/Header.svelte'
   import Main from './Main.svelte'
-  import {
-    EditByteModes,
-    type BytesPerRow,
-    VIEWPORT_SCROLL_INCREMENT,
-  } from './stores/configuration'
   import ServerMetrics from './components/ServerMetrics/ServerMetrics.svelte'
   import {
     elementKeypressEventMap,
@@ -64,6 +58,7 @@ limitations under the License.
   } from './components/DataDisplays/CustomByteDisplay/BinaryData'
   import { byte_count_divisible_offset } from './utilities/display'
   import Help from './components/layouts/Help.svelte'
+  import { EditByteModes } from 'ext_types'
   
   function requestEditedData() {
     if ($requestable) {
@@ -78,7 +73,7 @@ limitations under the License.
           editMode: $editMode,
       })
       // vscode.postMessage({
-      //   command: MessageCommand.requestEditedData,
+      //   command: requestEditedData,
       //   data: {
       //     selectionToFileOffset: $selectionDataStore.startOffset,
       //     editedContent: $editorSelection,
@@ -159,7 +154,7 @@ limitations under the License.
     )
 
     vscode.postMessage({
-      command: MessageCommand.scrollViewport,
+      command: "scrollViewport",
       data: {
         scrollOffset: fetchOffset,
         bytesPerRow: $bytesPerRow,
@@ -178,7 +173,7 @@ limitations under the License.
     $dataFeedAwaitRefresh = true
 
     vscode.postMessage({
-      command: MessageCommand.scrollViewport,
+      command: "scrollViewport",
       data: {
         scrollOffset: navigationData.nextViewportOffset,
         bytesPerRow: $bytesPerRow,
@@ -228,9 +223,14 @@ limitations under the License.
         editedData = new Uint8Array(0)
         break
     }
+    vscode.postEditorMessage('applyChanges', {
+        offset: editedOffset,
+        original_segment: originalData as Uint8Array,
+        edited_segment: editedData,
 
+    })
     vscode.postMessage({
-      command: MessageCommand.applyChanges,
+      command: "applyChanges",
       data: {
         offset: editedOffset,
         originalSegment: originalData,
@@ -243,19 +243,20 @@ limitations under the License.
 
   function undo() {
     vscode.postMessage({
-      command: MessageCommand.undoChange,
+      command: "undoChange",
     })
   }
 
   function redo() {
-    vscode.postMessage({
-      command: MessageCommand.redoChange,
-    })
+    vscode.createMessage()
+    // vscode.postMessage({
+    //   command: redoChange,
+    // })
   }
 
   function clearChangeStack() {
     vscode.postMessage({
-      command: MessageCommand.clearChanges,
+      command: clearChanges,
     })
   }
 
@@ -286,12 +287,12 @@ limitations under the License.
 
   window.addEventListener('message', (msg) => {
     switch (msg.data.command) {
-      case MessageCommand.editorOnChange:
+      case "editorOnChange":
         if ($editMode === EditByteModes.Multiple)
           $editorSelection = msg.data.display
         break
 
-      case MessageCommand.requestEditedData:
+      case "requestEditedData":
         $editorSelection = msg.data.data.dataDisplay
         if ($editMode === EditByteModes.Multiple) {
           $editedDataSegment = new Uint8Array(msg.data.data.data)
@@ -302,13 +303,13 @@ limitations under the License.
           $selectionDataStore.startOffset + $editedDataSegment.byteLength - 1
         break
 
-      case MessageCommand.setUITheme:
+      case "setUITheme":
         $darkUITheme = msg.data.theme === 2
         $UIThemeCSSClass = $darkUITheme
           ? CSSThemeClass.Dark
           : CSSThemeClass.Light
         break
-      case MessageCommand.viewportRefresh:
+      case "viewportRefresh":
         // the viewport has been refreshed, so the editor views need to be updated
         const { data, fileOffset, length, bytesLeft } = msg.data.data
         $viewport = {

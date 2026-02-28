@@ -18,14 +18,43 @@
 import * as vscode from 'vscode'
 import * as fs from 'fs'
 import {
-  DataEditorMessageRequests,
   DataEditorMessageResponses,
-  ExtensionMessageRequests,
   ExtensionMessageResponses,
+  MessageTarget,
 } from 'ext_types'
+import { DisplayState } from './displayState'
 
-export class SvelteUIWebviewPanel {
+export interface DataEditorUI extends vscode.Disposable {
+  readonly displayState: DisplayState
+  dispose(): void
+  setTitle(title: string): void
+  postMessage<
+    K extends keyof DataEditorMessageResponses &
+      keyof ExtensionMessageResponses,
+  >(
+    type: K,
+    payload: MessageTarget<K>
+  ): void
+  reveal: vscode.WebviewPanel['reveal']
+  onDidReceiveMessage: vscode.Webview['onDidReceiveMessage']
+  onDidDispose: vscode.WebviewPanel['onDidDispose']
+}
+class SvelteUIWebviewPanel implements DataEditorUI {
+  static readonly uiViewId: string = 'dataEditor'
+  readonly displayState: DisplayState = new DisplayState()
+
   constructor(private vscodePanel: vscode.WebviewPanel) {}
+  dispose() {
+    this.vscodePanel.dispose()
+  }
+
+  setTitle(title: string) {
+    this.vscodePanel.title = title
+  }
+
+  postMessage<
+    K extends keyof DataEditorMessageResponses | ExtensionMessageResponses,
+  >(type: K) {}
   postEditorResponse<K extends keyof DataEditorMessageResponses>(
     type: K,
     message: DataEditorMessageResponses[K]
@@ -38,35 +67,76 @@ export class SvelteUIWebviewPanel {
   ) {
     this.vscodePanel.webview.postMessage({ command: type, data: message })
   }
-  onDidReceive
+
+  public readonly onDidReceiveMessage =
+    this.vscodePanel.webview.onDidReceiveMessage
+
+  public readonly reveal = this.vscodePanel.reveal
+
+  public readonly onDidDispose = this.vscodePanel.onDidDispose
 }
 
-export class SvelteWebviewInitializer {
-  constructor(private context: vscode.ExtensionContext) {}
+export type SveltePanelArgs = {
+  title: string
+  column: vscode.ViewColumn
+}
 
-  initialize(view: string, webView: vscode.Webview): void {
-    webView.options = this.getWebViewOptions(this.context, view)
-    webView.html = this.getHtmlContent(this.context, view, webView)
+interface SvelteInitializerState {
+  isContextValid: boolean
+  getExtensionCtx(): vscode.ExtensionContext
+  getSvelteWebviewInitializer(): SvelteWebviewInitializer
+}
+const InvalidInitializerState: SvelteInitializerState = {
+  isContextValid: false,
+  getSvelteWebviewInitializer: () => {
+    throw 'SvelteWebviewInitializer is in an invalid state'
+  },
+  getExtensionCtx: function (): vscode.ExtensionContext {
+    throw 'SvelteWebviewInitializer is in an invalid state'
+  },
+}
+
+const ValidInitializerState: SvelteInitializerState = {
+  isContextValid: true,
+  getSvelteWebviewInitializer: () => {
+    return SvelteWebviewMgr
+  },
+  getExtensionCtx: () => {
+    return ExtensionContextRef
+  },
+}
+class SvelteWebviewInitializer {
+  static state: SvelteInitializerState = InvalidInitializerState
+
+  constructor() {}
+
+  createSveltePanel(args: SveltePanelArgs): SvelteUIWebviewPanel {
+    const ret = vscode.window.createWebviewPanel(
+      SvelteUIWebviewPanel.uiViewId,
+      args.title,
+      args.column
+    )
+    this.setWebviewOptions(ret)
+    this.setHtmlContent(ret)
+
+    return new SvelteUIWebviewPanel(ret)
   }
 
   // get the HTML content for the webview
-  private getHtmlContent(
-    context: vscode.ExtensionContext,
-    view: string,
-    webView: vscode.Webview
-  ): string {
+  private setHtmlContent(vsPanel: vscode.WebviewPanel): string {
+    let vsWebview = vsPanel.webview
     const nonce = this.getNonce()
 
-    const scriptUri = this.getResourceUri('js', context, (uri) => {
-      return webView.asWebviewUri(uri)
+    const scriptUri = this.getResourceUri('js', ExtensionContextRef, (uri) => {
+      return vsWebview.asWebviewUri(uri)
     })
-    const stylesUri = this.getResourceUri('css', context, (uri) => {
-      return webView.asWebviewUri(uri)
+    const stylesUri = this.getResourceUri('css', ExtensionContextRef, (uri) => {
+      return vsWebview.asWebviewUri(uri)
     })
-    const indexPath = this.getResourceUri('index', context)
+    const indexPath = this.getResourceUri('index', ExtensionContextRef)
     let indexHTML = this.injectNonce(
-      this.getIndexHTML(context),
-      webView,
+      this.getIndexHTML(ExtensionContextRef),
+      vsWebview,
       nonce,
       scriptUri
     )!
@@ -110,19 +180,19 @@ export class SvelteWebviewInitializer {
     }
     return text
   }
-
-  // get the webview options
-  private getWebViewOptions(
-    context: vscode.ExtensionContext,
-    view: string
-  ): vscode.WebviewPanelOptions & vscode.WebviewOptions {
-    return {
+  private setWebviewOptions(vsPanel: vscode.WebviewPanel) {
+    const opts: vscode.WebviewPanelOptions & vscode.WebviewOptions = {
       enableScripts: true,
+      retainContextWhenHidden: true,
       localResourceRoots: [
-        this.getSvelteAppDistributionFolderUri(context),
-        this.getSvelteAppDistributionViewFolderUri(context, view),
+        this.getSvelteAppDistributionFolderUri(ExtensionContextRef),
+        this.getSvelteAppDistributionViewFolderUri(
+          ExtensionContextRef,
+          SvelteUIWebviewPanel.uiViewId
+        ),
       ],
     }
+    vsPanel.webview.options = opts
   }
 
   // get the svelte app distribution folder uri
@@ -177,4 +247,21 @@ export class SvelteWebviewInitializer {
     )
     return uriDecorator ? uriDecorator(ret) : ret
   }
+}
+
+const SvelteWebviewMgr: SvelteWebviewInitializer =
+  new SvelteWebviewInitializer()
+let ExtensionContextRef: vscode.ExtensionContext
+
+export function getSvelteWebviewInitializer() {
+  return SvelteWebviewInitializer.state['getSvelteWebviewInitializer']()
+}
+
+export function startSvelteWebviewInitializer(ctx: vscode.ExtensionContext) {
+  if (SvelteWebviewInitializer.state === ValidInitializerState) {
+    console.error('The SvelteWebviewInitializer is already active')
+    return
+  }
+  ExtensionContextRef = ctx
+  SvelteWebviewInitializer.state = ValidInitializerState
 }
