@@ -24,7 +24,7 @@ limitations under the License.
     selectionSize,
     addressRadix,
   } from '../../stores'
-  import { EditByteModes, type RadixValues } from '../../stores/configuration'
+  import { EditByteModes, type RadixValues } from 'ext_types'
   import { UIThemeCSSClass } from '../../utilities/colorScheme'
   import { createEventDispatcher } from 'svelte'
   import ContentControls from '../DataDisplays/Fieldsets/ContentControls.svelte'

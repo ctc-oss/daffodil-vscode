@@ -15,10 +15,6 @@
  * limitations under the License.
  */
 
-import {
-  DataEditorMessageResponses,
-  ExtensionMessageResponses,
-} from 'ext_types'
 import { EditByteModes } from './formattypes'
 
 /**

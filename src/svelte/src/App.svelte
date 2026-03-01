@@ -59,12 +59,17 @@ limitations under the License.
   import { byte_count_divisible_offset } from './utilities/display'
   import Help from './components/layouts/Help.svelte'
   import { EditByteModes, type BytesPerRow } from 'ext_types'
-  import { VIEWPORT_SCROLL_INCREMENT } from 'stores/configuration'
+  import { VIEWPORT_SCROLL_INCREMENT } from './stores/configuration'
+  import { getUIMsgId, setUIMsgId } from './stores/states.svelte'
+  setUIMsgId( document.getElementById('app')?.attributes['extension_msg_id'].value )
+    console.log("Svelte UI Messenger Id: ", getUIMsgId())
   
+  vscode.registerMessenger(getUIMsgId())
+
   function requestEditedData() {
     if ($requestable) {
       
-      vscode.postEditorMessage('requestEditedData', {
+      vscode.postMessage('test','requestEditedData', {
           selectionToFileOffset: $selectionDataStore.startOffset,
           editedContent: $editorSelection,
           viewport: $focusedViewportId,
@@ -153,7 +158,7 @@ limitations under the License.
       $bytesPerRow,
       fetchOffset
     )
-    vscode.postMessage('scrollViewport', {
+    vscode.postMessage('test','scrollViewport', {
         startOffset: fetchOffset,
         bytesPerRow: $bytesPerRow,
         numLinesDisplayed: $dataDislayLineAmount,
@@ -169,7 +174,7 @@ limitations under the License.
     const navigationData = navigationEvent.detail
     $dataFeedAwaitRefresh = true
 
-    vscode.postMessage('scrollViewport', {
+    vscode.postMessage('test','scrollViewport', {
         startOffset: navigationData.nextViewportOffset,
         bytesPerRow: $bytesPerRow
     })
@@ -217,32 +222,27 @@ limitations under the License.
         editedData = new Uint8Array(0)
         break
     }
-    vscode.postEditorMessage('applyChanges', {
+    vscode.postMessage('test','applyChanges', {
         offset: editedOffset,
         original_segment: originalData as Uint8Array,
         edited_segment: editedData,
 
     })
-    vscode.postMessage('applyChanges', {
-        offset: editedOffset,
-        original_segment: originalData as Uint8Array,
-        edited_segment: editedData,
-
-    })
+    
     clearDataDisplays()
     clearQueryableData()
   }
 
   function undo() {
-    vscode.postMessage("undoChange")
+    vscode.postMessage('test',"undoChange")
   }
 
   function redo() {
-    vscode.postMessage("redoChange")
+    vscode.postMessage('test',"redoChange")
   }
 
   function clearChangeStack() {
-    vscode.postMessage('clearChanges')
+    vscode.postMessage('test','clearChanges')
   }
 
   function clearDataDisplays() {

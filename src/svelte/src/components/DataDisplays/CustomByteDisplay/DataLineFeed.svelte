@@ -39,9 +39,10 @@ limitations under the License.
     EditByteModes,
     type RadixValues,
     EditActionRestrictions,
-    VIEWPORT_SCROLL_INCREMENT,
-  } from '../../../stores/configuration'
-  import { MessageCommand } from '../../../utilities/message'
+  } from 'ext_types'
+  import {
+    VIEWPORT_SCROLL_INCREMENT,} from '../../../stores/configuration'
+  // import { MessageCommand } from '../../../utilities/message'
   import { vscode } from '../../../utilities/vscode'
   import Button from '../../Inputs/Buttons/Button.svelte'
   import FlexContainer from '../../layouts/FlexContainer.svelte'
@@ -453,16 +454,16 @@ limitations under the License.
   }
 
   function postEditorOnChangeMsg(forcedEncoding?: string) {
-    vscode.postMessage({
-      command: MessageCommand.editorOnChange,
-      data: {
-        fileOffset: $selectionDataStore.startOffset + viewportData.fileOffset,
-        selectionData: $editedDataSegment,
-        encoding: forcedEncoding ? forcedEncoding : $editorEncoding,
-        selectionSize: $selectionSize,
-        editMode: $editMode,
-      },
-    })
+    // vscode.postMessage({
+    //   command: MessageCommand.editorOnChange,
+    //   data: {
+    //     fileOffset: $selectionDataStore.startOffset + viewportData.fileOffset,
+    //     selectionData: $editedDataSegment,
+    //     encoding: forcedEncoding ? forcedEncoding : $editorEncoding,
+    //     selectionSize: $selectionSize,
+    //     editMode: $editMode,
+    //   },
+    // })
   }
 
   function handleClickedIndicator(e: CustomEvent) {
@@ -564,7 +565,7 @@ limitations under the License.
   window.addEventListener('keydown', navigation_keydown_event)
   window.addEventListener('message', (msg) => {
     switch (msg.data.command) {
-      case MessageCommand.viewportRefresh:
+      case "viewportRefresh":
         if (awaitViewportSeek) {
           awaitViewportSeek = false
           $dataFeedLineTop = Math.max(

@@ -46,7 +46,8 @@ export default defineConfig(({ mode }) => {
         layout: path.resolve(__dirname, 'src/components/layouts'),
         HTMLWrappers: path.resolve(__dirname, 'src/components/html'),
         editor_components: path.resolve(__dirname, 'src/components/sections'),
-        ext_types: path.resolve('../../ext_types'),
+        ext_types: path.resolve('../ext_types'),
+        stores: path.resolve('src/stores'),
       },
     },
     plugins: [

@@ -19,63 +19,77 @@ import * as vscode from 'vscode'
 import * as fs from 'fs'
 import {
   DataEditorMessageResponses,
-  ExtensionMessageResponses,
-  MessageCommandMap,
+  MessageRequestMap,
+  MessageResponseMap,
   PostMessageArgs,
 } from 'ext_types'
 import { DisplayState } from './displayState'
+import { randomUUID } from 'crypto'
 
 export interface DataEditorUI extends vscode.Disposable {
   readonly displayState: DisplayState
   dispose(): void
   setTitle(title: string): void
-  postMessage<K extends keyof MessageCommandMap>(
-    ...payload: PostMessageArgs<MessageCommandMap, K>
+  getMsgId(): string
+  postMessage<K extends keyof MessageResponseMap>(
+    ...payload: PostMessageArgs<MessageResponseMap, K>
   ): void
   reveal: vscode.WebviewPanel['reveal']
-  onDidReceiveMessage: vscode.Webview['onDidReceiveMessage']
-  onDidDispose: vscode.WebviewPanel['onDidDispose']
+  onDidReceiveMessage(listener: (e: any) => void): void
+  onDidDispose(listener: (e: any) => void): void
 }
 class SvelteUIWebviewPanel implements DataEditorUI {
   static readonly uiViewId: string = 'dataEditor'
   readonly displayState: DisplayState = new DisplayState()
 
-  constructor(private vscodePanel: vscode.WebviewPanel) {}
+  constructor(
+    private vscodePanel: vscode.WebviewPanel,
+    private messengerId: string = ''
+  ) {}
   dispose() {
     this.vscodePanel.dispose()
   }
+  getMsgId() {
+    return this.messengerId
+  }
+  setMsgId(id: string) {
+    if (this.messengerId !== '')
+      throw 'Cannot reassign messenger id after initialization.'
 
+    this.messengerId = id
+  }
   setTitle(title: string) {
     this.vscodePanel.title = title
   }
 
-  postMessage<K extends keyof MessageCommandMap>(
-    ...payload: PostMessageArgs<MessageCommandMap, K>
-  ) {}
-  postEditorResponse<K extends keyof DataEditorMessageResponses>(
-    type: K,
-    message: DataEditorMessageResponses[K]
+  postMessage<K extends keyof MessageResponseMap>(
+    ...msg: PostMessageArgs<MessageResponseMap, K>
   ) {
-    this.vscodePanel.webview.postMessage({ command: type, data: message })
-  }
-  postExtensionResponse<K extends keyof ExtensionMessageResponses>(
-    type: K,
-    message: ExtensionMessageResponses[K]
-  ) {
-    this.vscodePanel.webview.postMessage({ command: type, data: message })
+    const [type, payload] = msg as [K, MessageResponseMap[K]]
+    this.vscodePanel.webview.postMessage({
+      command: type,
+      id: this.messengerId,
+      data: { ...payload },
+    })
   }
 
-  public readonly onDidReceiveMessage =
-    this.vscodePanel.webview.onDidReceiveMessage
+  public onDidReceiveMessage(listener: (e: any) => void) {
+    this.vscodePanel.webview.onDidReceiveMessage(listener)
+  }
 
-  public readonly reveal = this.vscodePanel.reveal
+  public readonly reveal = () => {
+    this.vscodePanel.reveal()
+  }
 
-  public readonly onDidDispose = this.vscodePanel.onDidDispose
+  public onDidDispose(listener: (e: any) => void) {
+    this.vscodePanel.onDidDispose(listener)
+  }
 }
 
 export type SveltePanelArgs = {
   title: string
   column: vscode.ViewColumn
+  uiMsgId: string
 }
 
 interface SvelteInitializerState {
@@ -102,11 +116,17 @@ const ValidInitializerState: SvelteInitializerState = {
     return ExtensionContextRef
   },
 }
+
+const UI_MSG_ID_MAX_LEN = 32
+
 class SvelteWebviewInitializer {
   static state: SvelteInitializerState = InvalidInitializerState
-
   constructor() {}
-
+  formatMsgId(id: string) {
+    let idStr = id.substring(0, UI_MSG_ID_MAX_LEN)
+    idStr.replaceAll(' ', '_')
+    return idStr
+  }
   createSveltePanel(args: SveltePanelArgs): SvelteUIWebviewPanel {
     const ret = vscode.window.createWebviewPanel(
       SvelteUIWebviewPanel.uiViewId,
@@ -114,13 +134,13 @@ class SvelteWebviewInitializer {
       args.column
     )
     this.setWebviewOptions(ret)
-    this.setHtmlContent(ret)
+    this.setHtmlContent(ret, args.uiMsgId)
 
-    return new SvelteUIWebviewPanel(ret)
+    return new SvelteUIWebviewPanel(ret, args.uiMsgId)
   }
 
   // get the HTML content for the webview
-  private setHtmlContent(vsPanel: vscode.WebviewPanel): string {
+  private setHtmlContent(vsPanel: vscode.WebviewPanel, msgId: string) {
     let vsWebview = vsPanel.webview
     const nonce = this.getNonce()
 
@@ -142,7 +162,9 @@ class SvelteWebviewInitializer {
       .replace(/src="\.\/index.js"/, `src="${scriptUri.toString()}"`)
       .replace(/href="\.\/style.css"/, `href="${stylesUri.toString()}"`)
       .replaceAll(/nonce="__nonce__"/g, `nonce="${nonce}""`)
-    return indexHTML
+      .replace('__extension_msg_id__', msgId)
+
+    vsWebview.html = indexHTML
   }
   private injectNonce(
     html: string,

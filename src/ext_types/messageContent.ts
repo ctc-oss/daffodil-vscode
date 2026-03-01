@@ -1,3 +1,4 @@
+import { IServerHeartbeat } from '@omega-edit/client'
 import {
   EditorMessageId,
   EditorMessageIds,
@@ -50,7 +51,10 @@ type MessageCommands =
   | 'undoChange'
   | 'viewportRefresh'
 
-export interface MessageCommandMap {
+type CommandMap = {
+  [K in MessageCommands]: any
+}
+export interface MessageRequestMap extends CommandMap {
   counts: never
   clearChanges: never
   applyChanges: ApplyChangesRequest
@@ -73,19 +77,46 @@ export interface MessageCommandMap {
   setUITheme: SetUIThemeRequest
 }
 
+export interface MessageResponseMap extends CommandMap {
+  clearChanges: void
+  applyChanges: ChangesInfoResponse
+  editorOnChange: EditorOnChangeResponse
+  fileInfo: FileInfoResponse
+  counts: CountResponse
+  profile: ProfileResponse
+  redoChange: void
+  replaceResults: ReplaceResponse
+  requestEditedData: EditedDataResponse
+  save: void
+  saveAs: SaveAsResponse
+  saveSegment: void
+  scrollViewport: void
+  search: SearchResponse
+  replace: ReplaceResponse
+  undoChange: void
+  viewportRefresh: ViewportRefreshResponse
+  showMessage: undefined
+  setUITheme: void
+  heartbeat: IServerHeartbeat & { port: number }
+}
+
 export type ExtensionMessageKeys =
   | 'showMessage'
   | 'setUITheme'
   | 'editorOnChange'
+
 export type DataEditorMessageKeys = Exclude<
   MessageCommands,
   ExtensionMessageKeys
 >
 export type DataEditorMessageRequests = Pick<
-  MessageCommandMap,
+  MessageRequestMap,
   DataEditorMessageKeys
 >
-
+export type DataEditorMessageResponses = Pick<
+  MessageResponseMap,
+  DataEditorMessageKeys
+>
 /**
  * Key indexable interface to templated type inference of available messages sent between
  * the components of the DFDL VSCode extension.
@@ -112,36 +143,33 @@ export type DataEditorMessageRequests = Pick<
 //   viewportRefresh: never
 // }
 export type ExtensionMessageRequests = Pick<
-  MessageCommandMap,
+  MessageRequestMap,
   ExtensionMessageKeys
 >
 
-export interface ExtensionMessageResponses {
-  showMessage: undefined
-  setUITheme: void
-}
+// export type ExtensionMessageResponses = Pick<
 
-export interface DataEditorMessageResponses
-  extends Record<keyof DataEditorMessageRequests, unknown> {
-  clearChanges: void
-  applyChanges: ChangesInfoResponse
-  editorOnChange: EditorOnChangeResponse
-  fileInfo: FileInfoResponse
-  counts: CountResponse
-  // heartbeat: IServerHeartbeat & { port: number } // service
-  profile: ProfileResponse
-  redoChange: void
-  replaceResults: ReplaceResponse
-  requestEditedData: EditedDataResponse
-  save: void
-  saveAs: SaveAsResponse
-  saveSegment: void
-  scrollViewport: void
-  search: SearchResponse
-  replace: ReplaceResponse
-  undoChange: void
-  viewportRefresh: ViewportRefreshResponse
-}
+// export interface DataEditorMessageResponses
+//   extends Record<keyof DataEditorMessageRequests, unknown> {
+//   clearChanges: void
+//   applyChanges: ChangesInfoResponse
+//   editorOnChange: EditorOnChangeResponse
+//   fileInfo: FileInfoResponse
+//   counts: CountResponse
+//   // heartbeat: IServerHeartbeat & { port: number } // service
+//   profile: ProfileResponse
+//   redoChange: void
+//   replaceResults: ReplaceResponse
+//   requestEditedData: EditedDataResponse
+//   save: void
+//   saveAs: SaveAsResponse
+//   saveSegment: void
+//   scrollViewport: void
+//   search: SearchResponse
+//   replace: ReplaceResponse
+//   undoChange: void
+//   viewportRefresh: ViewportRefreshResponse
+// }
 
 export type VSEditorMessagePackage<K extends keyof DataEditorMessageRequests> =
   {

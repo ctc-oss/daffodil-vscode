@@ -42,7 +42,7 @@ limitations under the License.
     UIThemeCSSClass,
     darkUITheme,
   } from '../utilities/colorScheme'
-  import { MessageCommand } from '../utilities/message'
+  // import { MessageCommand } from '../utilities/message'
   import { vscode } from '../utilities/vscode'
   import Header from './Header/Header.svelte'
   import Main from './Main.svelte'

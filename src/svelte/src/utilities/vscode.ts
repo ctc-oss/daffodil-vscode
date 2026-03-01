@@ -20,11 +20,63 @@ import {
   type ExtensionMessageRequests,
   type VSEditorMessagePackage,
   type VSExtensionMessagePackage,
-  type MessageCommandMap,
+  type MessageRequestMap,
   type PostMessageArgs,
+  type MessageResponseMap,
+  type ChangesInfoResponse,
+  type CountResponse,
+  type EditedDataResponse,
+  type EditorOnChangeResponse,
+  type FileInfoResponse,
+  type ProfileResponse,
+  type ReplaceResponse,
+  type SaveAsResponse,
+  type SearchResponse,
+  type ViewportRefreshResponse,
 } from 'ext_types'
 import type { WebviewApi } from 'vscode-webview'
+import {
+  DefaultEditorListenerMap,
+  type EditorMessageListener,
+  type EditorMessageListenerMap,
+} from './messages'
+import type { IServerHeartbeat } from '@omega-edit/client'
 
+type MessageRequest<K extends keyof MessageRequestMap> = {
+  id: string
+  payload: PostMessageArgs<MessageRequestMap, K>
+}
+
+const ListenerRegistry = new Map<
+  string,
+  Map<keyof MessageResponseMap, EditorMessageListener<keyof MessageResponseMap>>
+>()
+interface UIMessengerInterface {
+  addListener<K extends keyof MessageResponseMap>(
+    id: string,
+    type: K,
+    listener: EditorMessageListener<K>
+  ): void
+  postMessage<K extends keyof MessageRequestMap>(
+    ...args: PostMessageArgs<MessageRequestMap, K>
+  ): void
+}
+class UIMessenger {
+  constructor(
+    readonly id: string,
+    private uiAPI: UIMessengerInterface
+  ) {}
+  addListener<K extends keyof MessageResponseMap>(
+    type: K,
+    listener: EditorMessageListener<K>
+  ) {
+    this.uiAPI.addListener(this.id, type, listener)
+  }
+  postMessage<K extends keyof MessageRequestMap>(
+    id: string,
+    ...args: PostMessageArgs<MessageRequestMap, K>
+  ) {}
+}
 /**
  * A utility wrapper around the acquireVsCodeApi() function, which enables
  * message passing and state management between the webview and extension
@@ -36,7 +88,8 @@ import type { WebviewApi } from 'vscode-webview'
  */
 class VSCodeAPIWrapper {
   private readonly vsCodeApi: WebviewApi<unknown> | undefined
-
+  private editorMessengerRegistry: Map<string, EditorMessageListenerMap> =
+    new Map()
   constructor() {
     // Check if the acquireVsCodeApi function exists in the current development
     // context (i.e. VS Code development window or web browser)
@@ -45,6 +98,21 @@ class VSCodeAPIWrapper {
     }
   }
 
+  registerMessenger(id: string, listeners?: Partial<EditorMessageListenerMap>) {
+    if (this.editorMessengerRegistry.get(id))
+      throw `A listener registry is already registered with id: ${id}`
+    this.editorMessengerRegistry.set(id, DefaultEditorListenerMap)
+
+    if (listeners) {
+      let registeredMap = this.editorMessengerRegistry.get(id)!
+
+      for (const msgType in Object.keys(DefaultEditorListenerMap)) {
+        if (listeners[msgType] !== undefined)
+          registeredMap[msgType] = listeners[msgType]
+      }
+    }
+    const ret = new UIMessenger(id)
+  }
   /**
    * Post a message (i.e. send arbitrary data) to the owner of the webview.
    *
@@ -53,34 +121,56 @@ class VSCodeAPIWrapper {
    *
    * @param message Arbitrary data (must be JSON serializable) to send to the extension context.
    */
-  public postMessage<K extends keyof MessageCommandMap>(
-    ...args: PostMessageArgs<MessageCommandMap, K>
+  public postMessage<K extends keyof MessageRequestMap>(
+    id: string,
+    ...args: PostMessageArgs<MessageRequestMap, K>
   ) {
+    let msg = this.createMessage(args)
+    msg.id = id
+    this._postMessage(msg)
     // if (this.vsCodeApi) {
     //   this.vsCodeApi.postMessage(message)
     // } else {
     //   console.log(message)
     // }
   }
-  public postExtensionMessage<K extends keyof ExtensionMessageRequests>(
-    type: K,
-    msgPkg: VSExtensionMessagePackage<K>
-  ) {
-    this._postMessage({
-      command: type,
-      data: { ...msgPkg },
-    })
+  public createMessage<K extends keyof MessageRequestMap>(
+    payload: PostMessageArgs<MessageRequestMap, K>
+  ): MessageRequest<K> {
+    return {
+      id: '',
+      payload: payload,
+    }
   }
-
-  public postEditorMessage<K extends keyof DataEditorMessageRequests>(
+  public addMessageListener<K extends keyof MessageResponseMap>(
+    id: string,
     type: K,
-    msgPkg: VSEditorMessagePackage<K>['payload'] extends object
-      ? VSEditorMessagePackage<K>['payload']
-      : undefined
+    listener: EditorMessageListener<K>
   ) {
-    this._postMessage({
-      command: type,
-      data: { ...msgPkg },
+    if (!ListenerRegistry.get(id))
+      ListenerRegistry.set(
+        id,
+        new Map<
+          keyof MessageResponseMap,
+          EditorMessageListener<keyof MessageResponseMap>
+        >()
+      )
+
+    const registeredMap = ListenerRegistry.get(id)!
+    registeredMap.set(type, (msg) => {
+      listener(msg as MessageResponseMap[K])
+    })
+
+    console.log(ListenerRegistry)
+    console.log(ListenerRegistry.get(id))
+
+    window.addEventListener('message', (msg) => {
+      const id = msg.data.id
+      let registeredListenerMap = ListenerRegistry.get(id)
+      if (!registeredListenerMap) return
+      let msgCb = registeredListenerMap.get(type)!
+      msgCb(msg.data.data)
+      // registeredListener![type](msg.data.data as MessageResponseMap[K])
     })
   }
   /**

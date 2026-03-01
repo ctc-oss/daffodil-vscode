@@ -17,7 +17,6 @@ limitations under the License.
 <script lang="ts">
   import Button from '../Inputs/Buttons/Button.svelte'
   import { vscode } from '../../utilities/vscode'
-  import { MessageCommand } from '../../utilities/message'
   import { onMount } from 'svelte'
   import Input from '../Inputs/Input/Input.svelte'
   import { addressRadix, viewport } from '../../stores'
@@ -148,13 +147,13 @@ limitations under the License.
   }
 
   function saveSegmentAs() {
-    vscode.postMessage({
-      command: MessageCommand.saveSegment,
-      data: {
-        offset: startOffset,
-        length: length,
-      },
-    })
+    // vscode.postMessage({
+    //   command: MessageCommand.saveSegment,
+    //   data: {
+    //     offset: startOffset,
+    //     length: length,
+    //   },
+    // })
   }
 
   function requestSessionProfile(startOffset: number, length: number) {
@@ -162,13 +161,13 @@ limitations under the License.
       `Profiling bytes from ${startOffset} to ${startOffset + length}...`,
       0
     )
-    vscode.postMessage({
-      command: MessageCommand.profile,
-      data: {
-        startOffset: startOffset,
-        length: length,
-      },
-    })
+    // vscode.postMessage({
+    //   command: MessageCommand.profile,
+    //   data: {
+    //     startOffset: startOffset,
+    //     length: length,
+    //   },
+    // })
   }
 
   function handleInputEnter(e: CustomEvent) {
@@ -282,7 +281,7 @@ limitations under the License.
     // Handle messages sent from the extension to the webview
     window.addEventListener('message', (msg) => {
       switch (msg.data.command) {
-        case MessageCommand.profile:
+        case "profile":
           numAscii = msg.data.data.numAscii as number
           byteProfile = msg.data.data.byteProfile as number[]
           language = msg.data.data.language as string

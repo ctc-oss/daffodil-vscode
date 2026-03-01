@@ -15,7 +15,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
-  import { MessageCommand } from '../../utilities/message'
   import FlexContainer from '../layouts/FlexContainer.svelte'
 
   let heartbeat = {
@@ -67,33 +66,33 @@ limitations under the License.
       : `${seconds} seconds`
   }
 
-  window.addEventListener('message', (msg) => {
-    switch (msg.data.command) {
-      case MessageCommand.heartbeat:
-        heartbeat.latency = msg.data.data.latency
-        heartbeat.serverCpuLoadAverage = msg.data.data.serverCpuLoadAverage
-        heartbeat.serverTimestamp = msg.data.data.serverTimestamp
-        heartbeat.serverUptime = msg.data.data.serverUptime
-        heartbeat.serverUsedMemory = msg.data.data.serverUsedMemory
-        heartbeat.sessionCount = msg.data.data.sessionCount
-        heartbeat.omegaEditPort = msg.data.data.serverInfo.omegaEditPort
-        heartbeat.serverVersion = msg.data.data.serverInfo.serverVersion
-        heartbeat.serverHostname = msg.data.data.serverInfo.serverHostname
-        heartbeat.serverProcessId = msg.data.data.serverInfo.serverProcessId
-        heartbeat.jvmVersion = msg.data.data.serverInfo.jvmVersion
-        heartbeat.jvmVendor = msg.data.data.serverInfo.jvmVendor
-        heartbeat.jvmPath = msg.data.data.serverInfo.jvmPath
-        heartbeat.availableProcessors =
-          msg.data.data.serverInfo.availableProcessors
+  // window.addEventListener('message', (msg) => {
+  //   switch (msg.data.command) {
+  //     case MessageCommand.heartbeat:
+  //       heartbeat.latency = msg.data.data.latency
+  //       heartbeat.serverCpuLoadAverage = msg.data.data.serverCpuLoadAverage
+  //       heartbeat.serverTimestamp = msg.data.data.serverTimestamp
+  //       heartbeat.serverUptime = msg.data.data.serverUptime
+  //       heartbeat.serverUsedMemory = msg.data.data.serverUsedMemory
+  //       heartbeat.sessionCount = msg.data.data.sessionCount
+  //       heartbeat.omegaEditPort = msg.data.data.serverInfo.omegaEditPort
+  //       heartbeat.serverVersion = msg.data.data.serverInfo.serverVersion
+  //       heartbeat.serverHostname = msg.data.data.serverInfo.serverHostname
+  //       heartbeat.serverProcessId = msg.data.data.serverInfo.serverProcessId
+  //       heartbeat.jvmVersion = msg.data.data.serverInfo.jvmVersion
+  //       heartbeat.jvmVendor = msg.data.data.serverInfo.jvmVendor
+  //       heartbeat.jvmPath = msg.data.data.serverInfo.jvmPath
+  //       heartbeat.availableProcessors =
+  //         msg.data.data.serverInfo.availableProcessors
 
-        // set the serverTimestamp to 0 after 5 seconds of no heartbeat to indicate that no heartbeat has been received
-        clearTimeout(timerId)
-        timerId = setTimeout(() => {
-          heartbeat.serverTimestamp = 0
-        }, 5000)
-        break
-    }
-  })
+  //       // set the serverTimestamp to 0 after 5 seconds of no heartbeat to indicate that no heartbeat has been received
+  //       clearTimeout(timerId)
+  //       timerId = setTimeout(() => {
+  //         heartbeat.serverTimestamp = 0
+  //       }, 5000)
+  //       break
+  //   }
+  // })
 </script>
 
 <FlexContainer --height="25pt" --align-items="center">

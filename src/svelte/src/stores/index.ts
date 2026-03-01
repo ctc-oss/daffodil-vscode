@@ -39,12 +39,12 @@ import {
 } from '../components/Header/fieldsets/SearchReplace'
 import {
   EditByteModes,
-  UNPRINTABLE_CHAR_STAND_IN,
   type RadixValues,
   type BytesPerRow,
   EditActionRestrictions,
-} from './configuration'
+} from 'ext_types'
 import type { AvailableHelpSections } from '../components/layouts/Help'
+import { UNPRINTABLE_CHAR_STAND_IN } from './configuration'
 
 export class SelectionData_t {
   startOffset = -1

@@ -18,6 +18,9 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "target": "esnext",
     "allowImportingTsExtensions": true,
     "noEmit": true,
     "inlineSources": true,
@@ -27,7 +30,8 @@
       "layout/*": ["components/layouts/*"],
       "HTMLWrappers/*": ["components/html/*"],
       "editor_components/*": ["components/sections/*"],
-      "ext_types": ["../../ext_types"]
+      "ext_types": ["../../ext_types"],
+      "stores/*":["stores/*"]
     },
     "useDefineForClassFields": true,
     "resolveJsonModule": true,

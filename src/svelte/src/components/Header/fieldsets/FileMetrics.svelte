@@ -17,9 +17,8 @@ limitations under the License.
 <script lang="ts">
   import Button from '../../Inputs/Buttons/Button.svelte'
   import FlexContainer from '../../layouts/FlexContainer.svelte'
-  import { MessageCommand } from '../../../utilities/message'
   import { vscode } from '../../../utilities/vscode'
-  import { saveable, fileMetrics, replaceQuery } from '../../../stores'
+  import { saveable, fileMetrics} from '../../../stores'
   import { createEventDispatcher } from 'svelte'
   import SidePanel from '../../layouts/SidePanel.svelte'
   import ByteFrequencyGraph from '../../DataMetrics/DataMetrics.svelte'
@@ -28,6 +27,7 @@ limitations under the License.
   import { DATA_PROFILE_MAX_LENGTH } from '../../../stores/configuration'
   import Tooltip from '../../layouts/Tooltip.svelte'
   import ISO6391 from 'iso-639-1'
+  import { getUIMsgId } from 'stores/states.svelte'
   const eventDispatcher = createEventDispatcher()
 
   let displayOpts = false
@@ -39,16 +39,16 @@ limitations under the License.
   let length: number = 0
 
   function saveAs() {
-    vscode.postMessage({
-      command: MessageCommand.saveAs,
-    })
+    // vscode.postMessage({
+    //   command: MessageCommand.saveAs,
+    // })
     displayOpts = false
   }
 
   function save() {
-    vscode.postMessage({
-      command: MessageCommand.save,
-    })
+    // vscode.postMessage({
+    //   command: MessageCommand.save,
+    // })
     displayOpts = false
   }
 
@@ -61,41 +61,53 @@ limitations under the License.
       }, 10000)
     }
   }
-
-  window.addEventListener('message', (msg) => {
-    switch (msg.data.command) {
-      case MessageCommand.fileInfo:
-        {
-          // reset the profiler if changes have been made
-          isProfilerOpen = false
-          startOffset = length = 0
-          if ('fileName' in msg.data.data) {
-            $fileMetrics.name = msg.data.data.fileName
-          }
-          if ('type' in msg.data.data) {
-            $fileMetrics.type = msg.data.data.type
-          }
-          if ('language' in msg.data.data) {
-            $fileMetrics.language = msg.data.data.language
-          }
-          if ('diskFileSize' in msg.data.data) {
-            $fileMetrics.diskSize = msg.data.data.diskFileSize
-          }
-          if ('computedFileSize' in msg.data.data) {
-            $fileMetrics.computedSize = msg.data.data.computedFileSize
-          }
-          if ('changeCount' in msg.data.data) {
-            $fileMetrics.changeCount = msg.data.data.changeCount
-          }
-          if ('undoCount' in msg.data.data) {
-            $fileMetrics.undoCount = msg.data.data.undoCount
-          }
-        }
-        break
-      default:
-        break // do nothing
+  vscode.addMessageListener(
+    getUIMsgId(),
+    'fileInfo',
+    (msg) => {
+      $fileMetrics.name = msg.filename
+      $fileMetrics.language = msg.language
+      $fileMetrics.type = msg.contentType
     }
-  })
+  )
+  // window.addEventListener('message', (msg) => {
+  //   if(msg.data.id === getUIMsgId()){
+  //   switch (msg.data.command) {
+  //     // attributes in msg.data.data.[...]
+
+  //     case "fileInfo":
+  //       {
+  //         // reset the profiler if changes have been made
+  //         isProfilerOpen = false
+  //         startOffset = length = 0
+  //         if ('fileName' in msg.data.data) {
+  //           $fileMetrics.name = msg.data.data.fileName
+  //         }
+  //         if ('type' in msg.data.data) {
+  //           $fileMetrics.type = msg.data.data.type
+  //         }
+  //         if ('language' in msg.data.data) {
+  //           $fileMetrics.language = msg.data.data.language
+  //         }
+  //         if ('diskFileSize' in msg.data.data) {
+  //           $fileMetrics.diskSize = msg.data.data.diskFileSize
+  //         }
+  //         if ('computedFileSize' in msg.data.data) {
+  //           $fileMetrics.computedSize = msg.data.data.computedFileSize
+  //         }
+  //         if ('changeCount' in msg.data.data) {
+  //           $fileMetrics.changeCount = msg.data.data.changeCount
+  //         }
+  //         if ('undoCount' in msg.data.data) {
+  //           $fileMetrics.undoCount = msg.data.data.undoCount
+  //         }
+  //       }
+  //       break
+  //     default:
+  //       break // do nothing
+  //   }
+  // }
+  // })
 
   $: {
     canUndo = $fileMetrics.changeCount > 0

@@ -133,7 +133,7 @@ export class DataEditorClient implements vscode.Disposable {
     fileToEdit: string = '',
     private panel: DataEditorUI
   ) {
-    this.panel.onDidReceiveMessage(this.msgReceiver, this)
+    this.panel.onDidReceiveMessage(this.msgReceiver)
 
     this.disposables = [
       this.panel,
@@ -173,19 +173,25 @@ export class DataEditorClient implements vscode.Disposable {
     fileToEdit: string = ''
   ): Promise<DataEditorClient | undefined> {
     startSvelteWebviewInitializer(context)
-    const title = !fileToEdit ? 'Data Editor' : path.basename(fileToEdit)
+    const title = !fileToEdit
+      ? 'Data Editor' + (OPEN_EDITORS.size + 1).toString()
+      : path.basename(fileToEdit)
 
     const column =
       fileToEdit === '' ? vscode.ViewColumn.Two : vscode.ViewColumn.Active
+    const uiMsgId = getSvelteWebviewInitializer().formatMsgId(title)
 
     const ui = getSvelteWebviewInitializer().createSveltePanel({
       title,
       column,
+      uiMsgId,
     })
 
     const editor = new DataEditorClient(context, configVars, fileToEdit, ui)
 
     await editor.initialize()
+
+    ui.reveal()
 
     ui.onDidDispose(async () => {
       const pathKey = path.resolve(editor.fileToEdit).toLowerCase()
@@ -372,8 +378,12 @@ export class DataEditorClient implements vscode.Disposable {
       })
       vscode.window.showErrorMessage(msg)
     }
-
-    this.panel.postMessage
+    this.panel.postMessage('fileInfo', {
+      bom: data.byteOrderMark,
+      contentType: data.type,
+      filename: this.fileToEdit,
+      language: data.language,
+    })
     // send the initial file info to the webview
     // await this.panel.postMessage({
     //   command: MessageCommand.fileInfo,

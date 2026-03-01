@@ -41,7 +41,7 @@ limitations under the License.
     UIThemeCSSClass,
     type CSSThemeClass,
   } from '../../../utilities/colorScheme'
-  import { EditActionRestrictions } from '../../../stores/configuration'
+  import { EditActionRestrictions } from 'ext_types'
   import Tooltip from '../../layouts/Tooltip.svelte'
 
   const eventDispatcher = createEventDispatcher()

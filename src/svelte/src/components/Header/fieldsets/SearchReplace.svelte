@@ -33,7 +33,6 @@ limitations under the License.
     seekOffset,
   } from '../../../stores'
   import { vscode } from '../../../utilities/vscode'
-  import { MessageCommand } from '../../../utilities/message'
 
   import Error from '../../Error/Error.svelte'
   import Button from '../../Inputs/Buttons/Button.svelte'
@@ -42,7 +41,7 @@ limitations under the License.
   import { createEventDispatcher } from 'svelte'
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
   import ToggleableButton from '../../Inputs/Buttons/ToggleableButton.svelte'
-  import { EditActionRestrictions } from '../../../stores/configuration'
+  import { EditActionRestrictions } from 'ext_types'
   import { OffsetSearchType, clear_queryable_results } from './SearchReplace'
   import Tooltip from '../../layouts/Tooltip.svelte'
 
@@ -88,18 +87,18 @@ limitations under the License.
     isReverse: boolean
   ) {
     $searchQuery.processing = true
-    vscode.postMessage({
-      command: MessageCommand.search,
-      data: {
-        searchData: $searchQuery.input,
-        caseInsensitive: caseInsensitive,
-        isReverse: isReverse,
-        encoding: $editorEncoding,
-        searchOffset: searchOffset,
-        searchLength: searchLength,
-        limit: 1,
-      },
-    })
+    // vscode.postMessage({
+    //   command: MessageCommand.search,
+    //   data: {
+    //     searchData: $searchQuery.input,
+    //     caseInsensitive: caseInsensitive,
+    //     isReverse: isReverse,
+    //     encoding: $editorEncoding,
+    //     searchOffset: searchOffset,
+    //     searchLength: searchLength,
+    //     limit: 1,
+    //   },
+    // })
   }
 
   function searchFirst() {
@@ -147,21 +146,21 @@ limitations under the License.
 
   function replace() {
     $replaceQuery.processing = true
-    vscode.postMessage({
-      command: MessageCommand.replace,
-      data: {
-        searchData: $searchQuery.input,
-        caseInsensitive: caseInsensitive,
-        isReverse: false,
-        replaceData: $replaceQuery.input,
-        encoding: $editorEncoding,
-        overwriteOnly:
-          $editorActionsAllowed === EditActionRestrictions.OverwriteOnly,
-        searchOffset: matchOffset,
-        searchLength: 0,
-        limit: 1,
-      },
-    })
+    // vscode.postMessage({
+    //   command: MessageCommand.replace,
+    //   data: {
+    //     searchData: $searchQuery.input,
+    //     caseInsensitive: caseInsensitive,
+    //     isReverse: false,
+    //     replaceData: $replaceQuery.input,
+    //     encoding: $editorEncoding,
+    //     overwriteOnly:
+    //       $editorActionsAllowed === EditActionRestrictions.OverwriteOnly,
+    //     searchOffset: matchOffset,
+    //     searchLength: 0,
+    //     limit: 1,
+    //   },
+    // })
     eventDispatcher('clearDataDisplays')
   }
 
@@ -204,7 +203,7 @@ limitations under the License.
   window.addEventListener('message', (msg) => {
     switch (msg.data.command) {
       // handle search results
-      case MessageCommand.searchResults:
+      case "searchResults":
         if (msg.data.data.searchResults.length > 0) {
           searchQuery.updateSearchResults(msg.data.data)
           switch (direction) {
@@ -245,7 +244,7 @@ limitations under the License.
         break
 
       // handle replace results
-      case MessageCommand.replaceResults:
+      case "replaceResults":
         searchStarted = replaceStarted = false
         if (msg.data.data.replacementsCount > 0) {
           // subtract 1 from the next offset because search next will add 1
@@ -265,7 +264,7 @@ limitations under the License.
         $replaceQuery.processing = false
         break
 
-      case MessageCommand.clearChanges:
+      case "clearChanges":
         cancel()
         break
     }

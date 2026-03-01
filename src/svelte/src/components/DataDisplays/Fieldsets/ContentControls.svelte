@@ -16,7 +16,7 @@ limitations under the License.
 -->
 <script lang="ts">
   import { applyErrMsg, applicable, editMode } from '../../../stores'
-  import { EditByteModes } from '../../../stores/configuration'
+  import { EditByteModes } from 'ext_types'
   import { createEventDispatcher } from 'svelte'
   import FlexContainer from '../../layouts/FlexContainer.svelte'
   import Button from '../../Inputs/Buttons/Button.svelte'
