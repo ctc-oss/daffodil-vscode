@@ -20,9 +20,8 @@ import {
   type ExtensionMessageRequests,
   type VSEditorMessagePackage,
   type VSExtensionMessagePackage,
-  type MessageTarget,
-  type VSMessagePackage,
   type MessageCommandMap,
+  type PostMessageArgs,
 } from 'ext_types'
 import type { WebviewApi } from 'vscode-webview'
 
@@ -54,9 +53,8 @@ class VSCodeAPIWrapper {
    *
    * @param message Arbitrary data (must be JSON serializable) to send to the extension context.
    */
-  public postMessage<K extends keyof VSMessagePackage>(
-    type: VSMessagePackage[K],
-    payload: VSMessagePackage['payload']
+  public postMessage<K extends keyof MessageCommandMap>(
+    ...args: PostMessageArgs<MessageCommandMap, K>
   ) {
     // if (this.vsCodeApi) {
     //   this.vsCodeApi.postMessage(message)
@@ -64,12 +62,6 @@ class VSCodeAPIWrapper {
     //   console.log(message)
     // }
   }
-  public createMessage<K extends keyof MessageCommandMap>(
-    type: K,
-    payload: K extends keyof DataEditorMessageRequests
-      ? DataEditorMessageRequests[K]
-      : ExtensionMessageRequests[K]
-  ) {}
   public postExtensionMessage<K extends keyof ExtensionMessageRequests>(
     type: K,
     msgPkg: VSExtensionMessagePackage<K>

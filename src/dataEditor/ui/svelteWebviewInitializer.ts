@@ -20,7 +20,8 @@ import * as fs from 'fs'
 import {
   DataEditorMessageResponses,
   ExtensionMessageResponses,
-  MessageTarget,
+  MessageCommandMap,
+  PostMessageArgs,
 } from 'ext_types'
 import { DisplayState } from './displayState'
 
@@ -28,12 +29,8 @@ export interface DataEditorUI extends vscode.Disposable {
   readonly displayState: DisplayState
   dispose(): void
   setTitle(title: string): void
-  postMessage<
-    K extends keyof DataEditorMessageResponses &
-      keyof ExtensionMessageResponses,
-  >(
-    type: K,
-    payload: MessageTarget<K>
+  postMessage<K extends keyof MessageCommandMap>(
+    ...payload: PostMessageArgs<MessageCommandMap, K>
   ): void
   reveal: vscode.WebviewPanel['reveal']
   onDidReceiveMessage: vscode.Webview['onDidReceiveMessage']
@@ -52,9 +49,9 @@ class SvelteUIWebviewPanel implements DataEditorUI {
     this.vscodePanel.title = title
   }
 
-  postMessage<
-    K extends keyof DataEditorMessageResponses | ExtensionMessageResponses,
-  >(type: K) {}
+  postMessage<K extends keyof MessageCommandMap>(
+    ...payload: PostMessageArgs<MessageCommandMap, K>
+  ) {}
   postEditorResponse<K extends keyof DataEditorMessageResponses>(
     type: K,
     message: DataEditorMessageResponses[K]

@@ -2,6 +2,7 @@ import {
   EditorMessageId,
   EditorMessageIds,
   ExtensionMessageId,
+  isExtensionMessageId,
 } from './messageIds'
 import {
   ApplyChangesRequest,
@@ -66,16 +67,19 @@ export interface MessageCommandMap {
   scrollViewport: ScrollViewportRequest
   search: SearchRequest
   replace: ReplaceRequest
-  undoChange: UndoRequest
+  undoChange: never
   viewportRefresh: never
   showMessage: NotificationRequest
   setUITheme: SetUIThemeRequest
 }
 
-type MessageRequestMap<Keys extends string[][number]> = { [k in Keys]: any }
+export type ExtensionMessageKeys =
+  | 'showMessage'
+  | 'setUITheme'
+  | 'editorOnChange'
 export type DataEditorMessageKeys = Exclude<
   MessageCommands,
-  'showMessage' | 'setUITheme' | 'editorOnChange'
+  ExtensionMessageKeys
 >
 export type DataEditorMessageRequests = Pick<
   MessageCommandMap,
@@ -107,10 +111,10 @@ export type DataEditorMessageRequests = Pick<
 //   undoChange: UndoRequest
 //   viewportRefresh: never
 // }
-export interface ExtensionMessageRequests {
-  showMessage: NotificationRequest
-  setUITheme: SetUIThemeRequest
-}
+export type ExtensionMessageRequests = Pick<
+  MessageCommandMap,
+  ExtensionMessageKeys
+>
 
 export interface ExtensionMessageResponses {
   showMessage: undefined
@@ -145,9 +149,7 @@ export type VSEditorMessagePackage<K extends keyof DataEditorMessageRequests> =
     payload: DataEditorMessageRequests[K]
   }
 
-export type VSExtensionMessagePackage<
-  K extends keyof ExtensionMessageRequests,
-> = {
+export type VSExtensionMessagePackage<K extends ExtensionMessageKeys> = {
   command: K
   payload: ExtensionMessageRequests[K]
 }
@@ -155,3 +157,7 @@ export type VSExtensionMessagePackage<
 export type VSMessagePackage =
   | VSEditorMessagePackage<keyof DataEditorMessageRequests>
   | VSExtensionMessagePackage<keyof ExtensionMessageRequests>
+
+export type PostMessageArgs<R, K extends keyof R> = [R[K]] extends [never]
+  ? [type: K]
+  : [type: K, payload: R[K]]

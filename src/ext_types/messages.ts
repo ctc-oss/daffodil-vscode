@@ -66,9 +66,9 @@ export type SaveRequest = {
 }
 
 export type ScrollViewportRequest = {
-  viewportId: string
   startOffset: number
   bytesPerRow: number
+  numLinesDisplayed?: number
 }
 
 export type ViewportRefreshResponse = {
@@ -182,13 +182,3 @@ export type CountResponse = {
 export type SaveAsResponse = {
   newFilePath: string
 }
-
-export type RequestArgs<R, K extends keyof R> = [R[K]] extends [never]
-  ? [type: K]
-  : [type: K, payload: R[K]]
-
-export type MessageTarget<
-  K extends keyof DataEditorMessageResponses & keyof ExtensionMessageResponses,
-> = K extends keyof DataEditorMessageResponses
-  ? DataEditorMessageResponses[K]
-  : ExtensionMessageResponses[K]

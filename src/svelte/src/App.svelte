@@ -58,7 +58,8 @@ limitations under the License.
   } from './components/DataDisplays/CustomByteDisplay/BinaryData'
   import { byte_count_divisible_offset } from './utilities/display'
   import Help from './components/layouts/Help.svelte'
-  import { EditByteModes } from 'ext_types'
+  import { EditByteModes, type BytesPerRow } from 'ext_types'
+  import { VIEWPORT_SCROLL_INCREMENT } from 'stores/configuration'
   
   function requestEditedData() {
     if ($requestable) {
@@ -152,14 +153,10 @@ limitations under the License.
       $bytesPerRow,
       fetchOffset
     )
-
-    vscode.postMessage({
-      command: "scrollViewport",
-      data: {
-        scrollOffset: fetchOffset,
+    vscode.postMessage('scrollViewport', {
+        startOffset: fetchOffset,
         bytesPerRow: $bytesPerRow,
         numLinesDisplayed: $dataDislayLineAmount,
-      },
     })
     clearDataDisplays()
   }
@@ -172,12 +169,9 @@ limitations under the License.
     const navigationData = navigationEvent.detail
     $dataFeedAwaitRefresh = true
 
-    vscode.postMessage({
-      command: "scrollViewport",
-      data: {
-        scrollOffset: navigationData.nextViewportOffset,
-        bytesPerRow: $bytesPerRow,
-      },
+    vscode.postMessage('scrollViewport', {
+        startOffset: navigationData.nextViewportOffset,
+        bytesPerRow: $bytesPerRow
     })
 
     $dataFeedLineTop = navigationData.lineTopOnRefresh
@@ -229,35 +223,26 @@ limitations under the License.
         edited_segment: editedData,
 
     })
-    vscode.postMessage({
-      command: "applyChanges",
-      data: {
+    vscode.postMessage('applyChanges', {
         offset: editedOffset,
-        originalSegment: originalData,
-        editedSegment: editedData,
-      },
+        original_segment: originalData as Uint8Array,
+        edited_segment: editedData,
+
     })
     clearDataDisplays()
     clearQueryableData()
   }
 
   function undo() {
-    vscode.postMessage({
-      command: "undoChange",
-    })
+    vscode.postMessage("undoChange")
   }
 
   function redo() {
-    vscode.createMessage()
-    // vscode.postMessage({
-    //   command: redoChange,
-    // })
+    vscode.postMessage("redoChange")
   }
 
   function clearChangeStack() {
-    vscode.postMessage({
-      command: clearChanges,
-    })
+    vscode.postMessage('clearChanges')
   }
 
   function clearDataDisplays() {

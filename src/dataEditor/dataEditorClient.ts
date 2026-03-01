@@ -18,14 +18,11 @@
 import {
   ALL_EVENTS,
   beginSessionTransaction,
-  clear,
-  countCharacters,
   CountKind,
   createSession,
   createSimpleFileLogger,
   createViewport,
   del,
-  edit,
   EditorClient,
   endSessionTransaction,
   EventSubscriptionRequest,
@@ -41,17 +38,11 @@ import {
   getViewportData,
   IOFlags,
   modifyViewport,
-  numAscii,
-  profileSession,
-  redo,
-  replaceOneSession,
   saveSession,
   SaveStatus,
-  searchSession,
   setLogger,
   startServer,
   stopProcessUsingPID,
-  undo,
   ViewportDataResponse,
   ViewportEvent,
   ViewportEventKind,
@@ -65,7 +56,7 @@ import * as vscode from 'vscode'
 import XDGAppPaths from 'xdg-app-paths'
 import { extractDaffodilEvent } from '../daffodilDebugger/daffodil'
 import { VIEWPORT_CAPACITY_MAX } from '../svelte/src/stores/configuration'
-import { EditByteModes, VSMessagePackage } from 'ext_types'
+import { VSMessagePackage } from 'ext_types'
 import * as editor_config from './config'
 import { configureOmegaEditPort, ServerInfo } from './include/server/ServerInfo'
 import {
@@ -454,7 +445,7 @@ export class DataEditorClient implements vscode.Disposable {
 
   private async msgReceiver(message: VSMessagePackage) {
     handleMessage(message)
-    this.panel.postMessage()
+    this.panel.postMessage('redoChange')
   }
   // handle messages from the webview
   // private async messageReceiver(message: EditorMessage) {
