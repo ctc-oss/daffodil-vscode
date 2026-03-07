@@ -27,9 +27,10 @@ limitations under the License.
   import { DATA_PROFILE_MAX_LENGTH } from '../../../stores/configuration'
   import Tooltip from '../../layouts/Tooltip.svelte'
   import ISO6391 from 'iso-639-1'
-  import { getUIMessenger } from 'stores/states.svelte'
+  import { getUIMsgId } from 'stores/states.svelte'
+  import { vscode } from 'utilities/vscode'
   const eventDispatcher = createEventDispatcher()
-    const messenger = getUIMessenger()
+  const {postMessage, addListener} = vscode.getMessenger(getUIMsgId())
   let displayOpts = false
   let isProfilerOpen = false
   let canUndo: boolean
@@ -39,16 +40,13 @@ limitations under the License.
   let length: number = 0
 
   function saveAs() {
-    // messenger.postMessage({
-    //   command: MessageCommand.saveAs,
-    // })
+    postMessage('saveAs', {targetFile: ''})
+    
     displayOpts = false
   }
 
   function save() {
-    // messenger.postMessage({
-    //   command: MessageCommand.save,
-    // })
+    postMessage('save', {targetFile: ''})
     displayOpts = false
   }
 
@@ -61,7 +59,8 @@ limitations under the License.
       }, 10000)
     }
   }
-  messenger.addListener(
+
+  addListener(
     'fileInfo',
     (msg) => {
       $fileMetrics.name = msg.filename
@@ -69,7 +68,7 @@ limitations under the License.
       $fileMetrics.type = msg.contentType
     }
   )
-  messenger.addListener(
+  addListener(
     'counts',
     (msg) => {
         $fileMetrics.computedSize = msg.computedFileSize

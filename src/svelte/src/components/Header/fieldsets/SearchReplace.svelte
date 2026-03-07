@@ -44,8 +44,10 @@ limitations under the License.
   import { EditActionRestrictions } from 'ext_types'
   import { OffsetSearchType, clear_queryable_results } from './SearchReplace'
   import Tooltip from '../../layouts/Tooltip.svelte'
+  import { getUIMsgId } from 'stores/states.svelte'
 
   const eventDispatcher = createEventDispatcher()
+  const {postMessage, addListener} = vscode.getMessenger(getUIMsgId())
 
   type SearchDirection = 'Home' | 'End' | 'Forward' | 'Backward'
 
@@ -87,18 +89,15 @@ limitations under the License.
     isReverse: boolean
   ) {
     $searchQuery.processing = true
-    // vscode.postMessage({
-    //   command: MessageCommand.search,
-    //   data: {
-    //     searchData: $searchQuery.input,
-    //     caseInsensitive: caseInsensitive,
-    //     isReverse: isReverse,
-    //     encoding: $editorEncoding,
-    //     searchOffset: searchOffset,
-    //     searchLength: searchLength,
-    //     limit: 1,
-    //   },
-    // })
+    postMessage('search',{
+        searchStr: $searchQuery.input,
+        is_case_insensitive: caseInsensitive,
+        is_reverse: isReverse,
+        encoding: $editorEncoding,
+        offset: searchOffset,
+        length: searchLength,
+        limit: 1,
+    })
   }
 
   function searchFirst() {
@@ -146,21 +145,18 @@ limitations under the License.
 
   function replace() {
     $replaceQuery.processing = true
-    // vscode.postMessage({
-    //   command: MessageCommand.replace,
-    //   data: {
-    //     searchData: $searchQuery.input,
-    //     caseInsensitive: caseInsensitive,
-    //     isReverse: false,
-    //     replaceData: $replaceQuery.input,
-    //     encoding: $editorEncoding,
-    //     overwriteOnly:
-    //       $editorActionsAllowed === EditActionRestrictions.OverwriteOnly,
-    //     searchOffset: matchOffset,
-    //     searchLength: 0,
-    //     limit: 1,
-    //   },
-    // })
+    postMessage('replace', {
+        searchStr: $searchQuery.input,
+        is_case_insensitive: caseInsensitive,
+        is_reverse: false,
+        replaceStr: $replaceQuery.input,
+        encoding: $editorEncoding,
+        overwriteOnly:
+          $editorActionsAllowed === EditActionRestrictions.OverwriteOnly,
+        offset: matchOffset,
+        length: 0,
+        limit: 1,        
+    })
     eventDispatcher('clearDataDisplays')
   }
 
@@ -188,7 +184,6 @@ limitations under the License.
       eventDispatcher('seek')
     }
   }
-
   function cancel() {
     showSearchOptions = false
     showReplaceOptions = false
@@ -200,59 +195,56 @@ limitations under the License.
     eventDispatcher('clearDataDisplays')
   }
 
-  window.addEventListener('message', (msg) => {
-    switch (msg.data.command) {
-      // handle search results
-      case "searchResults":
-        if (msg.data.data.searchResults.length > 0) {
-          searchQuery.updateSearchResults(msg.data.data)
-          switch (direction) {
-            case 'Home':
-              hasNext = $searchQuery.overflow
-              hasPrev = false
-              break
-            case 'End':
-              hasNext = false
-              hasPrev = $searchQuery.overflow
-              break
-            case 'Forward':
-              hasNext = $searchQuery.overflow
-              hasPrev = justReplaced ? preReplaceHasPrev : true
-              justReplaced = false
-              break
-            case 'Backward':
-              hasNext = true
-              hasPrev = $searchQuery.overflow
-              break
-          }
-          matchOffset = $searchQuery.searchResults[0]
-          scrollToMatch()
-          if (searchStarted) {
-            showReplaceOptions = false
-            showSearchOptions = true
-          } else if (replaceStarted) {
-            showReplaceOptions = true
-            showSearchOptions = false
-          }
-        } else {
-          matchOffset = -1
-          $searchQuery.overflow = showSearchOptions = showReplaceOptions = false
-          searchQuery.clear()
-        }
-        searchStarted = replaceStarted = false
-        $searchQuery.processing = false
-        break
+  // TODO: add to responsemap
+//   addListener('searchResults', (data)=>{
 
-      // handle replace results
-      case "replaceResults":
+//         if (data.searchResults.length > 0) {
+//           searchQuery.updateSearchResults(msg.data.data)
+//           switch (direction) {
+//             case 'Home':
+//               hasNext = $searchQuery.overflow
+//               hasPrev = false
+//               break
+//             case 'End':
+//               hasNext = false
+//               hasPrev = $searchQuery.overflow
+//               break
+//             case 'Forward':
+//               hasNext = $searchQuery.overflow
+//               hasPrev = justReplaced ? preReplaceHasPrev : true
+//               justReplaced = false
+//               break
+//             case 'Backward':
+//               hasNext = true
+//               hasPrev = $searchQuery.overflow
+//               break
+//           }
+//           matchOffset = $searchQuery.searchResults[0]
+//           scrollToMatch()
+//           if (searchStarted) {
+//             showReplaceOptions = false
+//             showSearchOptions = true
+//           } else if (replaceStarted) {
+//             showReplaceOptions = true
+//             showSearchOptions = false
+//           }
+//         } else {
+//           matchOffset = -1
+//           $searchQuery.overflow = showSearchOptions = showReplaceOptions = false
+//           searchQuery.clear()
+//         }
+//         searchStarted = replaceStarted = false
+//         $searchQuery.processing = false
+//   })
+addListener('replaceResults', (data) => {
         searchStarted = replaceStarted = false
-        if (msg.data.data.replacementsCount > 0) {
+        if (data.replacementsCount > 0) {
           // subtract 1 from the next offset because search next will add 1
-          matchOffset = msg.data.data.nextOffset - 1
+          matchOffset = data.nextOffset - 1
           replaceQuery.addResult({
-            byteLength: msg.data.data.replaceDataBytesLength,
+            byteLength: data.replaceDataBytesLength,
             offset:
-              msg.data.data.nextOffset - msg.data.data.replaceDataBytesLength,
+              data.nextOffset - data.replaceDataBytesLength,
           })
           preReplaceHasPrev = hasPrev
           justReplaced = true
@@ -262,13 +254,9 @@ limitations under the License.
           showReplaceOptions = false
         }
         $replaceQuery.processing = false
-        break
+})
+addListener('clearChanges', ()=>{ cancel() })
 
-      case "clearChanges":
-        cancel()
-        break
-    }
-  })
 </script>
 
 <fieldset class="search-replace">

@@ -1,11 +1,5 @@
 import { IServerHeartbeat } from '@omega-edit/client'
 import {
-  EditorMessageId,
-  EditorMessageIds,
-  ExtensionMessageId,
-  isExtensionMessageId,
-} from './messageIds'
-import {
   ApplyChangesRequest,
   ChangesInfoResponse,
   CountResponse,
@@ -96,7 +90,7 @@ export interface MessageResponseMap extends CommandMap {
   replace: ReplaceResponse
   undoChange: void
   viewportRefresh: ViewportRefreshResponse
-  showMessage: undefined
+  showMessage: void
   setUITheme: void
   heartbeat: IServerHeartbeat & { port: number }
   bytesPos1b: DFDLDataBytePos

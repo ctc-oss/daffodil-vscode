@@ -20,12 +20,9 @@ limitations under the License.
 
   import {
     bytesPerRow,
-    displayRadix,
     editedDataSegment,
     editMode,
-    editorEncoding,
     editorSelection,
-    focusedViewportId,
     seekOffset,
     originalDataSegment,
     requestable,
@@ -37,6 +34,9 @@ limitations under the License.
     viewport,
     searchQuery,
     regularSizedFile,
+    focusedViewportId,
+    displayRadix,
+    editorEncoding,
     dataDislayLineAmount,
   } from './stores'
   import {
@@ -44,7 +44,6 @@ limitations under the License.
     UIThemeCSSClass,
     darkUITheme,
   } from './utilities/colorScheme'
-  import { vscode } from './utilities/vscode'
   import Header from './components/Header/Header.svelte'
   import Main from './Main.svelte'
   import ServerMetrics from './components/ServerMetrics/ServerMetrics.svelte'
@@ -59,17 +58,16 @@ limitations under the License.
   import { byte_count_divisible_offset } from './utilities/display'
   import Help from './components/layouts/Help.svelte'
   import { EditByteModes, type BytesPerRow } from 'ext_types'
-  import { VIEWPORT_CAPACITY_MAX, VIEWPORT_SCROLL_INCREMENT } from './stores/configuration'
-  import { getUIMsgId, setUIMessenger, setUIMsgId } from './stores/states.svelte'
+  import { VIEWPORT_SCROLL_INCREMENT } from './stores/configuration'
+  import { getUIMsgId, setUIMsgId } from './stores/states.svelte'
+  import { vscode } from './utilities/vscode'
   setUIMsgId( document.getElementById('app')?.attributes['extension_msg_id'].value )
-    console.log("Svelte UI Messenger Id: ", getUIMsgId())
   
-  const messenger = setUIMessenger(vscode.getMessenger(getUIMsgId()))
+  const {postMessage, addListener} = vscode.getMessenger(getUIMsgId())
 
   function requestEditedData() {
     if ($requestable) {
-      
-      messenger.postMessage('requestEditedData', {
+        postMessage('requestEditedData', {
           selectionToFileOffset: $selectionDataStore.startOffset,
           editedContent: $editorSelection,
           viewport: $focusedViewportId,
@@ -78,18 +76,6 @@ limitations under the License.
           radix: $displayRadix,
           editMode: $editMode,
       })
-      // vscode.postMessage({
-      //   command: requestEditedData,
-      //   data: {
-      //     selectionToFileOffset: $selectionDataStore.startOffset,
-      //     editedContent: $editorSelection,
-      //     viewport: $focusedViewportId,
-      //     selectionSize: $selectionSize,
-      //     encoding: $editorEncoding,
-      //     radix: $displayRadix,
-      //     editMode: $editMode,
-      //   },
-      // })
     }
   }
 
@@ -158,7 +144,8 @@ limitations under the License.
       $bytesPerRow,
       fetchOffset
     )
-    messenger.postMessage('scrollViewport', {
+    
+    postMessage('scrollViewport', {
         startOffset: fetchOffset,
         bytesPerRow: $bytesPerRow,
         numLinesDisplayed: $dataDislayLineAmount,
@@ -174,7 +161,7 @@ limitations under the License.
     const navigationData = navigationEvent.detail
     $dataFeedAwaitRefresh = true
 
-    messenger.postMessage('scrollViewport', {
+    postMessage('scrollViewport', {
         startOffset: navigationData.nextViewportOffset,
         bytesPerRow: $bytesPerRow
     })
@@ -222,7 +209,7 @@ limitations under the License.
         editedData = new Uint8Array(0)
         break
     }
-    messenger.postMessage('applyChanges', {
+    postMessage('applyChanges', {
         offset: editedOffset,
         original_segment: originalData as Uint8Array,
         edited_segment: editedData,
@@ -234,15 +221,15 @@ limitations under the License.
   }
 
   function undo() {
-    messenger.postMessage("undoChange")
+    postMessage("undoChange")
   }
 
   function redo() {
-    messenger.postMessage("redoChange")
+    postMessage("redoChange")
   }
 
   function clearChangeStack() {
-    messenger.postMessage('clearChanges')
+    postMessage('clearChanges')
   }
 
   function clearDataDisplays() {
@@ -269,56 +256,35 @@ limitations under the License.
         return
     }
   }
-
-  messenger.addListener(
-    'viewportRefresh',
-    (msg) => {
-        const { data , fileOffset, length, bytesLeft } = msg
-        $viewport = {
-            data: data as Uint8Array<ArrayBuffer>,
-            fileOffset,
-            length,
-            bytesLeft,
-            capacity: VIEWPORT_CAPACITY_MAX
-        }
-    }
-  )
-  window.addEventListener('message', (msg) => {
-    switch (msg.data.command) {
-      case "editorOnChange":
-        if ($editMode === EditByteModes.Multiple)
-          $editorSelection = msg.data.display
-        break
-
-      case "requestEditedData":
-        $editorSelection = msg.data.data.dataDisplay
+  addListener('editorOnChange', (data) => {
+    if ($editMode === EditByteModes.Multiple)
+        $editorSelection = data.encodedStr
+  })
+  addListener('requestEditedData', (data) => {
+        $editorSelection = data.dataDisplay
         if ($editMode === EditByteModes.Multiple) {
-          $editedDataSegment = new Uint8Array(msg.data.data.data)
+          $editedDataSegment = new Uint8Array(data.data)
         } else {
-          $editedDataSegment[0] = msg.data.data.data
+          $editedDataSegment[0] = data.data[0]
         }
         $selectionDataStore.endOffset =
           $selectionDataStore.startOffset + $editedDataSegment.byteLength - 1
-        break
-
-      case "setUITheme":
-        $darkUITheme = msg.data.theme === 2
+  })
+  addListener('setUITheme', (data) => {
+        // $darkUITheme = data.theme === 2
         $UIThemeCSSClass = $darkUITheme
           ? CSSThemeClass.Dark
           : CSSThemeClass.Light
-        break
-      case "viewportRefresh":
-        // the viewport has been refreshed, so the editor views need to be updated
-        const { data, fileOffset, length, bytesLeft } = msg.data.data
+  })
+  addListener('viewportRefresh', (payload)=>{        
+    const { data, fileOffset, length, bytesLeft } = payload
         $viewport = {
           data: data,
           fileOffset: fileOffset,
           length: length,
           bytesLeft: bytesLeft,
         } as ViewportData_t
-        break
-    }
-  })
+    })
 </script>
 
 <svelte:window on:keydown|nonpassive={handleKeyBind} />
@@ -342,7 +308,14 @@ limitations under the License.
 <Help />
 <hr />
 <ServerMetrics />
-
+<button on:click={(e) => {
+  window.removeEventListener('fileInfo', (ev) => {
+    window.removeEventListener('fileInfo', (event) => {
+    console.log("Window received dispatched 'fileInfo' event")
+    console.log(event)
+  })
+  })
+}}></button>
 <!-- </body> -->
 
 <!-- svelte-ignore css-unused-selector -->

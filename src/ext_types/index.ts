@@ -110,12 +110,25 @@ export interface HTMLMessengerInterface extends Disposable {
 
 const EditorHTMLMessengerRegistry = new Map<string, EditorMessageListenerMap>()
 
-export function registerHTMLMessenger(id: string) {
-  if (EditorHTMLMessengerRegistry.get(id)) {
+export function registerHTMLMessenger(
+  id: string,
+  disposalHook?: (disposeFn: () => void) => void
+) {
+  let registrySlot = EditorHTMLMessengerRegistry.get(id)
+  if (registrySlot) {
     console.error(`An HTML messenger of id ${id} is already registered`)
+    return () => {
+      registrySlot
+    }
+  } else EditorHTMLMessengerRegistry.set(id, DefaultEditorListenerMap)
+
+  return {
+    listeners: EditorHTMLMessengerRegistry.get(id),
+    onDispose: (callback: () => void) => {
+      callback()
+      EditorHTMLMessengerRegistry.delete(id)
+    },
   }
-  EditorHTMLMessengerRegistry.set(id, DefaultEditorListenerMap)
-  return EditorHTMLMessengerRegistry.get(id)!
 }
 
 export function unregisterHTMLMessenger(id: string) {
@@ -127,5 +140,7 @@ export function getHTMLMessenger(id: string) {
   if (!EditorHTMLMessengerRegistry.get(id)) {
     throw `No HTML messenger of id ${id} is registered`
   }
-  return
+  return {
+    addDisposalHook: (hook: () => void) => {},
+  }
 }

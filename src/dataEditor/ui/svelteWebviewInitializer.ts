@@ -42,12 +42,17 @@ export interface DataEditorUI extends vscode.Disposable {
 class SvelteUIWebviewPanel implements DataEditorUI {
   static readonly uiViewId: string = 'dataEditor'
   readonly displayState: DisplayState = new DisplayState()
+  private htmlMessengerDisposal: vscode.Disposable | undefined = undefined
 
   constructor(
     private vscodePanel: vscode.WebviewPanel,
     private messengerId: string = ''
   ) {
-    registerHTMLMessenger(this.messengerId)
+    const msgnrDisposal = registerHTMLMessenger(this.messengerId, (hook) => {
+      this.htmlMessengerDisposal = {
+        dispose: hook,
+      }
+    })
   }
   dispose() {
     this.vscodePanel.dispose()
