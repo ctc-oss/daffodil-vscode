@@ -134,7 +134,13 @@ export class DataEditorClient implements vscode.Disposable {
     private panel: DataEditorUI
   ) {
     this.panel.onDidReceiveMessage(this.msgReceiver)
-
+    if (OPEN_EDITORS.size === 1) {
+      let bytePos1b = 0
+      const testmsgint = setInterval(() => {
+        this.panel.postMessage('bytesPos1b', { bytePos1b })
+        bytePos1b = bytePos1b + 2
+      }, 1000)
+    }
     this.disposables = [
       this.panel,
       vscode.debug.onDidReceiveDebugSessionCustomEvent(async (e) => {
@@ -384,6 +390,11 @@ export class DataEditorClient implements vscode.Disposable {
       filename: this.fileToEdit,
       language: data.language,
     })
+    this.panel.postMessage('counts', {
+      applied: 0,
+      computedFileSize: data.computedFileSize,
+      undos: 0,
+    })
     // send the initial file info to the webview
     // await this.panel.postMessage({
     //   command: MessageCommand.fileInfo,
@@ -393,28 +404,20 @@ export class DataEditorClient implements vscode.Disposable {
 
   private async sendHeartbeat() {
     const heartbeatInfo = getCurrentHeartbeatInfo()
-
-    // await this.panel.postMessage({
-    //   command: MessageCommand.heartbeat,
-    //   data: {
-    //     latency: heartbeatInfo.latency,
-    //     omegaEditPort: this.configVars.port,
-    //     serverCpuLoadAverage: heartbeatInfo.serverCpuLoadAverage,
-    //     serverUptime: heartbeatInfo.serverUptime,
-    //     serverUsedMemory: heartbeatInfo.serverUsedMemory,
-    //     sessionCount: heartbeatInfo.sessionCount,
-    //     serverInfo: {
-    //       omegaEditPort: this.configVars.port,
-    //       serverVersion: serverInfo.serverVersion,
-    //       serverHostname: serverInfo.serverHostname,
-    //       serverProcessId: serverInfo.serverProcessId,
-    //       jvmVersion: serverInfo.jvmVersion,
-    //       jvmVendor: serverInfo.jvmVendor,
-    //       jvmPath: serverInfo.jvmPath,
-    //       availableProcessors: serverInfo.availableProcessors,
-    //     },
-    //   },
-    // })
+    this.panel.postMessage('heartbeat', {
+      ...heartbeatInfo,
+      port: 9000, // TODO: Get this from stored value
+      // serverInfo: {
+      //   omegaEditPort: this.configVars.port,
+      //   serverVersion: serverInfo.serverVersion,
+      //   serverHostname: serverInfo.serverHostname,
+      //   serverProcessId: serverInfo.serverProcessId,
+      //   jvmVersion: serverInfo.jvmVersion,
+      //   jvmVendor: serverInfo.jvmVendor,
+      //   jvmPath: serverInfo.jvmPath,
+      //   availableProcessors: serverInfo.availableProcessors,
+      // },
+    })
   }
 
   private async sendChangesInfo() {
@@ -445,7 +448,11 @@ export class DataEditorClient implements vscode.Disposable {
           break
       }
     })
-
+    this.panel.postMessage('counts', {
+      applied: data.changeCount,
+      computedFileSize: data.computedFileSize,
+      undos: data.undoCount,
+    })
     // send the accumulated counts to the webview
     // await this.panel.postMessage({
     //   command: MessageCommand.fileInfo,
@@ -985,6 +992,14 @@ async function sendViewportRefresh(
   panel: DataEditorUI,
   viewportDataResponse: ViewportDataResponse
 ): Promise<void> {
+  panel.postMessage('viewportRefresh', {
+    viewportId: viewportDataResponse.getViewportId(),
+    fileOffset: viewportDataResponse.getOffset(),
+    length: viewportDataResponse.getLength(),
+    bytesLeft: viewportDataResponse.getFollowingByteCount(),
+    data: viewportDataResponse.getData_asU8(),
+    capacity: VIEWPORT_CAPACITY_MAX,
+  })
   // await panel.postMessage({
   //   command: MessageCommand.viewportRefresh,
   //   data: {

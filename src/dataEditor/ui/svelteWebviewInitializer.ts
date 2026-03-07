@@ -22,6 +22,7 @@ import {
   MessageRequestMap,
   MessageResponseMap,
   PostMessageArgs,
+  registerHTMLMessenger,
 } from 'ext_types'
 import { DisplayState } from './displayState'
 import { randomUUID } from 'crypto'
@@ -45,7 +46,9 @@ class SvelteUIWebviewPanel implements DataEditorUI {
   constructor(
     private vscodePanel: vscode.WebviewPanel,
     private messengerId: string = ''
-  ) {}
+  ) {
+    registerHTMLMessenger(this.messengerId)
+  }
   dispose() {
     this.vscodePanel.dispose()
   }
@@ -128,12 +131,15 @@ class SvelteWebviewInitializer {
     return idStr
   }
   createSveltePanel(args: SveltePanelArgs): SvelteUIWebviewPanel {
+    const opts = this.getWebviewOptions()
     const ret = vscode.window.createWebviewPanel(
       SvelteUIWebviewPanel.uiViewId,
       args.title,
-      args.column
+      args.column,
+      {
+        ...opts,
+      }
     )
-    this.setWebviewOptions(ret)
     this.setHtmlContent(ret, args.uiMsgId)
 
     return new SvelteUIWebviewPanel(ret, args.uiMsgId)
@@ -199,7 +205,7 @@ class SvelteWebviewInitializer {
     }
     return text
   }
-  private setWebviewOptions(vsPanel: vscode.WebviewPanel) {
+  private getWebviewOptions() {
     const opts: vscode.WebviewPanelOptions & vscode.WebviewOptions = {
       enableScripts: true,
       retainContextWhenHidden: true,
@@ -211,7 +217,7 @@ class SvelteWebviewInitializer {
         ),
       ],
     }
-    vsPanel.webview.options = opts
+    return opts
   }
 
   // get the svelte app distribution folder uri

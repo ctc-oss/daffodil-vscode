@@ -59,17 +59,17 @@ limitations under the License.
   import { byte_count_divisible_offset } from './utilities/display'
   import Help from './components/layouts/Help.svelte'
   import { EditByteModes, type BytesPerRow } from 'ext_types'
-  import { VIEWPORT_SCROLL_INCREMENT } from './stores/configuration'
-  import { getUIMsgId, setUIMsgId } from './stores/states.svelte'
+  import { VIEWPORT_CAPACITY_MAX, VIEWPORT_SCROLL_INCREMENT } from './stores/configuration'
+  import { getUIMsgId, setUIMessenger, setUIMsgId } from './stores/states.svelte'
   setUIMsgId( document.getElementById('app')?.attributes['extension_msg_id'].value )
     console.log("Svelte UI Messenger Id: ", getUIMsgId())
   
-  vscode.registerMessenger(getUIMsgId())
+  const messenger = setUIMessenger(vscode.getMessenger(getUIMsgId()))
 
   function requestEditedData() {
     if ($requestable) {
       
-      vscode.postMessage('test','requestEditedData', {
+      messenger.postMessage('requestEditedData', {
           selectionToFileOffset: $selectionDataStore.startOffset,
           editedContent: $editorSelection,
           viewport: $focusedViewportId,
@@ -158,7 +158,7 @@ limitations under the License.
       $bytesPerRow,
       fetchOffset
     )
-    vscode.postMessage('test','scrollViewport', {
+    messenger.postMessage('scrollViewport', {
         startOffset: fetchOffset,
         bytesPerRow: $bytesPerRow,
         numLinesDisplayed: $dataDislayLineAmount,
@@ -174,7 +174,7 @@ limitations under the License.
     const navigationData = navigationEvent.detail
     $dataFeedAwaitRefresh = true
 
-    vscode.postMessage('test','scrollViewport', {
+    messenger.postMessage('scrollViewport', {
         startOffset: navigationData.nextViewportOffset,
         bytesPerRow: $bytesPerRow
     })
@@ -222,7 +222,7 @@ limitations under the License.
         editedData = new Uint8Array(0)
         break
     }
-    vscode.postMessage('test','applyChanges', {
+    messenger.postMessage('applyChanges', {
         offset: editedOffset,
         original_segment: originalData as Uint8Array,
         edited_segment: editedData,
@@ -234,15 +234,15 @@ limitations under the License.
   }
 
   function undo() {
-    vscode.postMessage('test',"undoChange")
+    messenger.postMessage("undoChange")
   }
 
   function redo() {
-    vscode.postMessage('test',"redoChange")
+    messenger.postMessage("redoChange")
   }
 
   function clearChangeStack() {
-    vscode.postMessage('test','clearChanges')
+    messenger.postMessage('clearChanges')
   }
 
   function clearDataDisplays() {
@@ -270,6 +270,19 @@ limitations under the License.
     }
   }
 
+  messenger.addListener(
+    'viewportRefresh',
+    (msg) => {
+        const { data , fileOffset, length, bytesLeft } = msg
+        $viewport = {
+            data: data as Uint8Array<ArrayBuffer>,
+            fileOffset,
+            length,
+            bytesLeft,
+            capacity: VIEWPORT_CAPACITY_MAX
+        }
+    }
+  )
   window.addEventListener('message', (msg) => {
     switch (msg.data.command) {
       case "editorOnChange":

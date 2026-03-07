@@ -19,10 +19,8 @@ limitations under the License.
   import {
     editedDataSegment,
     editMode,
-    editorEncoding,
     focusedViewportId,
     selectionDataStore,
-    selectionSize,
     selectedByte,
     fileMetrics,
     searchQuery,
@@ -43,7 +41,6 @@ limitations under the License.
   import {
     VIEWPORT_SCROLL_INCREMENT,} from '../../../stores/configuration'
   // import { MessageCommand } from '../../../utilities/message'
-  import { vscode } from '../../../utilities/vscode'
   import Button from '../../Inputs/Buttons/Button.svelte'
   import FlexContainer from '../../layouts/FlexContainer.svelte'
   import {
@@ -72,7 +69,8 @@ limitations under the License.
   import { bytesPerRow } from '../../../stores'
 
   /* DEBUG_ONLY_START */
-  import { addVarToDebug, getDebugVarContext } from '../../Debug'
+  import { getDebugVarContext } from '../../Debug'
+  import { getUIMessenger } from 'stores/states.svelte'
   const debugVarsCtx = getDebugVarContext()
   debugVarsCtx.add(
     { id: 'bytes / row', valueStr: () => $bytesPerRow.toString() },
@@ -561,7 +559,18 @@ limitations under the License.
       bytepos < last + viewportData.fileOffset
     )
   }
+  getUIMessenger().addListener(
+    'bytesPos1b',
+    (msg)=>{
+        const { bytePos1b } = msg
+        if (!bytePosIsDisplayable(bytePos1b)) {
+          $seekOffsetInput = bytePos1b.toString(addressRadix)
+          eventDispatcher('seek')
+        }
+        $dfdlBytePos = bytePos1b
 
+    }
+  )
   window.addEventListener('keydown', navigation_keydown_event)
   window.addEventListener('message', (msg) => {
     switch (msg.data.command) {

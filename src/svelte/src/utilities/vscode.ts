@@ -33,13 +33,11 @@ import {
   type SaveAsResponse,
   type SearchResponse,
   type ViewportRefreshResponse,
-} from 'ext_types'
-import type { WebviewApi } from 'vscode-webview'
-import {
-  DefaultEditorListenerMap,
   type EditorMessageListener,
   type EditorMessageListenerMap,
-} from './messages'
+} from 'ext_types'
+import type { WebviewApi } from 'vscode-webview'
+import { DefaultEditorListenerMap, type UIMessengerInterface } from './messages'
 import type { IServerHeartbeat } from '@omega-edit/client'
 
 type MessageRequest<K extends keyof MessageRequestMap> = {
@@ -51,32 +49,6 @@ const ListenerRegistry = new Map<
   string,
   Map<keyof MessageResponseMap, EditorMessageListener<keyof MessageResponseMap>>
 >()
-interface UIMessengerInterface {
-  addListener<K extends keyof MessageResponseMap>(
-    id: string,
-    type: K,
-    listener: EditorMessageListener<K>
-  ): void
-  postMessage<K extends keyof MessageRequestMap>(
-    ...args: PostMessageArgs<MessageRequestMap, K>
-  ): void
-}
-class UIMessenger {
-  constructor(
-    readonly id: string,
-    private uiAPI: UIMessengerInterface
-  ) {}
-  addListener<K extends keyof MessageResponseMap>(
-    type: K,
-    listener: EditorMessageListener<K>
-  ) {
-    this.uiAPI.addListener(this.id, type, listener)
-  }
-  postMessage<K extends keyof MessageRequestMap>(
-    id: string,
-    ...args: PostMessageArgs<MessageRequestMap, K>
-  ) {}
-}
 /**
  * A utility wrapper around the acquireVsCodeApi() function, which enables
  * message passing and state management between the webview and extension
@@ -98,20 +70,32 @@ class VSCodeAPIWrapper {
     }
   }
 
-  registerMessenger(id: string, listeners?: Partial<EditorMessageListenerMap>) {
+  getMessenger(id: string): UIMessengerInterface {
     if (this.editorMessengerRegistry.get(id))
       throw `A listener registry is already registered with id: ${id}`
     this.editorMessengerRegistry.set(id, DefaultEditorListenerMap)
 
-    if (listeners) {
-      let registeredMap = this.editorMessengerRegistry.get(id)!
+    window.addEventListener('message', (msg) => {
+      const id = msg.data.id
+      const command = msg.data.command
 
-      for (const msgType in Object.keys(DefaultEditorListenerMap)) {
-        if (listeners[msgType] !== undefined)
-          registeredMap[msgType] = listeners[msgType]
-      }
+      let registeredListenerMap = ListenerRegistry.get(id)
+      if (!registeredListenerMap) return
+      let msgCb = registeredListenerMap.get(command)!
+      msgCb(msg.data.data)
+      // registeredListener![type](msg.data.data as MessageResponseMap[K])
+    })
+    const ret: UIMessengerInterface = {
+      addListener: (type, listener) => {
+        this.addMessageListener(id, type, listener)
+      },
+      postMessage: (...args) => {
+        let msg = this.createMessage(args)
+        msg.id = id
+        this._postMessage(msg)
+      },
     }
-    const ret = new UIMessenger(id)
+    return ret
   }
   /**
    * Post a message (i.e. send arbitrary data) to the owner of the webview.
@@ -163,15 +147,6 @@ class VSCodeAPIWrapper {
 
     console.log(ListenerRegistry)
     console.log(ListenerRegistry.get(id))
-
-    window.addEventListener('message', (msg) => {
-      const id = msg.data.id
-      let registeredListenerMap = ListenerRegistry.get(id)
-      if (!registeredListenerMap) return
-      let msgCb = registeredListenerMap.get(type)!
-      msgCb(msg.data.data)
-      // registeredListener![type](msg.data.data as MessageResponseMap[K])
-    })
   }
   /**
    * Get the persistent state stored for this webview.

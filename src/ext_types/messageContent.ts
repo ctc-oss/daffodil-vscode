@@ -9,6 +9,7 @@ import {
   ApplyChangesRequest,
   ChangesInfoResponse,
   CountResponse,
+  DFDLDataBytePos,
   EditedDataRequest,
   EditedDataResponse,
   EditorOnChangeRequest,
@@ -98,6 +99,7 @@ export interface MessageResponseMap extends CommandMap {
   showMessage: undefined
   setUITheme: void
   heartbeat: IServerHeartbeat & { port: number }
+  bytesPos1b: DFDLDataBytePos
 }
 
 export type ExtensionMessageKeys =
@@ -121,55 +123,14 @@ export type DataEditorMessageResponses = Pick<
  * Key indexable interface to templated type inference of available messages sent between
  * the components of the DFDL VSCode extension.
  */
-// export interface DataEditorMessageRequests
-//   extends MessageRequestMap<EditorMessageId> {
-//   counts: never
-//   clearChanges: never
-//   applyChanges: ApplyChangesRequest
-//   editorOnChange: EditorOnChangeRequest
-//   fileInfo: never // service
-//   heartbeat: never // service
-//   profile: ProfileRequest // service
-//   redoChange: never
-//   replaceResults: never
-//   requestEditedData: EditedDataRequest
-//   save: SaveRequest
-//   saveAs: SaveRequest
-//   saveSegment: SaveSegmentRequest
-//   scrollViewport: ScrollViewportRequest
-//   search: SearchRequest
-//   replace: ReplaceRequest
-//   undoChange: UndoRequest
-//   viewportRefresh: never
-// }
 export type ExtensionMessageRequests = Pick<
   MessageRequestMap,
   ExtensionMessageKeys
 >
 
-// export type ExtensionMessageResponses = Pick<
-
-// export interface DataEditorMessageResponses
-//   extends Record<keyof DataEditorMessageRequests, unknown> {
-//   clearChanges: void
-//   applyChanges: ChangesInfoResponse
-//   editorOnChange: EditorOnChangeResponse
-//   fileInfo: FileInfoResponse
-//   counts: CountResponse
-//   // heartbeat: IServerHeartbeat & { port: number } // service
-//   profile: ProfileResponse
-//   redoChange: void
-//   replaceResults: ReplaceResponse
-//   requestEditedData: EditedDataResponse
-//   save: void
-//   saveAs: SaveAsResponse
-//   saveSegment: void
-//   scrollViewport: void
-//   search: SearchResponse
-//   replace: ReplaceResponse
-//   undoChange: void
-//   viewportRefresh: ViewportRefreshResponse
-// }
+export interface DFDLSessionMessageResponses extends MessageResponseMap {
+  bytesPos1b: DFDLDataBytePos
+}
 
 export type VSEditorMessagePackage<K extends keyof DataEditorMessageRequests> =
   {

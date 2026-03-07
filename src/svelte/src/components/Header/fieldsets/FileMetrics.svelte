@@ -17,7 +17,7 @@ limitations under the License.
 <script lang="ts">
   import Button from '../../Inputs/Buttons/Button.svelte'
   import FlexContainer from '../../layouts/FlexContainer.svelte'
-  import { vscode } from '../../../utilities/vscode'
+//   import { vscode } from '../../../utilities/vscode'
   import { saveable, fileMetrics} from '../../../stores'
   import { createEventDispatcher } from 'svelte'
   import SidePanel from '../../layouts/SidePanel.svelte'
@@ -27,9 +27,9 @@ limitations under the License.
   import { DATA_PROFILE_MAX_LENGTH } from '../../../stores/configuration'
   import Tooltip from '../../layouts/Tooltip.svelte'
   import ISO6391 from 'iso-639-1'
-  import { getUIMsgId } from 'stores/states.svelte'
+  import { getUIMessenger } from 'stores/states.svelte'
   const eventDispatcher = createEventDispatcher()
-
+    const messenger = getUIMessenger()
   let displayOpts = false
   let isProfilerOpen = false
   let canUndo: boolean
@@ -39,14 +39,14 @@ limitations under the License.
   let length: number = 0
 
   function saveAs() {
-    // vscode.postMessage({
+    // messenger.postMessage({
     //   command: MessageCommand.saveAs,
     // })
     displayOpts = false
   }
 
   function save() {
-    // vscode.postMessage({
+    // messenger.postMessage({
     //   command: MessageCommand.save,
     // })
     displayOpts = false
@@ -61,13 +61,20 @@ limitations under the License.
       }, 10000)
     }
   }
-  vscode.addMessageListener(
-    getUIMsgId(),
+  messenger.addListener(
     'fileInfo',
     (msg) => {
       $fileMetrics.name = msg.filename
       $fileMetrics.language = msg.language
       $fileMetrics.type = msg.contentType
+    }
+  )
+  messenger.addListener(
+    'counts',
+    (msg) => {
+        $fileMetrics.computedSize = msg.computedFileSize
+        $fileMetrics.changeCount = msg.applied
+        $fileMetrics.undoCount = msg.undos
     }
   )
   // window.addEventListener('message', (msg) => {

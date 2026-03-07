@@ -178,3 +178,7 @@ export type CountResponse = {
 export type SaveAsResponse = {
   newFilePath: string
 }
+
+export type DFDLDataBytePos = {
+  bytePos1b: number
+}

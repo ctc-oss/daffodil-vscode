@@ -20,7 +20,7 @@ import { svelte } from '@sveltejs/vite-plugin-svelte'
 import path from 'path'
 import strip from 'rollup-plugin-strip-code'
 import { fileURLToPath } from 'url'
-import { loadEnvFile } from 'node:process'
+// import { loadEnvFile } from 'node:process'
 import * as fs from 'fs'
 const r = (p) => fileURLToPath(new URL(p, import.meta.url))
 const envFilePath = path.resolve(__dirname, '.env')
