@@ -20,12 +20,9 @@ limitations under the License.
 
   import {
     bytesPerRow,
-    displayRadix,
     editedDataSegment,
     editMode,
-    editorEncoding,
     editorSelection,
-    focusedViewportId,
     seekOffset,
     originalDataSegment,
     requestable,
@@ -37,14 +34,13 @@ limitations under the License.
     viewport,
     searchQuery,
     regularSizedFile,
-    dataDislayLineAmount,
+    fileMetrics,
   } from './stores'
   import {
     CSSThemeClass,
     UIThemeCSSClass,
     darkUITheme,
   } from './utilities/colorScheme'
-  import { vscode } from './utilities/vscode'
   import Header from './components/Header/Header.svelte'
   import Main from './Main.svelte'
   import ServerMetrics from './components/ServerMetrics/ServerMetrics.svelte'
@@ -59,25 +55,45 @@ limitations under the License.
   import { byte_count_divisible_offset } from './utilities/display'
   import Help from './components/layouts/Help.svelte'
   import { EditByteModes, type BytesPerRow } from 'ext_types'
-  import { VIEWPORT_CAPACITY_MAX, VIEWPORT_SCROLL_INCREMENT } from './stores/configuration'
-  import { getUIMsgId, setUIMessenger, setUIMsgId } from './stores/states.svelte'
+  import { VIEWPORT_SCROLL_INCREMENT } from './stores/configuration'
+  import { getUIMsgId, setUIMsgId } from './stores/states.svelte'
+  import { vscode } from './utilities/vscode'
+//   import { getUIMsgId, setUIMessenger, setUIMsgId } from './stores/states.svelte'
   setUIMsgId( document.getElementById('app')?.attributes['extension_msg_id'].value )
-    console.log("Svelte UI Messenger Id: ", getUIMsgId())
   
-  const messenger = setUIMessenger(vscode.getMessenger(getUIMsgId()))
+  window.addEventListener('fileInfo', (event) => {
+    console.log("Window received dispatched 'fileInfo' event")
+    console.log(event)
+  })
+  const messenger = vscode.register(getUIMsgId())
+  
+  messenger.addListener('fileInfo', (data)=>{
+    const {contentType, filename, language} = data
 
+    $fileMetrics = {
+        ...$fileMetrics,
+        type: contentType,
+        name: filename,
+        language: language,
+    }
+  })
+//   messenger.addListener('fileInfo', (event) => {
+//     const fileInfo = event.detail
+//     console.log("Received 'fileInfo' message:")
+//         console.log(fileInfo)
+//     })
   function requestEditedData() {
     if ($requestable) {
       
-      messenger.postMessage('requestEditedData', {
-          selectionToFileOffset: $selectionDataStore.startOffset,
-          editedContent: $editorSelection,
-          viewport: $focusedViewportId,
-          selectionSize: $selectionSize,
-          encodingStr: $editorEncoding,
-          radix: $displayRadix,
-          editMode: $editMode,
-      })
+    //   messenger.postMessage('requestEditedData', {
+    //       selectionToFileOffset: $selectionDataStore.startOffset,
+    //       editedContent: $editorSelection,
+    //       viewport: $focusedViewportId,
+    //       selectionSize: $selectionSize,
+    //       encodingStr: $editorEncoding,
+    //       radix: $displayRadix,
+    //       editMode: $editMode,
+    //   })
       // vscode.postMessage({
       //   command: requestEditedData,
       //   data: {
@@ -158,11 +174,11 @@ limitations under the License.
       $bytesPerRow,
       fetchOffset
     )
-    messenger.postMessage('scrollViewport', {
-        startOffset: fetchOffset,
-        bytesPerRow: $bytesPerRow,
-        numLinesDisplayed: $dataDislayLineAmount,
-    })
+    // messenger.postMessage('scrollViewport', {
+    //     startOffset: fetchOffset,
+    //     bytesPerRow: $bytesPerRow,
+    //     numLinesDisplayed: $dataDislayLineAmount,
+    // })
     clearDataDisplays()
   }
 
@@ -174,10 +190,10 @@ limitations under the License.
     const navigationData = navigationEvent.detail
     $dataFeedAwaitRefresh = true
 
-    messenger.postMessage('scrollViewport', {
-        startOffset: navigationData.nextViewportOffset,
-        bytesPerRow: $bytesPerRow
-    })
+    // messenger.postMessage('scrollViewport', {
+    //     startOffset: navigationData.nextViewportOffset,
+    //     bytesPerRow: $bytesPerRow
+    // })
 
     $dataFeedLineTop = navigationData.lineTopOnRefresh
     clearDataDisplays()
@@ -222,27 +238,27 @@ limitations under the License.
         editedData = new Uint8Array(0)
         break
     }
-    messenger.postMessage('applyChanges', {
-        offset: editedOffset,
-        original_segment: originalData as Uint8Array,
-        edited_segment: editedData,
+    // messenger.postMessage('applyChanges', {
+    //     offset: editedOffset,
+    //     original_segment: originalData as Uint8Array,
+    //     edited_segment: editedData,
 
-    })
+    // })
     
     clearDataDisplays()
     clearQueryableData()
   }
 
   function undo() {
-    messenger.postMessage("undoChange")
+    // messenger.postMessage("undoChange")
   }
 
   function redo() {
-    messenger.postMessage("redoChange")
+    // messenger.postMessage("redoChange")
   }
 
   function clearChangeStack() {
-    messenger.postMessage('clearChanges')
+    // messenger.postMessage('clearChanges')
   }
 
   function clearDataDisplays() {
@@ -270,19 +286,19 @@ limitations under the License.
     }
   }
 
-  messenger.addListener(
-    'viewportRefresh',
-    (msg) => {
-        const { data , fileOffset, length, bytesLeft } = msg
-        $viewport = {
-            data: data as Uint8Array<ArrayBuffer>,
-            fileOffset,
-            length,
-            bytesLeft,
-            capacity: VIEWPORT_CAPACITY_MAX
-        }
-    }
-  )
+//   messenger.addListener(
+//     'viewportRefresh',
+//     (msg) => {
+//         const { data , fileOffset, length, bytesLeft } = msg
+//         $viewport = {
+//             data: data as Uint8Array<ArrayBuffer>,
+//             fileOffset,
+//             length,
+//             bytesLeft,
+//             capacity: VIEWPORT_CAPACITY_MAX
+//         }
+//     }
+//   )
   window.addEventListener('message', (msg) => {
     switch (msg.data.command) {
       case "editorOnChange":
@@ -342,7 +358,14 @@ limitations under the License.
 <Help />
 <hr />
 <ServerMetrics />
-
+<button on:click={(e) => {
+  window.removeEventListener('fileInfo', (ev) => {
+    window.removeEventListener('fileInfo', (event) => {
+    console.log("Window received dispatched 'fileInfo' event")
+    console.log(event)
+  })
+  })
+}}></button>
 <!-- </body> -->
 
 <!-- svelte-ignore css-unused-selector -->

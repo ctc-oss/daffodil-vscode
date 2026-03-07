@@ -26,6 +26,7 @@ const config = {
   ],
   compilerOptions: {
     css: 'external',
+    rootDir: '.',
   },
   onwarn(w, defaultHandler) {
     if (w.code.includes('a11y')) return

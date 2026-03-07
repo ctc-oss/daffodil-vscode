@@ -24,13 +24,14 @@
     "allowImportingTsExtensions": true,
     "noEmit": true,
     "inlineSources": true,
-    "baseUrl": "./src",
+    "baseUrl": ".",
     "paths": {
       "utilities": ["utilities"],
       "layout/*": ["components/layouts/*"],
       "HTMLWrappers/*": ["components/html/*"],
       "editor_components/*": ["components/sections/*"],
-      "ext_types": ["../../ext_types"],
+      "ext_types": ["../ext_types"],
+      "types": ["../types/*"],
       "stores/*":["stores/*"]
     },
     "useDefineForClassFields": true,
@@ -42,7 +43,7 @@
     "esModuleInterop": true,
     "verbatimModuleSyntax": true
   },
-  "include": ["src/**/*.ts", "src/**/*.svelte", "src/tests/**/*.test.ts"],
+  "include": ["src/**/*.ts", "src/**/*.svelte", "src/tests/**/*.test.ts", "../types/**/*.d.ts"],
   "exclude": ["node_modules/*"],
   "strict": true /* enable all strict type-checking options */,
   "noImplicitAny": false,
