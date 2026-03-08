@@ -1,6 +1,5 @@
 import {
   EditorMessageListenerMap,
-  HTMLMessengerInterface,
   MessageRequestMap,
   type EditorMessageListener,
   type MessageResponseMap,
@@ -30,14 +29,13 @@ type DataEditorEventMessageType<K extends keyof MessageResponseMap> =
 type DataEditorWindowEventMap = {
   [K in keyof MessageResponseMap]: {
     type: K
-    detail: CustomEvent<MessageResponseMap[K]>['detail']
+    detail: { id: string; data: CustomEvent<MessageResponseMap[K]>['detail'] }
   }
 }
 declare global {
   interface WindowEventMap extends DataEditorWindowEventMap {}
   interface Window {
     removeListenersFor: (id: string) => void
-    getEditorMessenger: (id: string) => HTMLMessengerInterface
     addEditorMsgListener: <K extends keyof MessageResponseMap>(
       type: K,
       listener: EditorMessageListener<K>

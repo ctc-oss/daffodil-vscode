@@ -44,6 +44,7 @@ limitations under the License.
 
   /* DEBUG_ONLY_END */
 addListener('fileInfo', (data)=>{
+    if(!data.bom) return 
     bom = data.bom
     if (bom === 'UTF-8') $editorEncoding = 'utf-8'
     else if (bom === 'UTF-16LE') $editorEncoding = 'utf-16le'

@@ -1,4 +1,4 @@
-export const EditorMessageIds = [
+export const EditorRequestIds = [
   'clearChanges',
   'applyChanges',
   'fileInfo',
@@ -13,7 +13,6 @@ export const EditorMessageIds = [
   'scrollViewport',
   'search',
   'replace',
-  'searchResults',
   'undoChange',
   'viewportRefresh',
   'showMessage',
@@ -21,8 +20,31 @@ export const EditorMessageIds = [
   'editorOnChange',
 ] as const
 
-export type EditorMessageId = (typeof EditorMessageIds)[number]
+export const EditorResponseIds = [
+  'clearChanges',
+  'applyChanges',
+  'fileInfo',
+  'heartbeat',
+  'profile',
+  'redoChange',
+  'replaceResults',
+  'requestEditedData',
+  'save',
+  'saveAs',
+  'saveSegment',
+  'scrollViewport',
+  'search',
+  'replace',
+  'undoChange',
+  'viewportRefresh',
+  'showMessage',
+  'setUITheme',
+  'editorOnChange',
+  'bytePos1b',
+] as const
 
-export function isEditorMessageId(id: string) {
-  return (EditorMessageIds as readonly string[]).includes(id)
+export type EditorMessageId = (typeof EditorRequestIds)[number]
+
+export function isEditorMessageId(id: string): id is EditorMessageId {
+  return (EditorRequestIds as readonly string[]).includes(id)
 }

@@ -577,7 +577,7 @@ limitations under the License.
             ) as HTMLDivElement
         }
   })
-  addListener('bytesPos1b', (data) => {
+  addListener('bytePos1b', (data) => {
         const { bytePos1b } = data
         if (!bytePosIsDisplayable(bytePos1b - 1)) {
           $seekOffsetInput = bytePos1b.toString(addressRadix)

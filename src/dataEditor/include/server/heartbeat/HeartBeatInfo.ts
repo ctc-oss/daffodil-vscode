@@ -14,17 +14,47 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { IServerHeartbeat } from '@omega-edit/client'
-
-export class HeartbeatInfo implements IServerHeartbeat {
-  omegaEditPort: number = 0 // Ωedit server port
-  latency: number = 0 // latency in ms
-  serverCommittedMemory: number = 0 // committed memory in bytes
-  serverCpuCount: number = 0 // cpu count
-  serverCpuLoadAverage: number = 0 // cpu load average
-  serverMaxMemory: number = 0 // max memory in bytes
-  serverTimestamp: number = 0 // timestamp in ms
-  serverUptime: number = 0 // uptime in ms
-  serverUsedMemory: number = 0 // used memory in bytes
-  sessionCount: number = 0 // session count
+import { IServerHeartbeat, IServerInfo } from '@omega-edit/client'
+export type ServerHeartbeat = IServerHeartbeat & { serverInfo: IServerInfo }
+export const HeartbeatInfoDefaults: ServerHeartbeat = {
+  latency: 0,
+  sessionCount: 0,
+  serverTimestamp: 0,
+  serverUptime: 0,
+  serverCpuCount: 0,
+  serverCpuLoadAverage: 0,
+  serverMaxMemory: 0,
+  serverCommittedMemory: 0,
+  serverUsedMemory: 0,
+  serverInfo: {
+    serverHostname: '',
+    serverProcessId: 0,
+    serverVersion: '',
+    jvmVersion: '',
+    jvmVendor: '',
+    jvmPath: '',
+    availableProcessors: 0,
+  },
+}
+export class HeartbeatInfo {
+  serverHeartbeat: ServerHeartbeat = {
+    latency: 0,
+    sessionCount: 0,
+    serverTimestamp: 0,
+    serverUptime: 0,
+    serverCpuCount: 0,
+    serverCpuLoadAverage: 0,
+    serverMaxMemory: 0,
+    serverCommittedMemory: 0,
+    serverUsedMemory: 0,
+    serverInfo: {
+      serverHostname: '',
+      serverProcessId: 0,
+      serverVersion: '',
+      jvmVersion: '',
+      jvmVendor: '',
+      jvmPath: '',
+      availableProcessors: 0,
+    },
+  }
 }

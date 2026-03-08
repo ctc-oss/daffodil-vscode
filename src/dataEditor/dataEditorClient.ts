@@ -18,11 +18,14 @@
 import {
   ALL_EVENTS,
   beginSessionTransaction,
+  clear,
+  countCharacters,
   CountKind,
   createSession,
   createSimpleFileLogger,
   createViewport,
   del,
+  edit,
   EditorClient,
   endSessionTransaction,
   EventSubscriptionRequest,
@@ -38,11 +41,17 @@ import {
   getViewportData,
   IOFlags,
   modifyViewport,
+  numAscii,
+  profileSession,
+  redo,
+  replaceOneSession,
   saveSession,
   SaveStatus,
+  searchSession,
   setLogger,
   startServer,
   stopProcessUsingPID,
+  undo,
   ViewportDataResponse,
   ViewportEvent,
   ViewportEventKind,
@@ -56,7 +65,15 @@ import * as vscode from 'vscode'
 import XDGAppPaths from 'xdg-app-paths'
 import { extractDaffodilEvent } from '../daffodilDebugger/daffodil'
 import { VIEWPORT_CAPACITY_MAX } from '../svelte/src/stores/configuration'
-import { VSMessagePackage } from 'ext_types'
+import {
+  EditByteModes,
+  EditedDataRequest,
+  getRequestCommandType,
+  getRequestPayloadType,
+  MessageRequestMap,
+  VSMessagePackage,
+  VSMessageRequest,
+} from 'ext_types'
 import * as editor_config from './config'
 import { configureOmegaEditPort, ServerInfo } from './include/server/ServerInfo'
 import {
@@ -71,8 +88,7 @@ import {
 import { getCurrentHeartbeatInfo } from './include/server/heartbeat'
 import * as child_process from 'child_process'
 import { osCheck } from '../utils'
-import { isDFDLDebugSessionActive } from './include/utils'
-import { handleMessage } from './messageHandlers'
+import { isDFDLDebugSessionActive, toEncoding } from './include/utils'
 
 // *****************************************************************************
 // global constants
@@ -133,11 +149,11 @@ export class DataEditorClient implements vscode.Disposable {
     fileToEdit: string = '',
     private panel: DataEditorUI
   ) {
-    this.panel.onDidReceiveMessage(this.msgReceiver)
+    this.panel.onDidReceiveMessage(this.messageReceiver)
     if (OPEN_EDITORS.size === 1) {
       let bytePos1b = 0
       const testmsgint = setInterval(() => {
-        this.panel.postMessage('bytesPos1b', { bytePos1b })
+        this.panel.postMessage('bytePos1b', { bytePos1b })
         bytePos1b = bytePos1b + 2
       }, 1000)
     }
@@ -395,28 +411,14 @@ export class DataEditorClient implements vscode.Disposable {
       computedFileSize: data.computedFileSize,
       undos: 0,
     })
-    // send the initial file info to the webview
-    // await this.panel.postMessage({
-    //   command: MessageCommand.fileInfo,
-    //   data: data,
-    // })
   }
 
   private async sendHeartbeat() {
     const heartbeatInfo = getCurrentHeartbeatInfo()
+
     this.panel.postMessage('heartbeat', {
-      ...heartbeatInfo,
-      port: 9000, // TODO: Get this from stored value
-      // serverInfo: {
-      //   omegaEditPort: this.configVars.port,
-      //   serverVersion: serverInfo.serverVersion,
-      //   serverHostname: serverInfo.serverHostname,
-      //   serverProcessId: serverInfo.serverProcessId,
-      //   jvmVersion: serverInfo.jvmVersion,
-      //   jvmVendor: serverInfo.jvmVendor,
-      //   jvmPath: serverInfo.jvmPath,
-      //   availableProcessors: serverInfo.availableProcessors,
-      // },
+      ...heartbeatInfo.serverHeartbeat,
+      port: 9000,
     })
   }
 
@@ -460,261 +462,288 @@ export class DataEditorClient implements vscode.Disposable {
     // })
   }
 
-  private async msgReceiver(message: VSMessagePackage) {
-    handleMessage(message)
-    this.panel.postMessage('redoChange')
+  // id: ui id
+  // payload: [command, data]
+  private async messageReceiver(incomingMessage: VSMessagePackage) {
+    const command = getRequestCommandType(...incomingMessage.payload)
+    // handleMessage(message)
+    // this.panel.postMessage('redoChange')
+    switch (command) {
+      case 'showMessage':
+        {
+          const { level, message } = getRequestPayloadType<typeof command>(
+            incomingMessage.payload[1]
+          )
+          // incomingMessage.payload as MessageRequestMap['showMessage']
+          vscode.window[`show${level}Message`](message)
+        }
+        break
+      case 'scrollViewport':
+        {
+          const { startOffset, bytesPerRow } = getRequestPayloadType<
+            typeof command
+          >(incomingMessage.payload[1])
+
+          await this.scrollViewport(
+            this.panel,
+            this.currentViewportId,
+            startOffset,
+            bytesPerRow
+          )
+        }
+        break
+      // Session Manipulation Commands
+      case 'save':
+        await this.saveFile(this.fileToEdit)
+
+        break
+      case 'saveSegment':
+        const { length, offset } = getRequestPayloadType<typeof command>(
+          incomingMessage.payload[1]
+        )
+        const uri = await vscode.window.showSaveDialog({
+          title: 'Save Segment',
+          saveLabel: 'Save',
+        })
+        if (uri && uri.fsPath) {
+          await this.saveFileSegment(uri.fsPath, offset, length)
+        }
+      case 'saveAs':
+        {
+          const uri = await vscode.window.showSaveDialog({
+            title: 'Save Session',
+            saveLabel: 'Save',
+          })
+          if (uri && uri.fsPath) {
+            await this.saveFile(uri.fsPath)
+          }
+        }
+        break
+
+      case 'applyChanges':
+        {
+          const { offset, edited_segment, original_segment } =
+            getRequestPayloadType<typeof command>(incomingMessage.payload[1])
+          await edit(
+            this.omegaSessionId,
+            offset,
+            original_segment,
+            edited_segment
+          )
+          await this.sendChangesInfo()
+        }
+        break
+      case 'undoChange':
+        {
+          await undo(this.omegaSessionId)
+          await this.sendChangesInfo()
+          this.panel.postMessage('clearChanges')
+        }
+        break
+      case 'redoChange':
+        {
+          await redo(this.omegaSessionId)
+          await this.sendChangesInfo()
+          this.panel.postMessage('clearChanges')
+        }
+        break
+      case 'clearChanges':
+        {
+          if (
+            (await vscode.window.showInformationMessage(
+              'Are you sure you want to revert all changes?',
+              { modal: true },
+              'Yes',
+              'No'
+            )) === 'Yes'
+          ) {
+            await clear(this.omegaSessionId)
+            await this.sendChangesInfo()
+            this.panel.postMessage('clearChanges')
+          }
+        }
+        break
+      case 'requestEditedData':
+        {
+          const payload = getRequestPayloadType<typeof command>(
+            incomingMessage.payload[1]
+          )
+          // const {} = incomingMessage.payload as MessageRequestMap['']
+          const [selectionData, selectionDisplay] = fillRequestData(payload)
+
+          await this.panel.postMessage('requestEditedData', {
+            data: Uint8Array.from(selectionData),
+            dataDisplay: selectionDisplay,
+          })
+        }
+        break
+      case 'replace':
+        {
+          const {
+            encoding,
+            replaceStr,
+            searchStr,
+            is_case_insensitive,
+            is_reverse,
+            length,
+            limit,
+            offset,
+            overwriteOnly,
+          } = getRequestPayloadType<typeof command>(incomingMessage.payload[1])
+          const requestedEncoding = toEncoding(encoding)
+
+          const searchDataBytes =
+            searchStr instanceof Uint8Array
+              ? searchStr
+              : encodedStrToData(searchStr, requestedEncoding)
+          const replaceDataBytes =
+            replaceStr instanceof Uint8Array
+              ? replaceStr
+              : encodedStrToData(replaceStr, requestedEncoding)
+          const nextOffset = await replaceOneSession(
+            this.omegaSessionId,
+            searchDataBytes,
+            replaceDataBytes,
+            is_case_insensitive,
+            is_reverse,
+            offset,
+            length,
+            overwriteOnly
+          )
+          if (nextOffset === -1) {
+            vscode.window.showErrorMessage('No replacement took place')
+          } else {
+            await this.sendChangesInfo()
+          }
+          await this.panel.postMessage('replaceResults', {
+            replacementsCount: nextOffset === -1 ? 0 : 1,
+            nextOffset: nextOffset,
+            searchDataBytesLength: searchDataBytes.length,
+            replaceDataBytesLength: replaceDataBytes.length,
+          })
+        }
+        break
+
+      // Utility Message Commands
+      case 'search':
+        {
+          const {
+            encoding,
+            searchStr,
+            is_case_insensitive,
+            is_reverse,
+            length,
+            limit,
+            offset,
+          } = getRequestPayloadType<typeof command>(incomingMessage.payload[1])
+          const requestedEncoding = toEncoding(encoding)
+
+          const searchDataBytes = encodedStrToData(searchStr, requestedEncoding)
+          const searchLimit = limit ? limit + 1 : 2
+
+          const searchResults = await searchSession(
+            this.omegaSessionId,
+            searchDataBytes,
+            is_case_insensitive,
+            is_reverse,
+            offset,
+            length,
+            searchLimit
+          )
+
+          if (searchResults.length === 0) {
+            vscode.window.showInformationMessage(
+              `No more matches found for '${searchStr}'`
+            )
+          }
+          let overflow = false
+          if (searchResults.length > searchLimit) {
+            overflow = true
+            searchResults.pop()
+          }
+          await this.panel.postMessage('search', {
+            results: searchResults,
+            byteLength: searchDataBytes.length,
+            overflow: overflow,
+          })
+        }
+        break
+      case 'profile':
+        {
+          const { length, startOffset } = getRequestPayloadType<typeof command>(
+            incomingMessage.payload[1]
+          )
+
+          const byteProfile: number[] = await profileSession(
+            this.omegaSessionId,
+            startOffset,
+            length
+          )
+          const characterCount = await countCharacters(
+            this.omegaSessionId,
+            startOffset,
+            length
+          ).catch((err) => {
+            console.debug(err)
+          })
+          const contentTypeResponse = await getContentType(
+            this.omegaSessionId,
+            startOffset,
+            length
+          )
+          const languageResponse = await getLanguage(
+            this.omegaSessionId,
+            startOffset,
+            length,
+            characterCount!.getByteOrderMark()
+          )
+          await this.panel.postMessage('profile', {
+            startOffset: startOffset,
+            length: length,
+            byteProfile: byteProfile,
+            numAscii: numAscii(byteProfile),
+            language: languageResponse.getLanguage(),
+            contentType: contentTypeResponse.getContentType(),
+            characterCount: {
+              byteOrderMark: characterCount!.getByteOrderMark(),
+              byteOrderMarkBytes: characterCount!.getByteOrderMarkBytes(),
+              singleByteCount: characterCount!.getSingleByteChars(),
+              doubleByteCount: characterCount!.getDoubleByteChars(),
+              tripleByteCount: characterCount!.getTripleByteChars(),
+              quadByteCount: characterCount!.getQuadByteChars(),
+              invalidBytes: characterCount!.getInvalidBytes(),
+            },
+          })
+        }
+        break
+      case 'editorOnChange':
+        {
+          const { editMode, encoding, selectionData } = getRequestPayloadType<
+            typeof command
+          >(incomingMessage.payload[1])
+
+          const displayState = this.panel.displayState
+          const requestedEncoding = toEncoding(encoding)
+
+          displayState.update('encoding', requestedEncoding)
+
+          const encodeDataAs =
+            editMode === EditByteModes.Single
+              ? 'hex'
+              : displayState.get('encoding')
+
+          if (selectionData && selectionData.length > 0) {
+            await this.panel.postMessage('editorOnChange', {
+              encodedStr: dataToEncodedStr(
+                Buffer.from(selectionData),
+                encodeDataAs
+              ),
+            })
+          }
+        }
+        break
+    }
   }
-  // handle messages from the webview
-  // private async messageReceiver(message: EditorMessage) {
-  //   switch (message.command) {
-  //     case MessageCommand.showMessage:
-  //       break
-
-  //     case MessageCommand.scrollViewport:
-  //       await this.scrollViewport(
-  //         this.panel,
-  //         this.currentViewportId,
-  //         message.data.scrollOffset,
-  //         message.data.bytesPerRow
-  //       )
-  //       break
-
-  //     case MessageCommand.editorOnChange:
-  //       {
-  //         const displayState = this.panel.displayState
-  //         displayState.update('encoding', message.data.encoding)
-
-  //         const encodeDataAs =
-  //           message.data.editMode === EditByteModes.Single
-  //             ? 'hex'
-  //             : displayState.get('encoding')
-
-  //         if (
-  //           message.data.selectionData &&
-  //           message.data.selectionData.length > 0
-  //         ) {
-  //           await this.panel.postMessage({
-  //             command: MessageCommand.editorOnChange,
-  //             display: dataToEncodedStr(
-  //               Buffer.from(message.data.selectionData),
-  //               encodeDataAs
-  //             ),
-  //           })
-  //         }
-  //       }
-  //       break
-
-  //     case MessageCommand.applyChanges:
-  //       await edit(
-  //         this.omegaSessionId,
-  //         message.data.offset,
-  //         message.data.originalSegment,
-  //         message.data.editedSegment
-  //       )
-  //       await this.sendChangesInfo()
-  //       break
-
-  //     case MessageCommand.undoChange:
-  //       await undo(this.omegaSessionId)
-  //       await this.sendChangesInfo()
-  //       this.panel.postMessage({
-  //         command: MessageCommand.clearChanges,
-  //       })
-  //       break
-
-  //     case MessageCommand.redoChange:
-  //       await redo(this.omegaSessionId)
-  //       await this.sendChangesInfo()
-  //       this.panel.postMessage({
-  //         command: MessageCommand.clearChanges,
-  //       })
-  //       break
-
-  //     case MessageCommand.profile:
-  //       {
-  //         const startOffset: number = message.data.startOffset
-  //         const length: number = message.data.length
-  //         const byteProfile: number[] = await profileSession(
-  //           this.omegaSessionId,
-  //           startOffset,
-  //           length
-  //         )
-  //         const characterCount = await countCharacters(
-  //           this.omegaSessionId,
-  //           startOffset,
-  //           length
-  //         )
-  //         const contentTypeResponse = await getContentType(
-  //           this.omegaSessionId,
-  //           startOffset,
-  //           length
-  //         )
-  //         const languageResponse = await getLanguage(
-  //           this.omegaSessionId,
-  //           startOffset,
-  //           length,
-  //           characterCount.getByteOrderMark()
-  //         )
-  //         await this.panel.postMessage({
-  //           command: MessageCommand.profile,
-  //           data: {
-  //             startOffset: startOffset,
-  //             length: length,
-  //             byteProfile: byteProfile,
-  //             numAscii: numAscii(byteProfile),
-  //             language: languageResponse.getLanguage(),
-  //             contentType: contentTypeResponse.getContentType(),
-  //             characterCount: {
-  //               byteOrderMark: characterCount.getByteOrderMark(),
-  //               byteOrderMarkBytes: characterCount.getByteOrderMarkBytes(),
-  //               singleByteCount: characterCount.getSingleByteChars(),
-  //               doubleByteCount: characterCount.getDoubleByteChars(),
-  //               tripleByteCount: characterCount.getTripleByteChars(),
-  //               quadByteCount: characterCount.getQuadByteChars(),
-  //               invalidBytes: characterCount.getInvalidBytes(),
-  //             },
-  //           },
-  //         })
-  //       }
-  //       break
-
-  //     case MessageCommand.clearChanges:
-  //       if (
-  //         (await vscode.window.showInformationMessage(
-  //           'Are you sure you want to revert all changes?',
-  //           { modal: true },
-  //           'Yes',
-  //           'No'
-  //         )) === 'Yes'
-  //       ) {
-  //         await clear(this.omegaSessionId)
-  //         await this.sendChangesInfo()
-  //         this.panel.postMessage({
-  //           command: MessageCommand.clearChanges,
-  //         })
-  //       }
-  //       break
-
-  //     case MessageCommand.save:
-  //       await this.saveFile(this.fileToEdit)
-  //       break
-
-  //     case MessageCommand.saveAs:
-  //       {
-  //         const uri = await vscode.window.showSaveDialog({
-  //           title: 'Save Session',
-  //           saveLabel: 'Save',
-  //         })
-  //         if (uri && uri.fsPath) {
-  //           await this.saveFile(uri.fsPath)
-  //         }
-  //       }
-  //       break
-
-  //     case MessageCommand.saveSegment:
-  //       {
-  //         const uri = await vscode.window.showSaveDialog({
-  //           title: 'Save Segment',
-  //           saveLabel: 'Save',
-  //         })
-  //         if (uri && uri.fsPath) {
-  //           await this.saveFileSegment(
-  //             uri.fsPath,
-  //             message.data.offset,
-  //             message.data.length
-  //           )
-  //         }
-  //       }
-  //       break
-
-  //     case MessageCommand.requestEditedData:
-  //       {
-  //         const [selectionData, selectionDisplay] = fillRequestData(message)
-
-  //         await this.panel.postMessage({
-  //           command: MessageCommand.requestEditedData,
-  //           data: {
-  //             data: Uint8Array.from(selectionData),
-  //             dataDisplay: selectionDisplay,
-  //           },
-  //         })
-  //       }
-  //       break
-
-  //     case MessageCommand.replace:
-  //       {
-  //         const searchDataBytes = encodedStrToData(
-  //           message.data.searchData,
-  //           message.data.encoding
-  //         )
-  //         const replaceDataBytes = encodedStrToData(
-  //           message.data.replaceData,
-  //           message.data.encoding
-  //         )
-  //         const nextOffset = await replaceOneSession(
-  //           this.omegaSessionId,
-  //           searchDataBytes,
-  //           replaceDataBytes,
-  //           message.data.caseInsensitive,
-  //           message.data.isReverse,
-  //           message.data.searchOffset,
-  //           message.data.searchLength,
-  //           message.data.overwriteOnly
-  //         )
-  //         if (nextOffset === -1) {
-  //           vscode.window.showErrorMessage('No replacement took place')
-  //         } else {
-  //           await this.sendChangesInfo()
-  //         }
-  //         await this.panel.postMessage({
-  //           command: MessageCommand.replaceResults,
-  //           data: {
-  //             replacementsCount: nextOffset === -1 ? 0 : 1,
-  //             nextOffset: nextOffset,
-  //             searchDataBytesLength: searchDataBytes.length,
-  //             replaceDataBytesLength: replaceDataBytes.length,
-  //           },
-  //         })
-  //       }
-  //       break
-
-  //     case MessageCommand.search:
-  //       {
-  //         const searchDataBytes = encodedStrToData(
-  //           message.data.searchData,
-  //           message.data.encoding
-  //         )
-  //         const searchResults = await searchSession(
-  //           this.omegaSessionId,
-  //           searchDataBytes,
-  //           message.data.caseInsensitive,
-  //           message.data.isReverse,
-  //           message.data.searchOffset,
-  //           message.data.searchLength,
-  //           message.data.limit + 1
-  //         )
-  //         if (searchResults.length === 0) {
-  //           vscode.window.showInformationMessage(
-  //             `No more matches found for '${message.data.searchData}'`
-  //           )
-  //         }
-  //         let overflow = false
-  //         if (searchResults.length > message.data.limit) {
-  //           overflow = true
-  //           searchResults.pop()
-  //         }
-  //         await this.panel.postMessage({
-  //           command: MessageCommand.searchResults,
-  //           data: {
-  //             searchResults: searchResults,
-  //             searchDataBytesLength: searchDataBytes.length,
-  //             overflow: overflow,
-  //           },
-  //         })
-  //       }
-  //       break
-  //   }
-  // }
 
   private async saveFileSegment(
     fileToSave: string,
@@ -1043,34 +1072,30 @@ async function viewportSubscribe(panel: DataEditorUI, viewportId: string) {
     })
 }
 
-// function fillRequestData(message: EditorMessage): [Buffer, string] {
-//   let selectionByteData: Buffer
-//   let selectionByteDisplay: string
-//   if (message.data.editMode === EditByteModes.Multiple) {
-//     selectionByteData = encodedStrToData(
-//       message.data.editedContent,
-//       message.data.encoding
-//     )
-//     selectionByteDisplay = dataToEncodedStr(
-//       selectionByteData,
-//       message.data.encoding
-//     )
-//   } else {
-//     selectionByteData =
-//       message.data.viewport === 'logical'
-//         ? encodedStrToData(message.data.editedContent, 'latin1')
-//         : Buffer.from([
-//             parseInt(message.data.editedContent, message.data.radix),
-//           ])
+function fillRequestData(
+  message: MessageRequestMap['requestEditedData']
+): [Buffer, string] {
+  let selectionByteData: Buffer
+  let selectionByteDisplay: string
+  let encoding = toEncoding(message.encodingStr)
 
-//     selectionByteDisplay =
-//       message.data.viewport === 'logical'
-//         ? message.data.editedContent
-//         : dataToRadixStr(selectionByteData, message.data.radix)
-//   }
+  if (message.editMode === EditByteModes.Multiple) {
+    selectionByteData = encodedStrToData(message.editedContent, encoding)
+    selectionByteDisplay = dataToEncodedStr(selectionByteData, encoding)
+  } else {
+    selectionByteData =
+      message.viewport === 'logical'
+        ? encodedStrToData(message.editedContent, 'latin1')
+        : Buffer.from([parseInt(message.editedContent, message.radix)])
 
-//   return [selectionByteData, selectionByteDisplay]
-// }
+    selectionByteDisplay =
+      message.viewport === 'logical'
+        ? message.editedContent
+        : dataToRadixStr(selectionByteData, message.radix)
+  }
+
+  return [selectionByteData, selectionByteDisplay]
+}
 
 function encodedStrToData(
   selectionEdits: string,
@@ -1095,7 +1120,16 @@ function encodedStrToData(
   }
 }
 
-function dataToEncodedStr(buffer: Buffer, encoding: BufferEncoding): string {
+function dataToEncodedStr(
+  buffer: Buffer,
+  encoding: BufferEncoding | undefined
+): string {
+  if (!encoding) {
+    console.error(
+      `Request encoding (${encoding}) is not an appropriate type of BufferEncoding`
+    )
+    return ''
+  }
   return encoding === 'binary'
     ? dataToRadixStr(buffer, 2)
     : buffer.toString(encoding)

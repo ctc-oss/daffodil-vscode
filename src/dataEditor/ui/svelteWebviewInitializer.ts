@@ -22,7 +22,6 @@ import {
   MessageRequestMap,
   MessageResponseMap,
   PostMessageArgs,
-  registerHTMLMessenger,
 } from 'ext_types'
 import { DisplayState } from './displayState'
 import { randomUUID } from 'crypto'
@@ -47,13 +46,7 @@ class SvelteUIWebviewPanel implements DataEditorUI {
   constructor(
     private vscodePanel: vscode.WebviewPanel,
     private messengerId: string = ''
-  ) {
-    const msgnrDisposal = registerHTMLMessenger(this.messengerId, (hook) => {
-      this.htmlMessengerDisposal = {
-        dispose: hook,
-      }
-    })
-  }
+  ) {}
   dispose() {
     this.vscodePanel.dispose()
   }

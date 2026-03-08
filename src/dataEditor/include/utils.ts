@@ -22,3 +22,10 @@ export function isDFDLDebugSessionActive(): boolean {
     debug.activeDebugSession.type === 'dfdl'
   )
 }
+
+export function toEncoding(encoding: string): BufferEncoding {
+  if (!Buffer.isEncoding(encoding)) {
+    console.error(`Value (${encoding}) is not a valid BufferEncoding type`)
+  }
+  return encoding as BufferEncoding
+}

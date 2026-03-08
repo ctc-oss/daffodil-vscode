@@ -1,12 +1,9 @@
-import { type DataEditorMessageKeys, type MessageResponseMap } from 'ext_types'
-import {
-  EditorMessageIds,
-  isEditorMessageId,
-  type EditorMessageId,
-} from '../../../ext_types/messageIds'
+import { type MessageResponseMap } from 'ext_types'
+import { isEditorMessageId } from '../../../ext_types/messageIds'
 
 export type IncomingMessage = {
   command: keyof MessageResponseMap
+  id: string
   data: MessageResponseMap[keyof MessageResponseMap]
 }
 
@@ -18,7 +15,8 @@ function dispatchEditorEvent(event: MessageEvent) {
   const msg = event.data
   if (!isEditorMessage(msg)) return
 
-  window.dispatchEvent(new CustomEvent(msg.command, { detail: msg.data }))
-  //   window.dispatchEvent(new CustomEvent())
+  window.dispatchEvent(
+    new CustomEvent(msg.command, { detail: { id: msg.id, data: msg.data } })
+  )
 }
 window.addEventListener('message', dispatchEditorEvent)

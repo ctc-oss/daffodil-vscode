@@ -30,7 +30,9 @@ limitations under the License.
   import { getUIMsgId } from 'stores/states.svelte'
   import { vscode } from 'utilities/vscode'
   const eventDispatcher = createEventDispatcher()
+  
   const {postMessage, addListener} = vscode.getMessenger(getUIMsgId())
+
   let displayOpts = false
   let isProfilerOpen = false
   let canUndo: boolean

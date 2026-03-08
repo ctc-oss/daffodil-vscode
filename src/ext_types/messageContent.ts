@@ -24,6 +24,11 @@ import {
   UndoRequest,
   ViewportRefreshResponse,
 } from './messages'
+import {
+  EditorRequestIds,
+  isEditorMessageId,
+  type EditorMessageId,
+} from './messageIds'
 
 type MessageCommands =
   | 'clearChanges'
@@ -93,7 +98,7 @@ export interface MessageResponseMap extends CommandMap {
   showMessage: void
   setUITheme: void
   heartbeat: IServerHeartbeat & { port: number }
-  bytesPos1b: DFDLDataBytePos
+  bytePos1b: DFDLDataBytePos
 }
 
 export type ExtensionMessageKeys =
@@ -137,10 +142,30 @@ export type VSExtensionMessagePackage<K extends ExtensionMessageKeys> = {
   payload: ExtensionMessageRequests[K]
 }
 
-export type VSMessagePackage =
-  | VSEditorMessagePackage<keyof DataEditorMessageRequests>
-  | VSExtensionMessagePackage<keyof ExtensionMessageRequests>
+export type VSMessagePackage = {
+  uiId: string
+  payload: PostMessageArgs<MessageRequestMap, keyof MessageRequestMap>
+}
 
+export type VSMessageRequest<K extends keyof MessageRequestMap> = {
+  uiId: string
+  payload: PostMessageArgs<MessageRequestMap, K>
+}
+export function getRequestCommandType(cmd: string, payload: any) {
+  if (!isEditorMessageId(cmd)) {
+    throw ''
+  } else {
+    const cmdIdx = EditorRequestIds.findIndex((ids) => {
+      return ids == cmd
+    })
+    return EditorRequestIds[cmdIdx]
+  }
+}
+export function getRequestPayloadType<K extends keyof MessageRequestMap>(
+  payload: MessageRequestMap[keyof MessageRequestMap]
+) {
+  return payload as MessageRequestMap[K]
+}
 export type PostMessageArgs<R, K extends keyof R> = [R[K]] extends [never]
   ? [type: K]
   : [type: K, payload: R[K]]

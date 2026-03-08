@@ -70,7 +70,7 @@ limitations under the License.
         postMessage('requestEditedData', {
           selectionToFileOffset: $selectionDataStore.startOffset,
           editedContent: $editorSelection,
-          viewport: $focusedViewportId,
+          viewport: $focusedViewportId as 'physical'|'logical',
           selectionSize: $selectionSize,
           encodingStr: $editorEncoding,
           radix: $displayRadix,
@@ -308,14 +308,6 @@ limitations under the License.
 <Help />
 <hr />
 <ServerMetrics />
-<button on:click={(e) => {
-  window.removeEventListener('fileInfo', (ev) => {
-    window.removeEventListener('fileInfo', (event) => {
-    console.log("Window received dispatched 'fileInfo' event")
-    console.log(event)
-  })
-  })
-}}></button>
 <!-- </body> -->
 
 <!-- svelte-ignore css-unused-selector -->

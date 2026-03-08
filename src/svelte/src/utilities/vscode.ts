@@ -21,8 +21,6 @@ import {
   type MessageResponseMap,
   type EditorMessageListener,
   type EditorMessageListenerMap,
-  type HTMLMessengerInterface,
-  DefaultEditorListenerMap,
 } from 'ext_types'
 import type { WebviewApi } from 'vscode-webview'
 
@@ -92,9 +90,10 @@ class VSCodeAPIWrapper {
       console.log(winEvent)
       const eventType = winEvent.type
       const details = winEvent.detail
+      if (id !== details.id) return
       //   if (messengerId !== id) return
 
-      listener(details as MessageResponseMap[K])
+      listener(details.data as MessageResponseMap[K])
     })
   }
   /**

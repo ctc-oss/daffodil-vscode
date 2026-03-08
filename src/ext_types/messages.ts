@@ -20,7 +20,7 @@ import { EditByteModes } from './formattypes'
 /**
  * Level of notification type sent to the VSCode extension.
  */
-export type NotificationMessageLevel = 'info' | 'warn' | 'error'
+export type NotificationMessageLevel = 'Information' | 'Warning' | 'Error'
 
 /**
  * Request type for sending a notification to be displayed by VSCode.
@@ -37,7 +37,7 @@ export type SetUIThemeRequest = {
 export type EditedDataRequest = {
   selectionToFileOffset: number
   editedContent: string
-  viewport: string
+  viewport: 'physical' | 'logical'
   selectionSize: number
   encodingStr: string
   radix: number
@@ -141,7 +141,7 @@ export type SaveSegmentRequest = {
 
 export type SearchRequest = {
   encoding: BufferEncoding | string
-  searchStr: string | Uint8Array
+  searchStr: string
   is_case_insensitive?: boolean
   is_reverse?: boolean
   offset?: number
@@ -150,7 +150,7 @@ export type SearchRequest = {
 }
 
 export type SearchResponse = {
-  count: number
+  results: number[]
   byteLength: number
   overflow: boolean
 }
