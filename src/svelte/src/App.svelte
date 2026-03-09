@@ -33,7 +33,6 @@ limitations under the License.
     dataFeedAwaitRefresh,
     viewport,
     searchQuery,
-    regularSizedFile,
     focusedViewportId,
     displayRadix,
     editorEncoding,
@@ -61,6 +60,7 @@ limitations under the License.
   import { VIEWPORT_SCROLL_INCREMENT } from './stores/configuration'
   import { getUIMsgId, setUIMsgId } from './stores/states.svelte'
   import { vscode } from './utilities/vscode'
+  import { isRegularSizedFile } from './components/Header/fieldsets/FileMetrics.svelte.ts'
   setUIMsgId( document.getElementById('app')?.attributes['extension_msg_id'].value )
   
   const {postMessage, addListener} = vscode.getMessenger(getUIMsgId())
@@ -171,21 +171,23 @@ limitations under the License.
   }
 
   function handleEditorEvent(_: Event) {
-    if ($regularSizedFile && $selectionSize < 0) {
+    const sizeRegularity = isRegularSizedFile()
+    if (sizeRegularity && $selectionSize < 0) {
       clearDataDisplays()
       return
     }
-    if (!$regularSizedFile && $editorSelection.length == 0) return
+    if (!sizeRegularity && $editorSelection.length == 0) return
 
     requestEditedData()
   }
 
   function custom_apply_changes(event: CustomEvent<EditEvent>) {
     const action = event.detail.action
+    const sizeRegularity = isRegularSizedFile()
 
     let editedData: Uint8Array
     let originalData = $originalDataSegment
-    let editedOffset = $regularSizedFile
+    let editedOffset = sizeRegularity
       ? $selectionDataStore.startOffset + $viewport.fileOffset
       : 0
 
@@ -201,7 +203,7 @@ limitations under the License.
         break
       case 'insert-replace':
         editedData =
-          !$regularSizedFile && $editorSelection.length == 0
+          !sizeRegularity && $editorSelection.length == 0
             ? new Uint8Array(0)
             : $editedDataSegment
         break

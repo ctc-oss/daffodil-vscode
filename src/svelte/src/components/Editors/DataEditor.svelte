@@ -19,7 +19,6 @@ limitations under the License.
     editorSelection,
     editMode,
     selectionDataStore,
-    regularSizedFile,
     viewport,
     selectionSize,
     addressRadix,
@@ -33,6 +32,7 @@ limitations under the License.
   import HelpIcon from '../layouts/HelpIcon.svelte'
   /* DEBUG_ONLY_START */
   import { getDebugVarContext } from '../Debug'
+  import { isRegularSizedFile } from '../Header/fieldsets/FileMetrics.svelte.ts'
   getDebugVarContext().add({
     id: 'selection',
     valueStr: () => {
@@ -53,7 +53,7 @@ limitations under the License.
   let displayTextEditorArea: boolean
   $: displayTextEditorArea =
     $editMode === EditByteModes.Multiple &&
-    ($selectionDataStore.active || !$regularSizedFile)
+    ($selectionDataStore.active || !isRegularSizedFile())
 
   function clearDataDisplays() {
     eventDispatcher('clearDataDisplays')

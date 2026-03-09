@@ -22,7 +22,6 @@ limitations under the License.
     focusedViewportId,
     selectionDataStore,
     selectedByte,
-    fileMetrics,
     searchQuery,
     editorActionsAllowed,
     dataFeedLineTop,
@@ -73,7 +72,8 @@ limitations under the License.
   import { getDebugVarContext } from '../../Debug'
   import { vscode } from 'utilities/vscode'
   import { getUIMsgId } from 'stores/states.svelte'
-  const debugVarsCtx = getDebugVarContext()
+  import { fileMetricsState } from 'editor_components/Header/fieldsets/FileMetrics.svelte.ts'
+ const debugVarsCtx = getDebugVarContext()
   debugVarsCtx.add(
     { id: 'bytes / row', valueStr: () => $bytesPerRow.toString() },
     { id: 'feed line top', valueStr: () => $dataFeedLineTop.toString() }
@@ -100,9 +100,9 @@ limitations under the License.
     if (direction === ViewportScrollDirection.INCREMENT) {
       const fetchBound =
         viewportData.fileOffset + scroll_count * VIEWPORT_SCROLL_INCREMENT
-      if (fetchBound > $fileMetrics.computedSize)
+      if (fetchBound > fileMetricsState.computedSize)
         return (
-          ($fileMetrics.computedSize / $bytesPerRow) * $bytesPerRow -
+          (fileMetricsState.computedSize / $bytesPerRow) * $bytesPerRow -
           $dataDislayLineAmount * $bytesPerRow
         )
 
@@ -152,7 +152,7 @@ limitations under the License.
     eventDispatcher('seek')
   }
   const SCROLL_TO_END = () => {
-    $seekOffsetInput = $fileMetrics.computedSize.toString(addressRadix)
+    $seekOffsetInput = fileMetricsState.computedSize.toString(addressRadix)
     eventDispatcher('seek')
   }
   const SCROLL_TO_TOP = () => {
@@ -215,7 +215,7 @@ limitations under the License.
 
   $: themeClass = $UIThemeCSSClass
   $: {
-    totalLinesPerFilesize = Math.ceil($fileMetrics.computedSize / $bytesPerRow)
+    totalLinesPerFilesize = Math.ceil(fileMetricsState.computedSize / $bytesPerRow)
     totalLinesPerViewport = Math.ceil(viewportData.data.length / $bytesPerRow)
     lineTopMaxFile = Math.max(totalLinesPerFilesize - $dataDislayLineAmount, 0)
     lineTopMaxViewport = Math.max(
@@ -470,11 +470,11 @@ limitations under the License.
     // the offset will be the offset of the byte at the start of the line
     const offset =
       Math.ceil(
-        ($fileMetrics.computedSize * (percentageTraversed / 100.0)) /
+        (fileMetricsState.computedSize * (percentageTraversed / 100.0)) /
           $bytesPerRow
       ) * $bytesPerRow
     const firstPageThreshold = $bytesPerRow * $dataDislayLineAmount
-    const lastPageThreshold = $fileMetrics.computedSize - firstPageThreshold
+    const lastPageThreshold = fileMetricsState.computedSize - firstPageThreshold
     if (offset <= firstPageThreshold) {
       // scroll to the top because we are somewhere in the first page
       SCROLL_TO_TOP()

@@ -35,7 +35,7 @@ export interface DataEditorUI extends vscode.Disposable {
     ...payload: PostMessageArgs<MessageResponseMap, K>
   ): void
   reveal: vscode.WebviewPanel['reveal']
-  onDidReceiveMessage(listener: (e: any) => void): void
+  onDidReceiveMessage(listener: (e: any) => void, thisArg?: any): void
   onDidDispose(listener: (e: any) => void): void
 }
 class SvelteUIWebviewPanel implements DataEditorUI {
@@ -74,8 +74,8 @@ class SvelteUIWebviewPanel implements DataEditorUI {
     })
   }
 
-  public onDidReceiveMessage(listener: (e: any) => void) {
-    this.vscodePanel.webview.onDidReceiveMessage(listener)
+  public onDidReceiveMessage(listener: (e: any) => void, thisArg?: any) {
+    this.vscodePanel.webview.onDidReceiveMessage(listener, thisArg)
   }
 
   public readonly reveal = () => {

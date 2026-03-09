@@ -1,5 +1,8 @@
 import { type MessageResponseMap } from 'ext_types'
-import { isEditorMessageId } from '../../../ext_types/messageIds'
+import {
+  isEditorMessageId,
+  isEditorResponseId,
+} from '../../../ext_types/messageIds'
 
 export type IncomingMessage = {
   command: keyof MessageResponseMap
@@ -10,10 +13,12 @@ export type IncomingMessage = {
 function isEditorMessage(msg: any): msg is IncomingMessage {
   return msg && isEditorMessageId(msg.command)
 }
-
+function isEditorResponse(msg: any): msg is IncomingMessage {
+  return msg && isEditorResponseId(msg.command)
+}
 function dispatchEditorEvent(event: MessageEvent) {
   const msg = event.data
-  if (!isEditorMessage(msg)) return
+  if (!isEditorResponse(msg)) return
 
   window.dispatchEvent(
     new CustomEvent(msg.command, { detail: { id: msg.id, data: msg.data } })

@@ -149,7 +149,7 @@ export class DataEditorClient implements vscode.Disposable {
     fileToEdit: string = '',
     private panel: DataEditorUI
   ) {
-    this.panel.onDidReceiveMessage(this.messageReceiver)
+    this.panel.onDidReceiveMessage(this.messageReceiver, this)
     if (OPEN_EDITORS.size === 1) {
       let bytePos1b = 0
       const testmsgint = setInterval(() => {
@@ -722,15 +722,14 @@ export class DataEditorClient implements vscode.Disposable {
             typeof command
           >(incomingMessage.payload[1])
 
-          const displayState = this.panel.displayState
           const requestedEncoding = toEncoding(encoding)
 
-          displayState.update('encoding', requestedEncoding)
+          this.panel.displayState.update('encoding', requestedEncoding)
 
           const encodeDataAs =
             editMode === EditByteModes.Single
               ? 'hex'
-              : displayState.get('encoding')
+              : this.panel.displayState.get('encoding')
 
           if (selectionData && selectionData.length > 0) {
             await this.panel.postMessage('editorOnChange', {

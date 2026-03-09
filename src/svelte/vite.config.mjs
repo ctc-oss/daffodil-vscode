@@ -20,7 +20,7 @@ import { svelte } from '@sveltejs/vite-plugin-svelte'
 import path from 'path'
 import strip from 'rollup-plugin-strip-code'
 import { fileURLToPath } from 'url'
-// import { loadEnvFile } from 'node:process'
+import { loadEnvFile } from 'node:process'
 import * as fs from 'fs'
 const r = (p) => fileURLToPath(new URL(p, import.meta.url))
 const envFilePath = path.resolve(__dirname, '.env')
@@ -45,7 +45,7 @@ export default defineConfig(({ mode }) => {
         utilities: path.resolve(__dirname, 'src/utilities'),
         layout: path.resolve(__dirname, 'src/components/layouts'),
         HTMLWrappers: path.resolve(__dirname, 'src/components/html'),
-        editor_components: path.resolve(__dirname, 'src/components/sections'),
+        editor_components: path.resolve(__dirname, 'src/components'),
         ext_types: path.resolve('../ext_types'),
         stores: path.resolve('src/stores'),
       },

@@ -34,12 +34,21 @@ limitations under the License.
   /* DEBUG_ONLY_START */
   import { getDebugVarContext } from '../../Debug/'
   import { getUIMsgId } from 'stores/states.svelte'
+  import { fileMetricsState,isRegularSizedFile} from './FileMetrics.svelte.ts'
   let bom = $state('utf-8')
   getDebugVarContext().add({
     id: 'bom',
     valueStr: () => {
       return bom
     },
+  })
+  getDebugVarContext().add({
+    id: 'RegularFileSizeState',
+    valueStr: () => {
+      const size = fileMetricsState.computedSize
+      const stateVal = isRegularSizedFile()
+      return `Size (${size}) is regular ? ${stateVal}`
+    }
   })
 
   /* DEBUG_ONLY_END */

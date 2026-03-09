@@ -27,7 +27,7 @@ import {
 import {
   EditorRequestIds,
   isEditorMessageId,
-  type EditorMessageId,
+  type EditorRequestId,
 } from './messageIds'
 
 type MessageCommands =

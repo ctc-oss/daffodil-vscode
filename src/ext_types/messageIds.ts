@@ -22,6 +22,7 @@ export const EditorRequestIds = [
 
 export const EditorResponseIds = [
   'clearChanges',
+  'counts',
   'applyChanges',
   'fileInfo',
   'heartbeat',
@@ -43,8 +44,11 @@ export const EditorResponseIds = [
   'bytePos1b',
 ] as const
 
-export type EditorMessageId = (typeof EditorRequestIds)[number]
-
-export function isEditorMessageId(id: string): id is EditorMessageId {
+export type EditorRequestId = (typeof EditorRequestIds)[number]
+export type EditorResponseId = (typeof EditorResponseIds)[number]
+export function isEditorMessageId(id: string): id is EditorRequestId {
   return (EditorRequestIds as readonly string[]).includes(id)
+}
+export function isEditorResponseId(id: string): id is EditorResponseId {
+  return (EditorResponseIds as readonly string[]).includes(id)
 }
