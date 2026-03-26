@@ -33,11 +33,23 @@ limitations under the License.
   /* DEBUG_ONLY_START */
   import { getDebugVarContext } from '../Debug'
   import { isRegularSizedFile } from '../Header/fieldsets/FileMetrics.svelte.ts'
+  import { viewportByteIndicators } from 'utilities/highlights.ts'
   getDebugVarContext().add({
     id: 'selection',
     valueStr: () => {
       return `(${$selectionDataStore.startOffset}, ${$selectionDataStore.endOffset})`
     },
+  })
+  getDebugVarContext().add({
+    id: "Highlights (Selection)",
+    valueStr: () => {
+      let ret = "["
+      $viewportByteIndicators.forEach((v,i,a) => {
+        if(v === 1) ret += ` ${i}`
+      })
+      ret += " ]"
+      return ret
+    }
   })
   /* DEBUG_ONLY_END */
   const eventDispatcher = createEventDispatcher()

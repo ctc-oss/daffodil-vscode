@@ -660,7 +660,7 @@ export class DataEditorClient implements vscode.Disposable {
             )
           }
           let overflow = false
-          if (searchResults.length > searchLimit) {
+          if (searchResults.length >= searchLimit) {
             overflow = true
             searchResults.pop()
           }

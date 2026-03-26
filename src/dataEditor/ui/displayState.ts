@@ -42,7 +42,9 @@ export class DisplayState {
   update<K extends keyof DisplayStateAttributes>(
     attribute: K,
     value: DisplayStateAttributes[K]
-  ): void {}
+  ): void {
+    this.attributes[attribute] = value
+  }
 
   get<K extends keyof DisplayStateAttributes>(
     attribute: K

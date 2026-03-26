@@ -47,7 +47,7 @@ limitations under the License.
   import { getUIMsgId } from 'stores/states.svelte'
 
   const eventDispatcher = createEventDispatcher()
-  const {postMessage, addListener} = vscode.getMessenger(getUIMsgId())
+  const { postMessage, addListener } = vscode.getMessenger(getUIMsgId())
 
   type SearchDirection = 'Home' | 'End' | 'Forward' | 'Backward'
 
@@ -89,14 +89,14 @@ limitations under the License.
     isReverse: boolean
   ) {
     $searchQuery.processing = true
-    postMessage('search',{
-        searchStr: $searchQuery.input,
-        is_case_insensitive: caseInsensitive,
-        is_reverse: isReverse,
-        encoding: $editorEncoding,
-        offset: searchOffset,
-        length: searchLength,
-        limit: 1,
+    postMessage('search', {
+      searchStr: $searchQuery.input,
+      is_case_insensitive: caseInsensitive,
+      is_reverse: isReverse,
+      encoding: $editorEncoding,
+      offset: searchOffset,
+      length: searchLength,
+      limit: 1,
     })
   }
 
@@ -146,16 +146,16 @@ limitations under the License.
   function replace() {
     $replaceQuery.processing = true
     postMessage('replace', {
-        searchStr: $searchQuery.input,
-        is_case_insensitive: caseInsensitive,
-        is_reverse: false,
-        replaceStr: $replaceQuery.input,
-        encoding: $editorEncoding,
-        overwriteOnly:
-          $editorActionsAllowed === EditActionRestrictions.OverwriteOnly,
-        offset: matchOffset,
-        length: 0,
-        limit: 1,        
+      searchStr: $searchQuery.input,
+      is_case_insensitive: caseInsensitive,
+      is_reverse: false,
+      replaceStr: $replaceQuery.input,
+      encoding: $editorEncoding,
+      overwriteOnly:
+        $editorActionsAllowed === EditActionRestrictions.OverwriteOnly,
+      offset: matchOffset,
+      length: 0,
+      limit: 1,
     })
     eventDispatcher('clearDataDisplays')
   }
@@ -196,67 +196,108 @@ limitations under the License.
   }
 
   // TODO: add to responsemap
-//   addListener('searchResults', (data)=>{
+  //   addListener('searchResults', (data)=>{
 
-//         if (data.searchResults.length > 0) {
-//           searchQuery.updateSearchResults(msg.data.data)
-//           switch (direction) {
-//             case 'Home':
-//               hasNext = $searchQuery.overflow
-//               hasPrev = false
-//               break
-//             case 'End':
-//               hasNext = false
-//               hasPrev = $searchQuery.overflow
-//               break
-//             case 'Forward':
-//               hasNext = $searchQuery.overflow
-//               hasPrev = justReplaced ? preReplaceHasPrev : true
-//               justReplaced = false
-//               break
-//             case 'Backward':
-//               hasNext = true
-//               hasPrev = $searchQuery.overflow
-//               break
-//           }
-//           matchOffset = $searchQuery.searchResults[0]
-//           scrollToMatch()
-//           if (searchStarted) {
-//             showReplaceOptions = false
-//             showSearchOptions = true
-//           } else if (replaceStarted) {
-//             showReplaceOptions = true
-//             showSearchOptions = false
-//           }
-//         } else {
-//           matchOffset = -1
-//           $searchQuery.overflow = showSearchOptions = showReplaceOptions = false
-//           searchQuery.clear()
-//         }
-//         searchStarted = replaceStarted = false
-//         $searchQuery.processing = false
-//   })
-addListener('replaceResults', (data) => {
-        searchStarted = replaceStarted = false
-        if (data.replacementsCount > 0) {
-          // subtract 1 from the next offset because search next will add 1
-          matchOffset = data.nextOffset - 1
-          replaceQuery.addResult({
-            byteLength: data.replaceDataBytesLength,
-            offset:
-              data.nextOffset - data.replaceDataBytesLength,
-          })
-          preReplaceHasPrev = hasPrev
-          justReplaced = true
-          searchNext()
-        } else {
-          matchOffset = -1
-          showReplaceOptions = false
-        }
-        $replaceQuery.processing = false
-})
-addListener('clearChanges', ()=>{ cancel() })
+  //         if (data.searchResults.length > 0) {
+  //           searchQuery.updateSearchResults(msg.data.data)
+  //           switch (direction) {
+  //             case 'Home':
+  //               hasNext = $searchQuery.overflow
+  //               hasPrev = false
+  //               break
+  //             case 'End':
+  //               hasNext = false
+  //               hasPrev = $searchQuery.overflow
+  //               break
+  //             case 'Forward':
+  //               hasNext = $searchQuery.overflow
+  //               hasPrev = justReplaced ? preReplaceHasPrev : true
+  //               justReplaced = false
+  //               break
+  //             case 'Backward':
+  //               hasNext = true
+  //               hasPrev = $searchQuery.overflow
+  //               break
+  //           }
+  //           matchOffset = $searchQuery.searchResults[0]
+  //           scrollToMatch()
+  //           if (searchStarted) {
+  //             showReplaceOptions = false
+  //             showSearchOptions = true
+  //           } else if (replaceStarted) {
+  //             showReplaceOptions = true
+  //             showSearchOptions = false
+  //           }
+  //         } else {
+  //           matchOffset = -1
+  //           $searchQuery.overflow = showSearchOptions = showReplaceOptions = false
+  //           searchQuery.clear()
+  //         }
+  //         searchStarted = replaceStarted = false
+  //         $searchQuery.processing = false
+  //   })
+  addListener('replaceResults', (data) => {
+    searchStarted = replaceStarted = false
+    if (data.replacementsCount > 0) {
+      // subtract 1 from the next offset because search next will add 1
+      matchOffset = data.nextOffset - 1
+      replaceQuery.addResult({
+        byteLength: data.replaceDataBytesLength,
+        offset: data.nextOffset - data.replaceDataBytesLength,
+      })
+      preReplaceHasPrev = hasPrev
+      justReplaced = true
+      searchNext()
+    } else {
+      matchOffset = -1
+      showReplaceOptions = false
+    }
+    $replaceQuery.processing = false
+  })
+  addListener('search', (data) => {
+    const { results } = data
+    if (results.length <= 0) {
+      $searchQuery.overflow = showSearchOptions = showReplaceOptions = false
+      matchOffset = -1
+      searchQuery.clear()
+      return
+    }
+    searchQuery.updateSearchResults(data)
+    switch (direction) {
+      case 'Home':
+        hasNext = $searchQuery.overflow
+        hasPrev = false
+        break
+      case 'End':
+        hasNext = false
+        hasPrev = $searchQuery.overflow
+        break
+      case 'Forward':
+        hasNext = $searchQuery.overflow
+        hasPrev = justReplaced ? preReplaceHasPrev : true
+        justReplaced = false
+        break
+      case 'Backward':
+        hasNext = true
+        hasPrev = $searchQuery.overflow
+        break
+    }
+    matchOffset = $searchQuery.searchResults[0]
+    scrollToMatch()
+    if (searchStarted) {
+      showReplaceOptions = false
+      showSearchOptions = true
+    } else if (replaceStarted) {
+      showReplaceOptions = true
+      showSearchOptions = false
+    }
 
+    searchStarted = replaceStarted = false
+    $searchQuery.processing = false
+  })
+  addListener('clearChanges', () => {
+    cancel()
+  })
 </script>
 
 <fieldset class="search-replace">

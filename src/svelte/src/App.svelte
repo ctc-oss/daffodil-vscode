@@ -61,6 +61,7 @@ limitations under the License.
   import { getUIMsgId, setUIMsgId } from './stores/states.svelte'
   import { vscode } from './utilities/vscode'
   import { isRegularSizedFile } from './components/Header/fieldsets/FileMetrics.svelte.ts'
+  import { viewportByteIndicators } from 'utilities/highlights.ts'
   setUIMsgId( document.getElementById('app')?.attributes['extension_msg_id'].value )
   
   const {postMessage, addListener} = vscode.getMessenger(getUIMsgId())
@@ -271,6 +272,7 @@ limitations under the License.
         }
         $selectionDataStore.endOffset =
           $selectionDataStore.startOffset + $editedDataSegment.byteLength - 1
+        viewportByteIndicators.updateSelectionIndications($selectionDataStore)
   })
   addListener('setUITheme', (data) => {
         // $darkUITheme = data.theme === 2

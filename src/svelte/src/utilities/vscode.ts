@@ -23,6 +23,7 @@ import {
   type EditorMessageListenerMap,
 } from 'ext_types'
 import type { WebviewApi } from 'vscode-webview'
+import { isEditorResponseId } from '../../../ext_types/messageIds'
 
 type MessageRequest<K extends keyof MessageRequestMap> = {
   id: string
@@ -86,9 +87,9 @@ class VSCodeAPIWrapper {
     listener: (data: MessageResponseMap[K]) => void
   ) {
     window.addEventListener(type, (winEvent: WindowEventMap[K]) => {
-      console.log('winEvent Prototype:')
-      console.log(winEvent)
       const eventType = winEvent.type
+      if (!isEditorResponseId(eventType)) return
+
       const details = winEvent.detail
       if (id !== details.id) return
       //   if (messengerId !== id) return
