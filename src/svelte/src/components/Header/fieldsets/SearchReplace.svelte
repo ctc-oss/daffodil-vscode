@@ -285,7 +285,7 @@ addListener('clearChanges', ()=>{ cancel() })
         display={$seekOffsetInput.length > 0 && !$seekable.valid}
       />
       <Button
-        disabledBy={!$seekable.valid}
+        isDisabled={!$seekable.valid}
         fn={() => {
           eventDispatcher('seek')
         }}
@@ -328,7 +328,7 @@ addListener('clearChanges', ()=>{ cancel() })
       {/if}
       <Error err={searchErr} display={searchErrDisplay} />
       <Button
-        disabledBy={!$searchable}
+        isDisabled={!$searchable}
         fn={searchStart}
         width={searchReplaceButtonWidth}
         description="Start search"
@@ -350,7 +350,7 @@ addListener('clearChanges', ()=>{ cancel() })
       />
       <Error err={replaceErr} display={replaceErrDisplay} />
       <Button
-        disabledBy={!$replaceable}
+        isDisabled={!$replaceable}
         fn={replaceStart}
         width={searchReplaceButtonWidth}
         description="Start replacement"
@@ -367,7 +367,7 @@ addListener('clearChanges', ()=>{ cancel() })
         <Button
           width={searchNavButtonWidth}
           fn={searchFirst}
-          disabledBy={!hasPrev || !$searchable}
+          isDisabled={!hasPrev || !$searchable}
           description="Seek to the first match"
         >
           <span slot="left" class="btn-icon material-symbols-outlined"
@@ -378,7 +378,7 @@ addListener('clearChanges', ()=>{ cancel() })
         <Button
           width={searchNavButtonWidth}
           fn={searchPrev}
-          disabledBy={!hasPrev || !$searchable}
+          isDisabled={!hasPrev || !$searchable}
           description="Seek to the previous match"
         >
           <span slot="left" class="btn-icon material-symbols-outlined"
@@ -390,7 +390,7 @@ addListener('clearChanges', ()=>{ cancel() })
           <Button
             fn={replace}
             description="Replace the current match"
-            disabledBy={!replaceable || replaceErrDisplay}
+            isDisabled={!replaceable || replaceErrDisplay}
           >
             <span slot="left" class="btn-icon material-symbols-outlined"
               >find_replace</span
@@ -401,7 +401,7 @@ addListener('clearChanges', ()=>{ cancel() })
         <Button
           width={searchNavButtonWidth}
           fn={searchNext}
-          disabledBy={!hasNext || !$searchable}
+          isDisabled={!hasNext || !$searchable}
           description="Seek to the next match"
         >
           <span slot="default">Next&nbsp;</span>
@@ -412,7 +412,7 @@ addListener('clearChanges', ()=>{ cancel() })
         <Button
           width={searchNavButtonWidth}
           fn={searchLast}
-          disabledBy={!hasNext || !$searchable}
+          isDisabled={!hasNext || !$searchable}
           description="Seek to the last match"
         >
           <span slot="default">Last&nbsp;</span>

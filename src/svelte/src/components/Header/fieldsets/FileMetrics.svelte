@@ -28,12 +28,6 @@ limitations under the License.
   import { getUIMsgId } from 'stores/states.svelte'
   import { vscode } from 'utilities/vscode'
   import { canRedo, canRevert, canUndo, fileMetricsState, saveable } from './FileMetrics.svelte.ts'
-
-  
-  /* DEBUG_ONLY_START */
-  import FileMetricsDebug from './FileMetricsDebug.svelte'
-
-  /* DEBUG_ONLY_END */
   
   const eventDispatcher = createEventDispatcher()
   
@@ -43,11 +37,15 @@ limitations under the License.
   let isProfilerOpen = false
   let startOffset: number = 0
   let length: number = 0
-
+  let btnDisablesState = $state({
+    undo: canUndo(),
+    redo: canRedo(),
+    saveable: saveable(),
+    revertAll: canRevert()
+  })
   
   function saveAs() {
     postMessage('saveAs', {targetFile: ''})
-    
     displayOpts = false
   }
 
@@ -72,15 +70,6 @@ limitations under the License.
         fileMetricsState.name = msg.filename
         fileMetricsState.language = msg.language
         fileMetricsState.type = msg.contentType
-    //   updateFileMetrics({
-    //     name: msg.filename,
-    //     language: msg.language,
-    //     type: msg.contentType
-    //   })
-
-      // $fileMetrics.name = msg.filename
-      // $fileMetrics.language = msg.language
-      // $fileMetrics.type = msg.contentType
     }
   )
   addListener(
@@ -89,57 +78,14 @@ limitations under the License.
         fileMetricsState.changeCount = msg.applied
         fileMetricsState.computedSize = msg.computedFileSize
         fileMetricsState.undoCount = msg.undos
-        
-        // $fileMetrics.computedSize = msg.computedFileSize
-        // $fileMetrics.changeCount = msg.applied
-        // $fileMetrics.undoCount = msg.undos
+        if(fileMetricsState.diskSize === 0)
+          fileMetricsState.diskSize = msg.computedFileSize
     }
   )
-  // window.addEventListener('message', (msg) => {
-  //   if(msg.data.id === getUIMsgId()){
-  //   switch (msg.data.command) {
-  //     // attributes in msg.data.data.[...]
 
-  //     case "fileInfo":
-  //       {
-  //         // reset the profiler if changes have been made
-  //         isProfilerOpen = false
-  //         startOffset = length = 0
-  //         if ('fileName' in msg.data.data) {
-  //           $fileMetrics.name = msg.data.data.fileName
-  //         }
-  //         if ('type' in msg.data.data) {
-  //           $fileMetrics.type = msg.data.data.type
-  //         }
-  //         if ('language' in msg.data.data) {
-  //           $fileMetrics.language = msg.data.data.language
-  //         }
-  //         if ('diskFileSize' in msg.data.data) {
-  //           $fileMetrics.diskSize = msg.data.data.diskFileSize
-  //         }
-  //         if ('computedFileSize' in msg.data.data) {
-  //           $fileMetrics.computedSize = msg.data.data.computedFileSize
-  //         }
-  //         if ('changeCount' in msg.data.data) {
-  //           $fileMetrics.changeCount = msg.data.data.changeCount
-  //         }
-  //         if ('undoCount' in msg.data.data) {
-  //           $fileMetrics.undoCount = msg.data.data.undoCount
-  //         }
-  //       }
-  //       break
-  //     default:
-  //       break // do nothing
-  //   }
+  // $: {
+  //   length = length <= 0 ? viewport.offsetMax - startOffset : length
   // }
-  // })
-
-  $: {
-    // canUndo = $fileMetrics.changeCount > 0
-    // canRedo = $fileMetrics.undoCount > 0
-    // canRevert = $fileMetrics.undoCount + $fileMetrics.changeCount > 0
-    length = length <= 0 ? viewport.offsetMax - startOffset : length
-  }
 
   function redo() {
     eventDispatcher('redo')
@@ -158,7 +104,6 @@ limitations under the License.
   }
 </script>
 
-<FileMetricsDebug/>
 <SidePanel
   position="top-left"
   title="Data Profiler"
@@ -181,7 +126,7 @@ limitations under the License.
   </FlexContainer>
   <FlexContainer --dir="row" --align-items="center">
     {#if displayOpts}
-      <Button fn={save} disabledBy={!saveable()} description="Save to disk">
+      <Button fn={save} isDisabled={!saveable()} description="Save to disk">
         <span slot="left" class="btn-icon material-symbols-outlined">save</span>
         <span slot="default">&nbsp;Save</span>
       </Button>
@@ -192,7 +137,7 @@ limitations under the License.
         <span slot="default">&nbsp;Save As</span>
       </Button>
     {:else}
-      <Button fn={toggleSaveDisplay} description="Save">
+      <Button fn={toggleSaveDisplay} isDisabled={!saveable()} description="Save">
         <span slot="left" class="btn-icon material-symbols-outlined">save</span>
         <span slot="default">Save&hellip;</span>
       </Button>
@@ -248,14 +193,14 @@ limitations under the License.
   <FlexContainer>
     <FlexContainer --dir="column" --align-items="center">
       <FlexContainer --dir="row">
-        <Button disabledBy={!canRedo()} fn={redo} description="Redo change">
+        <Button isDisabled={!canRedo()} fn={redo} description="Redo change">
           <span slot="left" class="icon-container">
             <span class="btn-icon material-symbols-outlined">redo</span>
             <div class="icon-badge">{fileMetricsState.undoCount}</div>
           </span>
           <span slot="default">&nbsp;Redo</span>
         </Button>
-        <Button disabledBy={!canUndo()} fn={undo} description="Undo change">
+        <Button isDisabled={!canUndo()} fn={undo} description="Undo change">
           <span slot="left" class="icon-container">
             <span class="btn-icon material-symbols-outlined">undo</span>
             <div class="icon-badge">{fileMetricsState.changeCount}</div>
@@ -263,7 +208,7 @@ limitations under the License.
           <span slot="default">&nbsp;Undo</span>
         </Button>
         <Button
-          disabledBy={!canRevert()}
+          isDisabled={!canRevert()}
           fn={clearChangeStack}
           description="Revert all changes"
         >

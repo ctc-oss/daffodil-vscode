@@ -34,7 +34,7 @@ limitations under the License.
   /* DEBUG_ONLY_START */
   import { getDebugVarContext } from '../../Debug/'
   import { getUIMsgId } from 'stores/states.svelte'
-  import { fileMetricsState,isRegularSizedFile} from './FileMetrics.svelte.ts'
+  import { canUndo, fileMetricsState,isRegularSizedFile, saveable} from './FileMetrics.svelte.ts'
   let bom = $state('utf-8')
   getDebugVarContext().add({
     id: 'bom',
@@ -50,7 +50,13 @@ limitations under the License.
       return `Size (${size}) is regular ? ${stateVal}`
     }
   })
-
+  getDebugVarContext().add({
+    id: "Can save",
+    valueStr: () => { 
+      let ret = `Raw: ${fileMetricsState.changeCount > 0 ? "true" : 'false'} ; CanUndo(): ${saveable()}`
+      return ret
+    }
+  })
   /* DEBUG_ONLY_END */
 addListener('fileInfo', (data)=>{
     if(!data.bom) return 

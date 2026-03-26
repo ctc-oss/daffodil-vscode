@@ -64,7 +64,10 @@ import path from 'path'
 import * as vscode from 'vscode'
 import XDGAppPaths from 'xdg-app-paths'
 import { extractDaffodilEvent } from '../daffodilDebugger/daffodil'
-import { VIEWPORT_CAPACITY_MAX } from '../svelte/src/stores/configuration'
+import {
+  DATA_PROFILE_MAX_LENGTH,
+  VIEWPORT_CAPACITY_MAX,
+} from '../svelte/src/stores/configuration'
 import {
   EditByteModes,
   EditedDataRequest,
@@ -670,9 +673,10 @@ export class DataEditorClient implements vscode.Disposable {
         break
       case 'profile':
         {
-          const { length, startOffset } = getRequestPayloadType<typeof command>(
+          let { length, startOffset } = getRequestPayloadType<typeof command>(
             incomingMessage.payload[1]
           )
+          length = length < 0 ? DATA_PROFILE_MAX_LENGTH : length
 
           const byteProfile: number[] = await profileSession(
             this.omegaSessionId,
@@ -697,6 +701,23 @@ export class DataEditorClient implements vscode.Disposable {
             length,
             characterCount!.getByteOrderMark()
           )
+          // data: {
+          //     startOffset: startOffset,
+          //     length: length,
+          //     byteProfile: byteProfile,
+          //     numAscii: numAscii(byteProfile),
+          //     language: languageResponse.getLanguage(),
+          //     contentType: contentTypeResponse.getContentType(),
+          //     characterCount: {
+          //       byteOrderMark: characterCount.getByteOrderMark(),
+          //       byteOrderMarkBytes: characterCount.getByteOrderMarkBytes(),
+          //       singleByteCount: characterCount.getSingleByteChars(),
+          //       doubleByteCount: characterCount.getDoubleByteChars(),
+          //       tripleByteCount: characterCount.getTripleByteChars(),
+          //       quadByteCount: characterCount.getQuadByteChars(),
+          //       invalidBytes: characterCount.getInvalidBytes(),
+          //     },
+          //   },
           await this.panel.postMessage('profile', {
             startOffset: startOffset,
             length: length,

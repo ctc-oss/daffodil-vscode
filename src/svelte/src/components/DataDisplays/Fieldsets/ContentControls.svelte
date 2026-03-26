@@ -40,7 +40,7 @@ limitations under the License.
   {#if $editMode === EditByteModes.Multiple}
     <FlexContainer>
       <Button
-        disabledBy={!$applicable}
+        isDisabled={!$applicable}
         fn={(e) => {
           applyChanges(e!)
         }}

@@ -25,6 +25,7 @@ limitations under the License.
   import Tooltip from '../layouts/Tooltip.svelte'
   import { getUIMsgId } from 'stores/states.svelte'
   import { vscode } from 'utilities/vscode'
+  import { fileMetricsState } from 'editor_components/Header/fieldsets/FileMetrics.svelte.ts'
 
   const {postMessage, addListener} = vscode.getMessenger(getUIMsgId())
 
@@ -301,8 +302,12 @@ limitations under the License.
             `Profiled bytes from ${startOffset} to ${startOffset + length}`
           )
     })
+    length = length < 0 
+      ? fileMetricsState.computedSize
+      : length
+      
     endOffset = startOffset + length
-    requestSessionProfile(startOffset, length)
+    requestSessionProfile(startOffset, endOffset)
   })
 </script>
 

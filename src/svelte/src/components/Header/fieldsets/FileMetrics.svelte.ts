@@ -14,19 +14,20 @@
 // limitations under the License.
 
 export const fileMetricsState = $state({
-    name: '',
-    type: '',
-    language: '',
-    diskSize: 0,
-    computedSize: 0,
-    changeCount: 0,
-    undoCount: 0,
-
+  name: '',
+  type: '',
+  language: '',
+  diskSize: 0,
+  computedSize: 0,
+  changeCount: 0,
+  undoCount: 0,
 })
 const isRegularSizedFileState = $derived(fileMetricsState.computedSize >= 2)
 const canUndoState = $derived(fileMetricsState.changeCount > 0)
 const canRedoState = $derived(fileMetricsState.undoCount > 0)
-const canRevertState = $derived(fileMetricsState.undoCount + fileMetricsState.changeCount > 0)
+const canRevertState = $derived(
+  fileMetricsState.undoCount + fileMetricsState.changeCount > 0
+)
 const saveableState = $derived(fileMetricsState.changeCount > 0) // Duplicate
 export const isRegularSizedFile = () => isRegularSizedFileState
 export const canUndo = () => canUndoState

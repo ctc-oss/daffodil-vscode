@@ -666,7 +666,7 @@ limitations under the License.
     <FlexContainer --dir="row">
       <Button
         fn={SCROLL_TO_END}
-        disabledBy={disableIncrement}
+        isDisabled={disableIncrement}
         width="30pt"
         description="Navigate to EOF"
         tooltipAlwaysEnabled={true}
@@ -677,7 +677,7 @@ limitations under the License.
       </Button>
       <Button
         fn={INCREMENT_SEGMENT}
-        disabledBy={disableIncrement}
+        isDisabled={disableIncrement}
         width="30pt"
         description="Increment offset by {$dataDislayLineAmount *
           $bytesPerRow} bytes"
@@ -689,7 +689,7 @@ limitations under the License.
       </Button>
       <Button
         fn={INCREMENT_LINE}
-        disabledBy={disableIncrement}
+        isDisabled={disableIncrement}
         width="30pt"
         description="Increment offset by {$bytesPerRow} bytes"
         tooltipAlwaysEnabled={true}
@@ -700,7 +700,7 @@ limitations under the License.
       </Button>
       <Button
         fn={DECREMENT_LINE}
-        disabledBy={disableDecrement}
+        isDisabled={disableDecrement}
         width="30pt"
         description="Decrement offset by {$bytesPerRow} bytes"
         tooltipAlwaysEnabled={true}
@@ -711,7 +711,7 @@ limitations under the License.
       </Button>
       <Button
         fn={DECREMENT_SEGMENT}
-        disabledBy={disableDecrement}
+        isDisabled={disableDecrement}
         width="30pt"
         description="Decrement offset by {$dataDislayLineAmount *
           $bytesPerRow} bytes"
@@ -723,7 +723,7 @@ limitations under the License.
       </Button>
       <Button
         fn={SCROLL_TO_TOP}
-        disabledBy={disableDecrement}
+        isDisabled={disableDecrement}
         width="30pt"
         description="Navigate to offset 0"
         tooltipAlwaysEnabled={true}
@@ -742,7 +742,7 @@ limitations under the License.
             addressRadix
           )
         }}
-        disabledBy={($dataDislayLineAmount + 1) * $bytesPerRow >=
+        isDisabled={($dataDislayLineAmount + 1) * $bytesPerRow >=
           VIEWPORT_SCROLL_INCREMENT}
         description={'Increment display lines (' +
           ($dataDislayLineAmount + 1) +
@@ -763,7 +763,7 @@ limitations under the License.
             addressRadix
           )
         }}
-        disabledBy={$dataDislayLineAmount === 1}
+        isDisabled={$dataDislayLineAmount === 1}
         description={'Decrement display lines (' +
           ($dataDislayLineAmount - 1) +
           ')'}
