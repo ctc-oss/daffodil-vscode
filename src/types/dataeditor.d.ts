@@ -14,5 +14,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {
+  EditorMessageListenerMap,
+  MessageRequestMap,
+  type EditorMessageListener,
+  type MessageResponseMap,
+} from 'ext_types'
 
-/// <reference types="svelte" />
+interface DataEditorDOM {
+  register(id: string): void
+  addListener<K extends keyof MessageResponseMap>(
+    id: string,
+    type: K,
+    listener: (payload: MessageResponseMap[K]) => void
+  ): any
+}
+
+type DataEditorWindowEventMap = {
+  [K in keyof MessageResponseMap]: {
+    type: K
+    detail: { id: string; data: CustomEvent<MessageResponseMap[K]>['detail'] }
+  }
+}
+declare global {
+  interface WindowEventMap extends DataEditorWindowEventMap {}
+  interface Window {
+    removeListenersFor: (id: string) => void
+    addEditorMsgListener: <K extends keyof MessageResponseMap>(
+      type: K,
+      listener: EditorMessageListener<K>
+    ) => void
+  }
+}
+
+export {}

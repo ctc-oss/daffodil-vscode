@@ -14,13 +14,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { type MessageResponseMap } from 'ext_types'
+import {
+  isEditorMessageId,
+  isEditorResponseId,
+} from '../../../ext_types/messageIds'
 
-import { mount } from 'svelte'
-import 'utilities/messages'
-import './app.css'
-import App from '$root'
-const app = mount(App, {
-  target: document.getElementById('app')!,
-})
+export type IncomingMessage = {
+  command: keyof MessageResponseMap
+  id: string
+  data: MessageResponseMap[keyof MessageResponseMap]
+}
 
-export default app
+function isEditorMessage(msg: any): msg is IncomingMessage {
+  return msg && isEditorMessageId(msg.command)
+}
+function isEditorResponse(msg: any): msg is IncomingMessage {
+  return msg && isEditorResponseId(msg.command)
+}
+function dispatchEditorEvent(event: MessageEvent) {
+  const msg = event.data
+  if (!isEditorResponse(msg)) return
+
+  window.dispatchEvent(
+    new CustomEvent(msg.command, { detail: { id: msg.id, data: msg.data } })
+  )
+}
+window.addEventListener('message', dispatchEditorEvent)

@@ -16,8 +16,6 @@ limitations under the License.
 -->
 <script lang="ts">
   import Button from '../Inputs/Buttons/Button.svelte'
-  import { vscode } from '../../utilities/vscode'
-  import { MessageCommand } from '../../utilities/message'
   import { onMount } from 'svelte'
   import Input from '../Inputs/Input/Input.svelte'
   import { addressRadix, viewport } from '../../stores'
@@ -25,6 +23,11 @@ limitations under the License.
   import { radixToString, regexEditDataTest } from '../../utilities/display'
   import ISO6391 from 'iso-639-1'
   import Tooltip from '../layouts/Tooltip.svelte'
+  import { getUIMsgId } from 'stores/states.svelte'
+  import { vscode } from 'utilities/vscode'
+  import { fileMetricsState } from 'editor_components/Header/fieldsets/FileMetrics.svelte.ts'
+
+  const {postMessage, addListener} = vscode.getMessenger(getUIMsgId())
 
   const PROFILE_DOS_EOL = 256
   const MAX_BYTE_VALUE = 255
@@ -49,9 +52,9 @@ limitations under the License.
   }
 
   let endOffset: number = 0
-  let byteProfile: number[] = []
-  let language: string = ''
-  let contentType: string = ''
+  let profileBytes: number[] = []
+  let lang: string = ''
+  let content: string = ''
   let currentTooltip: { index: number; value: number } | null = null
   let colorScaleData: string[] = []
   let scaledData: number[] = []
@@ -62,7 +65,7 @@ limitations under the License.
   let variance: number = 0
   let stdDev: number = 0
   let characterCountData: CharacterCountData = new CharacterCountData()
-  let numAscii: number = 0
+  let asciiCount: number = 0
   let numDistinct: number = 0
   let fieldBeingEdited: string = ''
   let statusMessage: string = ''
@@ -75,23 +78,23 @@ limitations under the License.
   let logScale: boolean = false
 
   $: {
-    sum = byteProfile.reduce((a, b) => a + b, 0)
-    mean = sum / byteProfile.length
-    minFrequency = Math.min(...byteProfile)
-    maxFrequency = Math.max(...byteProfile)
+    sum = profileBytes.reduce((a, b) => a + b, 0)
+    mean = sum / profileBytes.length
+    minFrequency = Math.min(...profileBytes)
+    maxFrequency = Math.max(...profileBytes)
 
-    let squareDiffs = byteProfile.map((value) => Math.pow(value - mean, 2))
+    let squareDiffs = profileBytes.map((value) => Math.pow(value - mean, 2))
     variance = squareDiffs.reduce((a, b) => a + b, 0) / squareDiffs.length
     stdDev = Math.sqrt(variance)
-    numDistinct = byteProfile.filter((value) => value > 0).length
+    numDistinct = profileBytes.filter((value) => value > 0).length
 
-    colorScaleData = byteProfile.map((value) => {
+    colorScaleData = profileBytes.map((value) => {
       if (value < mean - stdDev) return 'low'
       if (value > mean + stdDev) return 'high'
       return 'average'
     })
 
-    scaledData = byteProfile.map((d) => {
+    scaledData = profileBytes.map((d) => {
       // Note: 300 is the max height of the chart. byteFrequency values are >= 0.
       return logScale
         ? Math.round((Math.log2(d + 1) / Math.log2(maxFrequency + 1)) * 300) // adding 1 to prevent log(0)
@@ -136,7 +139,7 @@ limitations under the License.
   function handleCsvProfileDownload(): void {
     const csvContent =
       'Byte,Frequency\n' +
-      byteProfile
+      profileBytes
         .filter((_, idx) => idx <= MAX_BYTE_VALUE)
         .map((val, idx) => `${idx},${val}`)
         .join('\n')
@@ -148,13 +151,10 @@ limitations under the License.
   }
 
   function saveSegmentAs() {
-    vscode.postMessage({
-      command: MessageCommand.saveSegment,
-      data: {
+    postMessage('saveSegment',{
         offset: startOffset,
         length: length,
-      },
-    })
+      })
   }
 
   function requestSessionProfile(startOffset: number, length: number) {
@@ -162,13 +162,10 @@ limitations under the License.
       `Profiling bytes from ${startOffset} to ${startOffset + length}...`,
       0
     )
-    vscode.postMessage({
-      command: MessageCommand.profile,
-      data: {
+    postMessage('profile', {
         startOffset: startOffset,
         length: length,
-      },
-    })
+      })
   }
 
   function handleInputEnter(e: CustomEvent) {
@@ -279,41 +276,38 @@ limitations under the License.
   }
 
   onMount(() => {
-    // Handle messages sent from the extension to the webview
-    window.addEventListener('message', (msg) => {
-      switch (msg.data.command) {
-        case MessageCommand.profile:
-          numAscii = msg.data.data.numAscii as number
-          byteProfile = msg.data.data.byteProfile as number[]
-          language = msg.data.data.language as string
-          contentType = msg.data.data.contentType as string
-
+    addListener('profile', (data) => {
+        const {numAscii,byteProfile,characterCount,contentType,language,length,startOffset} = data
+            asciiCount = numAscii
+            profileBytes = byteProfile
+            content = contentType
+            lang = language
           // character count data
-          characterCountData.byteOrderMark = msg.data.data.characterCount
+          characterCountData.byteOrderMark = characterCount
             .byteOrderMark as string
-          characterCountData.byteOrderMarkBytes = msg.data.data.characterCount
+          characterCountData.byteOrderMarkBytes = characterCount
             .byteOrderMarkBytes as number
-          characterCountData.singleByteCount = msg.data.data.characterCount
+          characterCountData.singleByteCount = characterCount
             .singleByteCount as number
-          characterCountData.doubleByteCount = msg.data.data.characterCount
+          characterCountData.doubleByteCount = characterCount
             .doubleByteCount as number
-          characterCountData.tripleByteCount = msg.data.data.characterCount
+          characterCountData.tripleByteCount = characterCount
             .tripleByteCount as number
-          characterCountData.quadByteCount = msg.data.data.characterCount
+          characterCountData.quadByteCount = characterCount
             .quadByteCount as number
-          characterCountData.invalidBytes = msg.data.data.characterCount
+          characterCountData.invalidBytes = characterCount
             .invalidBytes as number
 
           setStatusMessage(
             `Profiled bytes from ${startOffset} to ${startOffset + length}`
           )
-          break
-        default:
-          break // do nothing
-      }
     })
+    length = length < 0 
+      ? fileMetricsState.computedSize
+      : length
+      
     endOffset = startOffset + length
-    requestSessionProfile(startOffset, length)
+    requestSessionProfile(startOffset, endOffset)
   })
 </script>
 
@@ -343,7 +337,7 @@ limitations under the License.
     {/each}
     {#if currentTooltip}
       <div class="tooltip" style="bottom: {currentTooltip.value}px;">
-        Byte: {currentTooltip.index} Frequency: {byteProfile[
+        Byte: {currentTooltip.index} Frequency: {profileBytes[
           currentTooltip.index
         ]}
         {#if currentTooltip.index >= 32 && currentTooltip.index <= 126}
@@ -492,13 +486,13 @@ limitations under the License.
     >
     <label for="language"
       >&nbsp;&nbsp;&nbsp;&nbsp;Language:<Tooltip
-        description={ISO6391.getName(language)}
+        description={ISO6391.getName(lang)}
         alwaysEnabled={true}
-        ><span id="language" class="nowrap">{language}</span></Tooltip
+        ><span id="language" class="nowrap">{lang}</span></Tooltip
       ></label
     >
     <label for="content-type"
-      >Content Type: <span id="content-type" class="nowrap">{contentType}</span
+      >Content Type: <span id="content-type" class="nowrap">{content}</span
       ></label
     >
     <label for="min-frequency"
@@ -539,17 +533,17 @@ limitations under the License.
     <label for="dos_eol-count"
       >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;DOS EOL: <span
         id="dos_eol-count"
-        class="nowrap">{byteProfile[PROFILE_DOS_EOL]}</span
+        class="nowrap">{profileBytes[PROFILE_DOS_EOL]}</span
       ></label
     >
     <label for="ascii-count"
-      >&nbsp;ASCII Count: <span id="ascii-count" class="nowrap">{numAscii}</span
+      >&nbsp;ASCII Count: <span id="ascii-count" class="nowrap">{asciiCount}</span
       ></label
     >
     <label for="ascii-percent"
       >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;% ASCII: <span
         id="ascii-percent"
-        class="nowrap">{((numAscii / sum) * 100).toFixed(2)}</span
+        class="nowrap">{((asciiCount / sum) * 100).toFixed(2)}</span
       >
     </label>
   </div>

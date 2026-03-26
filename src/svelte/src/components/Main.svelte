@@ -18,6 +18,7 @@ limitations under the License.
   import DataEditor from './Editors/DataEditor.svelte'
   import DataViewports from './DataDisplays/DataViewports.svelte'
   import DisplayHeader from './DataDisplays/Header/DisplayHeader.svelte'
+  
 </script>
 
 <main class="dataEditor">
