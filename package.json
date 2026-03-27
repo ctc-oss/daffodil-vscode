@@ -67,14 +67,14 @@
     "unzip-stream": "0.3.4",
     "wait-port": "1.1.0",
     "xdg-app-paths": "8.3.0",
-    "xml-formatter": "^3.6.7",
+    "xml-formatter": "^3.7.0",
     "xml-js": "^1.6.11"
   },
   "devDependencies": {
     "@sveltejs/adapter-static": "3.0.8",
     "@sveltejs/kit": "^2.53.3",
     "@sveltejs/vite-plugin-svelte": "^5.0.3",
-    "@tsconfig/svelte": "^5.0.4",
+    "@tsconfig/svelte": "^5.0.8",
     "@types/glob": "^8.0.0",
     "@types/mocha": "^10.0.3",
     "@types/node": "^24.0.8",
@@ -88,7 +88,7 @@
     "concurrently": "^9.2.1",
     "css-loader": "^7.1.2",
     "esbuild": "^0.25.10",
-    "fast-xml-parser": "^5.3.8",
+    "fast-xml-parser": "^5.5.9",
     "glob": "13.0.0",
     "mocha": "11.5.0",
     "picocolors": "^1.1.1",
@@ -106,7 +106,7 @@
     "tsconfig-paths": "^4.2.0",
     "tsx": "^4.21.0",
     "typescript": "5.2.2",
-    "vite": "^6.4.1",
+    "vite": "^6.4.2",
     "vscode-extension-tester": "5.9.1"
   },
   "resolutions": {
@@ -267,6 +267,10 @@
         {
           "command": "extension.dfdl-debug.executeTDML",
           "when": "!inDebugMode && (editorLangId == 'tdml' || activeEditor == 'tdml-editor.editor' || dfdl-debug.tdml-editor-active == 'tdml-editor.editor')"
+        },
+        {
+          "command": "extension.dfdl-debug.zipTDML",
+          "when": "!inDebugMode && (editorLangId == 'tdml' || activeEditor == 'tdml-editor.editor' || dfdl-debug.tdml-editor-active == 'tdml-editor.editor')"
         }
       ],
       "commandPalette": [
@@ -288,6 +292,10 @@
         },
         {
           "command": "extension.dfdl-debug.createTDML",
+          "when": "true"
+        },
+        {
+          "command": "extension.dfdl-debug.zipTDML",
           "when": "true"
         },
         {
@@ -367,6 +375,12 @@
       {
         "command": "extension.dfdl-debug.executeTDML",
         "title": "Execute TDML",
+        "category": "Daffodil Debug",
+        "enablement": "!inDebugMode && (editorLangId == 'tdml' || activeEditor == 'tdml-editor.editor' || dfdl-debug.tdml-editor-active == 'tdml-editor.editor')"
+      },
+      {
+        "command": "extension.dfdl-debug.zipTDML",
+        "title": "Zip TDML File",
         "category": "Daffodil Debug",
         "enablement": "!inDebugMode && (editorLangId == 'tdml' || activeEditor == 'tdml-editor.editor' || dfdl-debug.tdml-editor-active == 'tdml-editor.editor')"
       },

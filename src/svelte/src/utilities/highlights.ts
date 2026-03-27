@@ -99,23 +99,23 @@ class ViewportByteIndications extends SimpleWritable<Uint8Array> {
     if (selectionData.active || selectionData.makingSelection()) {
       const offsetPartitions = [
         generateSelectionCategoryParition(0, start, (byte) => {
-          byte[0] &= ~category1.indexOf('selected')
+          return (byte &= ~category1.indexOf('selected'))
         }),
         generateSelectionCategoryParition(start, editedEnd, (byte) => {
-          byte[0] |= category1.indexOf('selected')
+          return (byte |= category1.indexOf('selected'))
         }),
         generateSelectionCategoryParition(
           Math.max(originalEnd, editedEnd),
           VIEWPORT_CAPACITY_MAX,
           (byte) => {
-            byte[0] &= ~category1.indexOf('selected')
+            return (byte &= ~category1.indexOf('selected'))
           }
         ),
       ]
       this.store.update((indications) => {
         for (const partition of offsetPartitions) {
           for (let i = partition.start; i < partition.end; i++)
-            partition.assignByte(indications.subarray(i, i + 1))
+            indications[i] = partition.assignByte(indications[i])
         }
         return indications
       })
@@ -137,12 +137,12 @@ export const viewportByteIndicators = new ViewportByteIndications()
 type CategoryOffsetParition = {
   start: number
   end: number
-  assignByte: (byte: Uint8Array) => void
+  assignByte: (byte: number) => number
 }
 function generateSelectionCategoryParition(
   start: number,
   end: number,
-  assignmentFn: (byte: Uint8Array) => void
+  assignmentFn: (byte: number) => number
 ): CategoryOffsetParition {
   return {
     start,
