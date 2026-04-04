@@ -39,7 +39,8 @@ import {
   OffsetSearchType,
   ReplaceQuery,
   SearchQuery,
-} from '../components/Header/fieldsets/SearchReplace'
+  // SearchQuery,
+} from '../components/Header/fieldsets/SearchReplace.svelte.ts'
 import {
   EditByteModes,
   type RadixValues,

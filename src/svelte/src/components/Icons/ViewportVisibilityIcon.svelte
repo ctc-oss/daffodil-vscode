@@ -18,14 +18,15 @@ limitations under the License.
 <script lang="ts">
   import Tooltip from '../layouts/Tooltip.svelte'
   import {
-    bytesPerRow,
     dataDislayLineAmount,
     visableViewports,
   } from '../../stores'
   import {
     BYTES_PER_ROW_MAX_LINE_NUM,
-    type BytesPerRow,
   } from '../../stores/configuration'
+  import type { BytesPerRow } from 'ext_types'
+  import {  } from 'stores/format/index.svelte'
+  import { displaySettings } from 'stores/displaySettings.svelte'
 
   export let dimension: number = 20
   const defaultDimension = 20
@@ -58,7 +59,7 @@ limitations under the License.
     )
       $dataDislayLineAmount = BYTES_PER_ROW_MAX_LINE_NUM[bytesPerRowSelection]
 
-    $bytesPerRow = bytesPerRowSelection
+    displaySettings.bytesPerRow = bytesPerRowSelection
   }
 </script>
 
@@ -68,6 +69,7 @@ limitations under the License.
     alwaysEnabled={true}
     description="Viewports visible: {$visableViewports}"
   >
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
     <span
       class="setting-icon"
       style:width
@@ -80,6 +82,7 @@ limitations under the License.
         selectionsDisplay.viewports = selectionsDisplay.viewports ? false : true
       }}
     >
+      <!-- svelte-ignore element_invalid_self_closing_tag -->
       <span
         style:background-color={$visableViewports === 'all' ||
         $visableViewports === 'physical'
@@ -87,6 +90,7 @@ limitations under the License.
           : ''}
         class="viewport physical"
       />
+      <!-- svelte-ignore element_invalid_self_closing_tag -->
       <span
         style:background-color={$visableViewports === 'all' ||
         $visableViewports === 'logical'
@@ -106,6 +110,7 @@ limitations under the License.
     <span class="selections-container">
       <Tooltip alwaysEnabled={true} description="physical">
         <!-- svelte-ignore a11y-click-events-have-key-events -->
+        <!-- svelte-ignore a11y_no_static_element_interactions -->
         <span
           class="setting-icon selection physical"
           on:click={() => {
@@ -119,6 +124,7 @@ limitations under the License.
 
       <Tooltip alwaysEnabled={true} description="logical">
         <!-- svelte-ignore a11y-click-events-have-key-events -->
+        <!-- svelte-ignore a11y_no_static_element_interactions -->
         <span
           class="setting-icon selection logical"
           on:click={() => {
@@ -131,6 +137,7 @@ limitations under the License.
       </Tooltip>
       <Tooltip alwaysEnabled={true} description="all">
         <!-- svelte-ignore a11y-click-events-have-key-events -->
+        <!-- svelte-ignore a11y_no_static_element_interactions -->
         <span
           class="setting-icon selection all"
           on:click={() => {
@@ -148,7 +155,8 @@ limitations under the License.
 <!-- BPR Setting Icon -->
 <span class="icon-container">
   <!-- svelte-ignore a11y-click-events-have-key-events -->
-  <Tooltip alwaysEnabled={true} description="Bytes per row: {$bytesPerRow}">
+  <Tooltip alwaysEnabled={true} description="Bytes per row: {displaySettings.bytesPerRow}">
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
     <span
       class="setting-icon"
       style:width
@@ -181,6 +189,7 @@ limitations under the License.
     </span>
     <span class="selections-container">
       <!-- svelte-ignore a11y-click-events-have-key-events -->
+      <!-- svelte-ignore a11y_no_static_element_interactions -->
       <span
         class="setting-icon selection"
         on:click={() => {
@@ -189,6 +198,7 @@ limitations under the License.
         >8
       </span>
       <!-- svelte-ignore a11y-click-events-have-key-events -->
+      <!-- svelte-ignore a11y_no_static_element_interactions -->
       <span
         class="setting-icon selection"
         on:click={() => {
@@ -197,6 +207,7 @@ limitations under the License.
         >16
       </span>
       <!-- svelte-ignore a11y-click-events-have-key-events -->
+      <!-- svelte-ignore a11y_no_static_element_interactions -->
       <span
         class="setting-icon selection"
         on:click={() => {

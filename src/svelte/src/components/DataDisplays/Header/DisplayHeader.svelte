@@ -21,26 +21,26 @@ limitations under the License.
     seekOffset,
     seekOffsetInput,
     seekOffsetSearchType,
-    bytesPerRow,
     visableViewports,
   } from '../../../stores'
   import {
     ADDRESS_RADIX_OPTIONS,
-    type RadixValues,
-    type BytesPerRow,
     RADIX_OPTIONS,
   } from '../../../stores/configuration'
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
-  import { OffsetSearchType } from '../../Header/fieldsets/SearchReplace'
+  import { OffsetSearchType } from '../../Header/fieldsets/SearchReplace.svelte.ts'
   import { byteDivWidthFromRadix } from '../../../utilities/display'
+  import {radixSelections } from 'stores/format/index.svelte.ts'
+  import type { BytesPerRow, RadixValues } from 'ext_types'
+  import { displaySettings } from 'stores/displaySettings.svelte.ts'
   let bitIndexStr = '01234567'
   let offsetLine: string[] = []
 
   $: {
     offsetLine = generate_offset_headers(
-      $addressRadix,
-      $displayRadix,
-      $bytesPerRow
+      radixSelections.address,
+      radixSelections.display,
+      displaySettings.bytesPerRow
     )
   }
 
@@ -77,20 +77,19 @@ limitations under the License.
 
   function updateAddressValue(event: Event) {
     const addrSelect = event.target as HTMLSelectElement
-    const newAddrRadix = parseInt(addrSelect.value) as RadixValues
+    radixSelections.address = parseInt(addrSelect.value) as RadixValues
 
     if ($seekOffsetSearchType === OffsetSearchType.RELATIVE) {
       const sign = $seekOffsetInput.substring(0, 1)
       const value = parseInt(
         $seekOffsetInput.substring(1),
         $addressRadix
-      ).toString(newAddrRadix)
+      ).toString(radixSelections.address)
       $seekOffsetInput = value === 'NaN' ? '0' : sign + value
     } else {
       const newSeekInput = $seekOffset.toString(parseInt(addrSelect.value))
       $seekOffsetInput = newSeekInput === 'NaN' ? '0' : newSeekInput
     }
-    $addressRadix = newAddrRadix
   }
 </script>
 

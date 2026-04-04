@@ -35,7 +35,6 @@ limitations under the License.
     searchQuery,
     focusedViewportId,
     displayRadix,
-    editorEncoding,
     dataDislayLineAmount,
   } from './stores'
   import {
@@ -50,32 +49,46 @@ limitations under the License.
     elementKeypressEventMap,
     key_is_mappable,
   } from './utilities/elementKeypressEvents'
-  import type {
-    EditEvent,
-    ViewportData_t,
-  } from './components/DataDisplays/CustomByteDisplay/BinaryData'
+  import type { EditEvent } from './components/DataDisplays/CustomByteDisplay/BinaryData'
   import { byte_count_divisible_offset } from './utilities/display'
   import Help from './components/layouts/Help.svelte'
   import { EditByteModes, type BytesPerRow } from 'ext_types'
   import { VIEWPORT_SCROLL_INCREMENT } from './stores/configuration'
-  import { getUIMsgId, setUIMsgId } from './stores/states.svelte'
+  import {
+    currentViewport,
+    getUIMsgId,
+    setUIMsgId,
+  } from './stores/states.svelte'
   import { vscode } from './utilities/vscode'
   import { isRegularSizedFile } from './components/Header/fieldsets/FileMetrics.svelte.ts'
   import { viewportByteIndicators } from 'utilities/highlights.ts'
-  setUIMsgId( document.getElementById('app')?.attributes['extension_msg_id'].value )
-  
-  const {postMessage, addListener} = vscode.getMessenger(getUIMsgId())
+  import { editorState } from 'stores/format/index.svelte.ts'
+  import { getMaxTopLine } from 'editor_components/DataDisplays/CustomByteDisplay/Viewport.svelte.ts'
+  import { displaySettings } from 'stores/displaySettings.svelte.ts'
+  import { onMount } from 'svelte'
+  import { getSeekOffset } from 'editor_components/Header/fieldsets/Seek.svelte.ts'
+  setUIMsgId(
+    document.getElementById('app')?.attributes['extension_msg_id'].value
+  )
+
+  onMount(() => {
+    getSeekOffset().seekStrategy = (offset: number) => {
+      if (!getSeekOffset().willRequireFetch(currentViewport())) {
+      }
+    }
+  })
+  const { postMessage, addListener } = vscode.getMessenger(getUIMsgId())
 
   function requestEditedData() {
     if ($requestable) {
-        postMessage('requestEditedData', {
-          selectionToFileOffset: $selectionDataStore.startOffset,
-          editedContent: $editorSelection,
-          viewport: $focusedViewportId as 'physical'|'logical',
-          selectionSize: $selectionSize,
-          encodingStr: $editorEncoding,
-          radix: $displayRadix,
-          editMode: $editMode,
+      postMessage('requestEditedData', {
+        selectionToFileOffset: $selectionDataStore.startOffset,
+        editedContent: $editorSelection,
+        viewport: $focusedViewportId as 'physical' | 'logical',
+        selectionSize: $selectionSize,
+        encodingStr: editorState.encoding,
+        radix: $displayRadix,
+        editMode: $editMode,
       })
     }
   }
@@ -83,7 +96,7 @@ limitations under the License.
   function offset_to_viewport_line_number(
     offset: number,
     bytesPerRow: BytesPerRow,
-    viewportStartOffset: number = $viewport.fileOffset
+    viewportStartOffset: number = currentViewport().fileOffset()
   ): number {
     const nearestBPRdivisibleTargetFileOffset = byte_count_divisible_offset(
       offset,
@@ -101,9 +114,9 @@ limitations under the License.
   }
 
   function fetchable_content(offset: number): boolean {
-    return offset > $viewport.fileOffset
-      ? $viewport.bytesLeft > 0
-      : $viewport.fileOffset > 0
+    return offset > currentViewport().fileOffset()
+      ? currentViewport().bytesLeft() > 0
+      : currentViewport().fileOffset() > 0
   }
 
   function should_fetch_new_viewoprt(offset: number) {
@@ -124,8 +137,9 @@ limitations under the License.
 
     if (!shouldFetchData) {
       $dataFeedLineTop = Math.min(
-        viewport.lineTopMax($bytesPerRow),
-        offset_to_viewport_line_number(offsetArg, $bytesPerRow)
+        // viewport.lineTopMax($bytesPerRow),
+        getMaxTopLine(currentViewport()),
+        offset_to_viewport_line_number(offsetArg, displaySettings.bytesPerRow)
       )
       return
     }
@@ -145,11 +159,11 @@ limitations under the License.
       $bytesPerRow,
       fetchOffset
     )
-    
+
     postMessage('scrollViewport', {
-        startOffset: fetchOffset,
-        bytesPerRow: $bytesPerRow,
-        numLinesDisplayed: $dataDislayLineAmount,
+      startOffset: fetchOffset,
+      bytesPerRow: $bytesPerRow,
+      numLinesDisplayed: $dataDislayLineAmount,
     })
     clearDataDisplays()
   }
@@ -163,8 +177,8 @@ limitations under the License.
     $dataFeedAwaitRefresh = true
 
     postMessage('scrollViewport', {
-        startOffset: navigationData.nextViewportOffset,
-        bytesPerRow: $bytesPerRow
+      startOffset: navigationData.nextViewportOffset,
+      bytesPerRow: $bytesPerRow,
     })
 
     $dataFeedLineTop = navigationData.lineTopOnRefresh
@@ -172,19 +186,16 @@ limitations under the License.
   }
 
   function handleEditorEvent(event: CustomEvent) {
-    if(!event.detail){
-
-    const sizeRegularity = isRegularSizedFile()
-    if (sizeRegularity && $selectionSize < 0) {
-      clearDataDisplays()
-      return
-    }
-    if (!sizeRegularity && $editorSelection.length == 0) return
-    }
-    else{
-      const {eventType} = event.detail
-      if(eventType === 'byte-edit'){
-        
+    if (!event.detail) {
+      const sizeRegularity = isRegularSizedFile()
+      if (sizeRegularity && $selectionSize < 0) {
+        clearDataDisplays()
+        return
+      }
+      if (!sizeRegularity && $editorSelection.length == 0) return
+    } else {
+      const { eventType } = event.detail
+      if (eventType === 'byte-edit') {
       }
     }
 
@@ -198,7 +209,7 @@ limitations under the License.
     let editedData: Uint8Array
     let originalData = $originalDataSegment
     let editedOffset = sizeRegularity
-      ? $selectionDataStore.startOffset + $viewport.fileOffset
+      ? $selectionDataStore.startOffset + currentViewport().fileOffset()
       : 0
 
     // noinspection FallThroughInSwitchStatementJS
@@ -222,22 +233,21 @@ limitations under the License.
         break
     }
     postMessage('applyChanges', {
-        offset: editedOffset,
-        original_segment: originalData as Uint8Array,
-        edited_segment: editedData,
-
+      offset: editedOffset,
+      original_segment: originalData as Uint8Array,
+      edited_segment: editedData,
     })
-    
+
     clearDataDisplays()
     clearQueryableData()
   }
 
   function undo() {
-    postMessage("undoChange")
+    postMessage('undoChange')
   }
 
   function redo() {
-    postMessage("redoChange")
+    postMessage('redoChange')
   }
 
   function clearChangeStack() {
@@ -271,35 +281,35 @@ limitations under the License.
     }
   }
   addListener('editorOnChange', (data) => {
-    if ($editMode === EditByteModes.Multiple)
-        $editorSelection = data.encodedStr
+    if ($editMode === EditByteModes.Multiple) $editorSelection = data.encodedStr
   })
   addListener('requestEditedData', (data) => {
-        $editorSelection = data.dataDisplay
-        if ($editMode === EditByteModes.Multiple) {
-          $editedDataSegment = new Uint8Array(data.data)
-        } else {
-          $editedDataSegment[0] = data.data[0]
-        }
-        $selectionDataStore.endOffset =
-          $selectionDataStore.startOffset + $editedDataSegment.byteLength - 1
-        viewportByteIndicators.updateSelectionIndications($selectionDataStore)
+    $editorSelection = data.dataDisplay
+    if ($editMode === EditByteModes.Multiple) {
+      $editedDataSegment = new Uint8Array(data.data)
+    } else {
+      $editedDataSegment[0] = data.data[0]
+    }
+    $selectionDataStore.endOffset =
+      $selectionDataStore.startOffset + $editedDataSegment.byteLength - 1
+    viewportByteIndicators.updateSelectionIndications($selectionDataStore)
   })
   addListener('setUITheme', (kind) => {
-        $darkUITheme = kind === 2
-        $UIThemeCSSClass = $darkUITheme
-          ? CSSThemeClass.Dark
-          : CSSThemeClass.Light
+    $darkUITheme = kind === 2
+    $UIThemeCSSClass = $darkUITheme ? CSSThemeClass.Dark : CSSThemeClass.Light
   })
-  addListener('viewportRefresh', (payload)=>{        
-    const { data, fileOffset, length, bytesLeft } = payload
-        $viewport = {
-          data: data,
-          fileOffset: fileOffset,
-          length: length,
-          bytesLeft: bytesLeft,
-        } as ViewportData_t
-    })
+  addListener('viewportRefresh', (resp) => {
+    currentViewport().update(resp)
+  })
+  // addListener('viewportRefresh', (payload)=>{
+  //   const { data, fileOffset, length, bytesLeft } = payload
+  //       $viewport = {
+  //         data: data,
+  //         fileOffset: fileOffset,
+  //         length: length,
+  //         bytesLeft: bytesLeft,
+  //       } as ViewportData_t
+  //   })
 </script>
 
 <svelte:window on:keydown|nonpassive={handleKeyBind} />
@@ -323,6 +333,7 @@ limitations under the License.
 <Help />
 <hr />
 <ServerMetrics />
+
 <!-- </body> -->
 
 <!-- svelte-ignore css-unused-selector -->

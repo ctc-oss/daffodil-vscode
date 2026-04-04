@@ -34,11 +34,12 @@
         "editor.formatOnSave": true
     },
     "[javascript]": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.defaultFormatter": "vscode.typescript-language-features",
         "editor.formatOnSave": true
     },
     "[typescript]": {
-      "editor.defaultFormatter": "esbenp.prettier-vscode",
+      "editor.defaultFormatter": "vscode.typescript-language-features",
       "editor.formatOnSave": true
-    }
+    },
+    "vitest.rootConfig": "src/svelte/vitest.config.mjs"
 }

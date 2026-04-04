@@ -21,6 +21,12 @@ export type RadixValues = 16 | 10 | 8 | 2
 
 export type BytesPerRow = 16 | 8 | 24
 
+export type ByteValue = {
+  offset: number
+  text: string | undefined
+  value: number
+}
+
 export enum EditByteModes {
   Single = 'single',
   Multiple = 'multiple',
@@ -31,7 +37,7 @@ export type AvailableStrEncodings =
   | 'ascii'
   | 'latin1'
   | 'utf-8'
-  | 'utf-16'
+  | 'utf-16le'
 
 export enum EditActionRestrictions {
   None,

@@ -122,6 +122,9 @@ export class ReplaceData implements QueryableData {
   }
 }
 export class ReplaceQuery extends SimpleWritable<ReplaceData> {
+  constructor() {
+    super()
+  }
   protected init(): ReplaceData {
     return new ReplaceData()
   }

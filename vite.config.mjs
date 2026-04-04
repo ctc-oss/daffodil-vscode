@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+/// <reference types="vitest/config"/>
+
 import { defineConfig } from 'vite'
 import path from 'node:path'
 import fs from 'node:fs'
@@ -26,6 +28,7 @@ import { pipeline } from 'stream/promises'
 import { Transform } from 'stream'
 import cliProgress from 'cli-progress'
 import pc from 'picocolors' // same color lib used by Vite
+import { svelte } from '@sveltejs/vite-plugin-svelte'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -235,7 +238,33 @@ export default defineConfig(({ mode }) => {
       },
       extensions: ['.ts', '.js'],
     },
-
+    test: {
+      // typecheck:{
+      //   enabled: true,
+      //   tsconfig: './tsconfig.json'
+      // },
+      environment: 'jsdom',
+      globals: true,
+      include: ['**/*.svelte.test.ts'],
+      exclude: ['node_modules/**/*'],
+      projects: [
+        {
+          resolve: {
+            alias: {
+            //   ext_types: path.resolve(__dirname, 'ext_types'),
+            ...localModuleAliases
+            },
+          },
+          plugins: [svelte({ configFile: 'src/svelte/svelte.config.mjs' })],
+          test: {
+            extends: true,
+            name: 'svelte',
+            root: './src/svelte',
+            include: ['**/*.svelte.test.ts'],
+          },
+        },
+      ],
+    },
     build: {
       sourcemap: true,
 
@@ -269,6 +298,14 @@ export default defineConfig(({ mode }) => {
             copyToPkgDirPlugin(),
             downloadAndExtractDefaultVersionOfDaffodil(mode),
           ]
-        : [copyDebuggerOutAfterBuild()],
+        : [
+            svelte({
+              configFile: path.resolve(
+                __dirname,
+                'src/svelte/svelte.config.mjs'
+              ),
+            }),
+            copyDebuggerOutAfterBuild(),
+          ],
   }
 })

@@ -16,10 +16,7 @@ limitations under the License.
 -->
 <script lang="ts">
   import {
-    addressRadix,
-    displayRadix,
     dataFeedAwaitRefresh,
-    viewport,
   } from '../../stores'
   import DataLineFeed from './CustomByteDisplay/DataLineFeed.svelte'
 </script>
@@ -29,9 +26,6 @@ limitations under the License.
   on:seek
   on:applyChanges
   on:handleEditorEvent
-  viewportData={$viewport}
-  dataRadix={$displayRadix}
-  addressRadix={$addressRadix}
   bind:awaitViewportSeek={$dataFeedAwaitRefresh}
 />
 

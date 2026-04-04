@@ -21,8 +21,6 @@ limitations under the License.
     EDIT_ACTIONS,
   } from '../../../stores/configuration'
   import {
-    displayRadix,
-    editorEncoding,
     editorActionsAllowed,
   } from '../../../stores'
   import FlexContainer from '../../layouts/FlexContainer.svelte'
@@ -35,11 +33,12 @@ limitations under the License.
   import { getDebugVarContext } from '../../Debug/'
   import { getUIMsgId } from 'stores/states.svelte'
   import { fileMetricsState,isRegularSizedFile, saveable} from './FileMetrics.svelte.ts'
+  import { editorState, radixSelections } from 'stores/format/index.svelte.ts'
   let bom = $state('utf-8')
   getDebugVarContext().add({
-    id: 'bom',
+    id: 'display radix',
     valueStr: () => {
-      return bom
+      return radixSelections.display.toString()
     },
   })
   getDebugVarContext().add({
@@ -61,8 +60,8 @@ limitations under the License.
 addListener('fileInfo', (data)=>{
     if(!data.bom) return 
     bom = data.bom
-    if (bom === 'UTF-8') $editorEncoding = 'utf-8'
-    else if (bom === 'UTF-16LE') $editorEncoding = 'utf-16le'
+    if (bom === 'UTF-8') editorState.encoding = 'utf-8'
+    else if (bom === 'UTF-16LE') editorState.encoding = 'utf-16le'
 })
 </script>
 
@@ -71,7 +70,7 @@ addListener('fileInfo', (data)=>{
   <FlexContainer --dir="column">
     <FlexContainer --dir="row" --align-items="center">
       <label for="radix">Display Radix:</label>
-      <select id="radix" class={$UIThemeCSSClass} bind:value={$displayRadix}>
+      <select id="radix" class={$UIThemeCSSClass} bind:value={radixSelections.display}>
         <option value={RADIX_OPTIONS.Hexadecimal}>Hexadecimal</option>
         <option value={RADIX_OPTIONS.Decimal}>Decimal</option>
         <option value={RADIX_OPTIONS.Octal}>Octal</option>
@@ -84,7 +83,7 @@ addListener('fileInfo', (data)=>{
       <select
         id="encoding"
         class={$UIThemeCSSClass}
-        bind:value={$editorEncoding}
+        bind:value={editorState.encoding}
       >
         {#each ENCODING_GROUPS as { group, encodings }}
           <optgroup label={group}>

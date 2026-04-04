@@ -18,7 +18,7 @@
 {
 	"compilerOptions": {
 		"module": "commonjs",
-		"moduleResolution": "Node10",
+		"moduleResolution": "node10",
 		"target": "es6",
 		"outDir": "out",
 		"lib": [
@@ -28,7 +28,6 @@
 		],
 		"sourceMap": true,
 		"rootDir": "./src",
-		"baseUrl": "./src",
 		"strict": true,   /* enable all strict type-checking options */
 		/* Additional Checks */
 		// "noImplicitReturns": true, /* Report error when not all code paths in function return a value. */
@@ -45,12 +44,12 @@
 		"noUnusedParameters": false,
 		"esModuleInterop": true,
 		"paths": {
-			"tdmlEditor": ["tdmlEditor"],
-			"dataEditor": ["dataEditor"],
-			"language":["language"],
-			"launchWizard": ["launchWizard/launchWizard"],
-			"infoset":["infoset"],
-			"ext_types": ["ext_types"]
+			"tdmlEditor": ["./tdmlEditor"],
+			"dataEditor": ["./dataEditor"],
+			"language":["./language"],
+			"launchWizard": ["./launchWizard/launchWizard"],
+			"infoset":["./infoset"],
+			"ext_types": ["./ext_types"]
 		}
 	},
 	"include": ["src/**/*"],
