@@ -15,19 +15,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
-  import {
-    dataFeedAwaitRefresh,
-  } from '../../stores'
-  import DataLineFeed from './CustomByteDisplay/DataLineFeed.svelte'
-</script>
+  import ViewportFeed from "./CustomByteDisplay/ViewportFeed.svelte"
 
-<DataLineFeed
+</script>
+<ViewportFeed />
+<!-- <DataLineFeed
   on:traverse-file
   on:seek
   on:applyChanges
   on:handleEditorEvent
   bind:awaitViewportSeek={$dataFeedAwaitRefresh}
-/>
+/> -->
 
 <style lang="scss">
 </style>

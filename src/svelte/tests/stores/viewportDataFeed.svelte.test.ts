@@ -10,7 +10,7 @@ describe('Viewport Data Generated Line Feed', () => {
     const ViewportDataFeed: ViewportDataFeedState = new ViewportDataFeedState(Viewport)
     const seekOffset = getSeekOffset()
     // let attributes = ViewportDataFeed.feedAttributes()
-    const dataFeed = ViewportDataFeed.dataFeed()
+    // const dataFeed = ViewportDataFeed.dataFeed()
 
     afterEach(() => {
         Viewport.reset()
@@ -47,12 +47,6 @@ describe('Viewport Data Generated Line Feed', () => {
             expect(ViewportDataFeed.feedAttributes().lineStartIndex).toBe(0)
         })
         it('should calculate the closest starting line index for any offset', () => {
-            // $inspect(seekOffset).with((type, values) => {
-            //     if (type === 'update') console.trace(values)
-            // })
-            // $inspect(attributes).with((type, values) => {
-            //     if (type === 'update') console.trace(values)
-            // })
             Viewport.update(viewportUpdates.initial)
 
             seekOffset.inputStr = (256).toString(radixSelections.address)
@@ -65,11 +59,10 @@ describe('Viewport Data Generated Line Feed', () => {
 
         it('should generate byte data feed aligned to the calculated line indices', () => {
             Viewport.update(viewportUpdates.initial)
+            expect(ViewportDataFeed.dataFeed()[0].bytes.length).not.toBe(0)
+            expect(ViewportDataFeed.dataFeed()[0].offset).toBe(HexByte.str(0))
 
-            expect(dataFeed.length).not.toBe(0)
-            expect(dataFeed[0].offset).toBe(HexByte.str(0))
-
-            const lastLinesOfBytes = dataFeed[dataFeed.length - 1]
+            const lastLinesOfBytes = ViewportDataFeed.dataFeed()[ViewportDataFeed.dataFeed().length - 1]
             const lastLineOffset = offsetToLineNum
                 (parseInt(lastLinesOfBytes.offset, displaySettings.bytesPerRow), displaySettings.bytesPerRow, 0)
 
@@ -78,8 +71,8 @@ describe('Viewport Data Generated Line Feed', () => {
             seekOffset.inputStr = HexByte.str(250)
 
 
-            expect(dataFeed[0].offset).not.toBe(HexByte.str(0))
-            expect(attributes.lineStartIndex).toBe(15)
+            expect(ViewportDataFeed.dataFeed()[0].offset).not.toBe(HexByte.str(0))
+            expect(ViewportDataFeed.feedAttributes().lineStartIndex).toBe(15)
         })
     })
 })

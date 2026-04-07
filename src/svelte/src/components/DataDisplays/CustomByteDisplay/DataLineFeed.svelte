@@ -72,6 +72,7 @@ limitations under the License.
   import { displaySettings } from 'stores/displaySettings.svelte'
   import { getSeekOffset } from 'editor_components/Header/fieldsets/Seek.svelte'
   import { getMaxTopLine } from './Viewport.svelte'
+  import { ViewportDataFeedState } from './DataFeed.svelte'
  const debugVarsCtx = getDebugVarContext()
   debugVarsCtx.add(
     {id: 'Viewport', valueStr: ()=>currentViewport().toString()},
@@ -83,6 +84,7 @@ limitations under the License.
   const {postMessage, addListener} = vscode.getMessenger(getUIMsgId())
   export let awaitViewportSeek: boolean
   const viewportData = currentViewport()
+  const viewportFeed = new ViewportDataFeedState(viewportData)
   
   const DEBOUNCE_TIMEOUT_MS = 20
   const CONTAINER_ID = 'viewportData-container'
