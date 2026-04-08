@@ -18,6 +18,9 @@
 {
   "extends": "@tsconfig/svelte/tsconfig.json",
   "compilerOptions": {
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "target": "es2015",
     "allowImportingTsExtensions": true,
     "noEmit": true,
     "inlineSources": true,
@@ -29,16 +32,15 @@
       "editor_components/*": ["components/sections/*"]
     },
     // "allowImportingTsExtensions": true,
-    "target": "ES6",
     "useDefineForClassFields": true,
-    "module": "commonjs",
     "resolveJsonModule": true,
     "allowJs": true,
     "checkJs": true,
     "isolatedModules": true,
     "outDir": "tsout",
     "esModuleInterop": true,
-    "verbatimModuleSyntax": true
+    "verbatimModuleSyntax": true,
+    "types": ["vitest/globals", "vite/client", "svelte"]
   },
   "include": ["src/**/*.ts", "src/**/*.svelte", "src/tests/**/*.test.ts"],
   "exclude": ["node_modules/*"],

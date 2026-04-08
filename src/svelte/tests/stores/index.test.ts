@@ -14,8 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { describe, it } from 'mocha'
+import { describe, it, afterEach } from 'vitest'
 import { fileMetrics, regularSizedFile, saveable } from '../../src/stores/index'
 import assert from 'assert'
 import { get } from 'svelte/store'
@@ -23,6 +22,10 @@ import { FileMetricsData } from '../../src/components/Header/fieldsets/FileMetri
 
 describe('Data Editor Stores ( Derived )', () => {
   describe('regularSizedFile', () => {
+    afterEach(() => {
+      fileMetrics.set(new FileMetricsData())
+    })
+
     const TruthySize = 1024
     const FalsySize = 1
 
@@ -39,9 +42,6 @@ describe('Data Editor Stores ( Derived )', () => {
         return metrics
       })
       assert.equal(get(regularSizedFile), false)
-    })
-    after(() => {
-      fileMetrics.set(new FileMetricsData())
     })
   })
 
