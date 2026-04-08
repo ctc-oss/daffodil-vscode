@@ -19,7 +19,7 @@ import { fileMetrics, regularSizedFile, saveable } from '../../src/stores/index'
 import assert from 'assert'
 import { get } from 'svelte/store'
 import { FileMetricsData } from '../../src/components/Header/fieldsets/FileMetrics'
-
+import * as vscode from 'vscode'
 describe('Data Editor Stores ( Derived )', () => {
   describe('regularSizedFile', () => {
     afterEach(() => {

@@ -77,7 +77,7 @@ export default defineConfig((env) => {
           './src/svelte/**/*.test.ts',
           './tests/**/*.test.ts',
         ],
-        exclude: ['node_modules/**', 'out/**'],
+        exclude: [ 'out/**'],
         typecheck: {
           enabled: true,
           tsconfig: './tsconfig.json',

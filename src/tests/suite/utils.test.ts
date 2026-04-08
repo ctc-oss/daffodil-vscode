@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+import { describe, it, suite, test } from 'vitest'
 import * as assert from 'assert'
 import * as utils from '../../utils'
 import { VSCodeLaunchConfigArgs } from '../../classes/vscode-launch'

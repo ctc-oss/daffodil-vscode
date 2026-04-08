@@ -39,8 +39,8 @@
     "isolatedModules": true,
     "outDir": "tsout",
     "esModuleInterop": true,
-    "verbatimModuleSyntax": true,
-    "types": ["vitest/globals", "vite/client", "svelte"]
+    "verbatimModuleSyntax": true
+    // "types": ["vitest/globals", "vite/client", "svelte"]
   },
   "include": ["src/**/*.ts", "src/**/*.svelte", "src/tests/**/*.test.ts"],
   "exclude": ["node_modules/*"],
