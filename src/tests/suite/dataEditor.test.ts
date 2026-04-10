@@ -92,7 +92,7 @@ suite('Data Editor Test Suite', () => {
 
     before(async () => {
       const serverPid = (await Promise.race([
-        startServer(testPort, OMEGA_EDIT_HOST, pidFile, logConfigFile),
+        startServer(testPort, OMEGA_EDIT_HOST, pidFile, { logConfigFile }),
         new Promise((resolve, reject) => {
           setTimeout(
             () =>

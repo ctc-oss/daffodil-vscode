@@ -95,8 +95,7 @@ function package() {
 # limitations under the License.
 
 **/node_modules/**/*
-!node_modules/@omega-edit/server/bin
-!node_modules/@omega-edit/server/lib
+!node_modules/@omega-edit/server/out/**/*
 !node_modules/@vscode/webview-ui-toolkit/**/*
 `
   )

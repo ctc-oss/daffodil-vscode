@@ -54,7 +54,8 @@
     "watch:vite-dev": "yarn vite build --mode development -c ./vite.config.mjs --watch"
   },
   "dependencies": {
-    "@omega-edit/client": "^1.0.1",
+    "@omega-edit/client": "https://github.com/ctc-oss/omega-edit/releases/download/v2.0.0-rc1/omega-edit-node-client-v2.0.0-rc1.tgz",
+    "@omega-edit/server": "https://github.com/ctc-oss/omega-edit/releases/download/v2.0.0-rc1/omega-edit-node-server-v2.0.0-rc1.tgz",
     "@viperproject/locate-java-home": "1.1.17",
     "@vscode/debugadapter": "1.67.0",
     "@vscode/webview-ui-toolkit": "^1.2.2",
@@ -110,6 +111,7 @@
     "vscode-extension-tester": "5.9.1"
   },
   "resolutions": {
+    "@omega-edit/server": "https://github.com/ctc-oss/omega-edit/releases/download/v2.0.0-rc1/omega-edit-node-server-v2.0.0-rc1.tgz",
     "cookie": ">=0.7.0",
     "diff": ">=8.0.3",
     "serialize-javascript": ">=7.0.3"

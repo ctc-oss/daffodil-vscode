@@ -24,10 +24,13 @@ export class ServerInfo implements IServerInfo {
   serverHostname: string = 'unknown'
   serverProcessId: number = 0
   serverVersion: string = 'unknown'
-  jvmVersion: string = 'unknown'
-  jvmVendor: string = 'unknown'
-  jvmPath: string = 'unknown'
+  runtimeKind: string = 'unknown'
+  runtimeName: string = 'unknown'
+  platform: string = 'unknown'
   availableProcessors: number = 0
+  compiler: string = 'unknown'
+  buildType: string = 'unknown'
+  cppStandard: string = 'unknown'
 }
 
 const OMEGA_EDIT_MAX_PORT: number = 65535

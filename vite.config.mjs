@@ -172,12 +172,8 @@ async function copyToPkgDirPlugin() {
     { from: 'package.json', to: `${pkg_dir}/package.json` },
     { from: 'yarn.lock', to: `${pkg_dir}/yarn.lock` },
     {
-      from: 'node_modules/@omega-edit/server/out/bin',
-      to: `${pkg_dir}/node_modules/@omega-edit/server/out/bin`,
-    },
-    {
-      from: 'node_modules/@omega-edit/server/out/lib',
-      to: `${pkg_dir}/node_modules/@omega-edit/server/out/lib`,
+      from: 'node_modules/@omega-edit/server/out',
+      to: `${pkg_dir}/node_modules/@omega-edit/server/out`,
     },
     {
       from: 'node_modules/@vscode/webview-ui-toolkit',

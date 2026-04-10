@@ -17,7 +17,6 @@
 
 import {
   ALL_EVENTS,
-  beginSessionTransaction,
   clear,
   countCharacters,
   CountKind,
@@ -26,9 +25,6 @@ import {
   createViewport,
   del,
   edit,
-  EditorClient,
-  endSessionTransaction,
-  EventSubscriptionRequest,
   getByteOrderMark,
   getClient,
   getClientVersion,
@@ -45,15 +41,16 @@ import {
   profileSession,
   redo,
   replaceOneSession,
+  runSessionTransaction,
   saveSession,
   SaveStatus,
   searchSession,
   setLogger,
   startServer,
   stopProcessUsingPID,
+  subscribeViewportEvents,
   undo,
   ViewportDataResponse,
-  ViewportEvent,
   ViewportEventKind,
 } from '@omega-edit/client'
 import assert from 'assert'
@@ -107,7 +104,6 @@ const OPEN_EDITORS = new Map<string, vscode.WebviewPanel>()
 // *****************************************************************************
 let serverInfo: ServerInfo = new ServerInfo()
 let checkpointPath: string = ''
-let client: EditorClient
 let omegaEditPort: number = 0
 
 // *****************************************************************************
@@ -139,6 +135,11 @@ export class DataEditorClient implements vscode.Disposable {
   private omegaSessionId = ''
   private sendHeartbeatIntervalId: NodeJS.Timeout | number | undefined =
     undefined
+  private viewportSubscription:
+    | {
+        cancel(): void
+      }
+    | undefined = undefined
   private disposables: vscode.Disposable[] = []
 
   constructor(
@@ -179,6 +180,8 @@ export class DataEditorClient implements vscode.Disposable {
       clearInterval(this.sendHeartbeatIntervalId)
       this.sendHeartbeatIntervalId = undefined
     }
+    this.viewportSubscription?.cancel()
+    this.viewportSubscription = undefined
 
     for (let i = 0; i < this.disposables.length; i++)
       this.disposables[i].dispose()
@@ -387,7 +390,10 @@ export class DataEditorClient implements vscode.Disposable {
       )
       this.currentViewportId = viewportDataResponse.getViewportId()
       assert(this.currentViewportId.length > 0, 'currentViewportId is not set')
-      await viewportSubscribe(this.panel, this.currentViewportId)
+      this.viewportSubscription = await viewportSubscribe(
+        this.panel,
+        this.currentViewportId
+      )
       await sendViewportRefresh(this.panel, viewportDataResponse)
     } catch {
       const msg = `Failed to create viewport for ${this.fileToEdit}`
@@ -416,18 +422,25 @@ export class DataEditorClient implements vscode.Disposable {
         latency: heartbeatInfo.latency,
         omegaEditPort: this.configVars.port,
         serverCpuLoadAverage: heartbeatInfo.serverCpuLoadAverage,
+        serverTimestamp: heartbeatInfo.serverTimestamp,
         serverUptime: heartbeatInfo.serverUptime,
-        serverUsedMemory: heartbeatInfo.serverUsedMemory,
+        serverResidentMemoryBytes: heartbeatInfo.serverResidentMemoryBytes,
+        serverVirtualMemoryBytes: heartbeatInfo.serverVirtualMemoryBytes,
+        serverPeakResidentMemoryBytes:
+          heartbeatInfo.serverPeakResidentMemoryBytes,
         sessionCount: heartbeatInfo.sessionCount,
         serverInfo: {
           omegaEditPort: this.configVars.port,
           serverVersion: serverInfo.serverVersion,
           serverHostname: serverInfo.serverHostname,
           serverProcessId: serverInfo.serverProcessId,
-          jvmVersion: serverInfo.jvmVersion,
-          jvmVendor: serverInfo.jvmVendor,
-          jvmPath: serverInfo.jvmPath,
+          runtimeKind: serverInfo.runtimeKind,
+          runtimeName: serverInfo.runtimeName,
+          platform: serverInfo.platform,
           availableProcessors: serverInfo.availableProcessors,
+          compiler: serverInfo.compiler,
+          buildType: serverInfo.buildType,
+          cppStandard: serverInfo.cppStandard,
         },
       },
     })
@@ -436,9 +449,9 @@ export class DataEditorClient implements vscode.Disposable {
   private async sendChangesInfo() {
     // get the counts from the server
     const counts = await getCounts(this.omegaSessionId, [
-      CountKind.COUNT_COMPUTED_FILE_SIZE,
-      CountKind.COUNT_CHANGE_TRANSACTIONS,
-      CountKind.COUNT_UNDO_TRANSACTIONS,
+      CountKind.COMPUTED_FILE_SIZE,
+      CountKind.CHANGE_TRANSACTIONS,
+      CountKind.UNDO_TRANSACTIONS,
     ])
 
     // accumulate the counts into a single object
@@ -450,13 +463,13 @@ export class DataEditorClient implements vscode.Disposable {
     }
     counts.forEach((count) => {
       switch (count.getKind()) {
-        case CountKind.COUNT_COMPUTED_FILE_SIZE:
+        case CountKind.COMPUTED_FILE_SIZE:
           data.computedFileSize = count.getCount()
           break
-        case CountKind.COUNT_CHANGE_TRANSACTIONS:
+        case CountKind.CHANGE_TRANSACTIONS:
           data.changeCount = count.getCount()
           break
-        case CountKind.COUNT_UNDO_TRANSACTIONS:
+        case CountKind.UNDO_TRANSACTIONS:
           data.undoCount = count.getCount()
           break
       }
@@ -750,15 +763,15 @@ export class DataEditorClient implements vscode.Disposable {
         await del(this.omegaSessionId, 0, offset)
         await this.sendChangesInfo()
       } else {
-        // delete from length to the end of the file and from 0 to offset in a single transaction
-        await beginSessionTransaction(this.omegaSessionId)
-        await del(
-          this.omegaSessionId,
-          offset + length,
-          computedFileSize - length
-        )
-        await del(this.omegaSessionId, 0, offset)
-        await endSessionTransaction(this.omegaSessionId)
+        // Trim both sides atomically so undo/redo treats the segment save as one edit.
+        await runSessionTransaction(this.omegaSessionId, async () => {
+          await del(
+            this.omegaSessionId,
+            offset + length,
+            computedFileSize - offset - length
+          )
+          await del(this.omegaSessionId, 0, offset)
+        })
         await this.sendChangesInfo()
       }
       // save the segment to the file using the typical save method
@@ -771,7 +784,7 @@ export class DataEditorClient implements vscode.Disposable {
       const saveResponse = await saveSession(
         this.omegaSessionId,
         fileToSave,
-        IOFlags.IO_FLG_OVERWRITE,
+        IOFlags.OVERWRITE,
         offset,
         length
       )
@@ -789,7 +802,7 @@ export class DataEditorClient implements vscode.Disposable {
           const saveResponse2 = await saveSession(
             this.omegaSessionId,
             fileToSave,
-            IOFlags.IO_FLG_FORCE_OVERWRITE,
+            IOFlags.FORCE_OVERWRITE,
             offset,
             length
           )
@@ -819,7 +832,7 @@ export class DataEditorClient implements vscode.Disposable {
     const saveResponse = await saveSession(
       this.omegaSessionId,
       fileToSave,
-      IOFlags.IO_FLG_OVERWRITE
+      IOFlags.OVERWRITE
     )
     if (saveResponse.getSaveStatus() === SaveStatus.MODIFIED) {
       // the file was modified since the session was created, query user to overwrite the modified file
@@ -835,7 +848,7 @@ export class DataEditorClient implements vscode.Disposable {
         const saveResponse2 = await saveSession(
           this.omegaSessionId,
           fileToSave,
-          IOFlags.IO_FLG_FORCE_OVERWRITE
+          IOFlags.FORCE_OVERWRITE
         )
         saved = saveResponse2.getSaveStatus() === SaveStatus.SUCCESS
       } else {
@@ -933,7 +946,7 @@ async function createDataEditorWebviewPanel(
   if (!(await checkServerListening(omegaEditPort, OMEGA_EDIT_HOST))) {
     await setupLogging(launchConfigVars)
     await serverStart()
-    client = await getClient(omegaEditPort, OMEGA_EDIT_HOST)
+    await getClient(omegaEditPort, OMEGA_EDIT_HOST)
     assert(
       await checkServerListening(omegaEditPort, OMEGA_EDIT_HOST),
       'server not listening'
@@ -1033,28 +1046,17 @@ async function viewportSubscribe(
   panel: vscode.WebviewPanel,
   viewportId: string
 ) {
-  // subscribe to all viewport events
-  client
-    .subscribeToViewportEvents(
-      new EventSubscriptionRequest()
-        .setId(viewportId)
-        .setInterest(ALL_EVENTS & ~ViewportEventKind.VIEWPORT_EVT_MODIFY)
-    )
-    .on('data', async (event: ViewportEvent) => {
+  return await subscribeViewportEvents({
+    viewportId,
+    interest: ALL_EVENTS & ~ViewportEventKind.MODIFY,
+    onEvent: async (event) => {
       getLogger().debug({
         viewportId: event.getViewportId(),
         event: event.getViewportEventKind(),
       })
       await sendViewportRefresh(panel, await getViewportData(viewportId))
-    })
-    .on('error', (err) => {
-      // Call cancelled thrown sometimes when server is shutdown
-      if (
-        !err.message.includes('Call cancelled') &&
-        !err.message.includes('UNAVAILABLE')
-      )
-        throw err
-    })
+    },
+  })
 }
 
 class DisplayState {
@@ -1341,12 +1343,9 @@ async function serverStart() {
 
   // Start the server and wait up to 10 seconds for it to start
   const serverPid = (await Promise.race([
-    startServer(
-      omegaEditPort,
-      OMEGA_EDIT_HOST,
-      getPidFile(omegaEditPort),
-      logConfigFile
-    ),
+    startServer(omegaEditPort, OMEGA_EDIT_HOST, getPidFile(omegaEditPort), {
+      logConfigFile,
+    }),
     new Promise((_resolve, reject) => {
       setTimeout(() => {
         reject((): Error => {
