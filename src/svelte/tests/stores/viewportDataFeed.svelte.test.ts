@@ -14,7 +14,7 @@ describe('Viewport Data Generated Line Feed', () => {
 
     afterEach(() => {
         Viewport.reset()
-        // seekOffset.inputStr = ''
+        seekOffset.inputStr = ''
         // expect(attributes).toStrictEqual({
         //     lineStartIndex: 0,
         //     lineEndIndex: 19

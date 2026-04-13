@@ -26,8 +26,6 @@ import {
 
 describe('FileMetricsState Runes', () => {
   describe('regularSizedFile', () => {
-    const TruthySize = 1024
-    const FalsySize = 1
 
     it('should report boolean value derived from computedSize', () => {
       ;[

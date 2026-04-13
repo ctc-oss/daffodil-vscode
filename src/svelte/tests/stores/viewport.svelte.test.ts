@@ -1,6 +1,4 @@
 import { ViewportDataState } from 'editor_components/DataDisplays/CustomByteDisplay/Viewport.svelte.ts'
-import { displaySettings } from 'stores/displaySettings.svelte.ts'
-import { numDisplayLines } from 'stores/format/index.svelte.ts'
 // import { offsetToLineNum } from 'utilities/display'
 import { describe, it, expect, afterEach } from 'vitest'
 
@@ -35,7 +33,6 @@ describe('Viewport Data State', () => {
             })
             console.log(Viewport.dataFeed())
             expect(Viewport.dataFeed().length).not.toBe(0)
-
         })
         describe('Utility Functions', () => {
             describe('Data Feed Positions', () => {

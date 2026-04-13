@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import {
   byteIndications,
   categoryMax,
-  IndicationCategory,
+  type IndicationCategory,
 } from '../../src/stores/byteIndicators.svelte.ts'
 
 describe('Viewport Byte Data Indicator State', () => {

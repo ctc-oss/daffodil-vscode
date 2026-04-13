@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from 'vitest'
-import { type SearchRequest, type SearchResponse } from 'ext_types'
+import { type SearchResponse } from 'ext_types'
 import { getSearchQuery } from '../../src/components/Header/fieldsets/Search.svelte.ts'
 import {
     editorState

@@ -44,7 +44,7 @@
     "package": "run-func build/yarn-scripts.ts package && yarn --cwd dist/package install && yarn --cwd dist/package vsce package --out ../../",
     "pretest": "yarn compile && yarn vite:dev",
     "test": "sbt test && yarn test:svelte && node ./out/tests/runTest.js",
-    "test:svelte": "cd src/svelte && vitest --config ./vite.config.mjs",
+    "test:svelte": "yarn vitest --config src/svelte/vitest.config.mjs --run",
     "sbt": "sbt Universal/stage",
     "svelte:check": "svelte-check --tsconfig ./src/svelte/tsconfig.json",
     "svelte:build": "cd src/svelte && vite build --config ./vite.config.mjs --mode production --emptyOutDir",

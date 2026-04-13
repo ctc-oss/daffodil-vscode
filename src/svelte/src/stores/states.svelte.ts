@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import { ViewportDataState } from 'editor_components/DataDisplays/CustomByteDisplay/Viewport.svelte'
-import { EditByteModes } from 'ext_types'
+// import { ViewportDataState } from 'editor_components/DataDisplays/CustomByteDisplay/Viewport.svelte'
+// import { EditByteModes } from 'ext_types'
 
 /// Unique WebviewPanel Message ID
 let uiMsgId = $state<string>('')
@@ -44,5 +44,5 @@ export const isUIDebugAttached = (id: string) => {
   return id.includes('dfdl-')
 }
 
-const viewportState = $state<ViewportDataState>(new ViewportDataState(''))
-export const currentViewport = () => viewportState
+// const viewportState = $state<ViewportDataState>(new ViewportDataState(''))
+// export const currentViewport = () => viewportState

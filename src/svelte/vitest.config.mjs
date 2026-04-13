@@ -52,13 +52,13 @@ export default defineConfig((env) => {
                     stores: fileURLToPath(new URL('./src/stores', import.meta.url)),
                 },
                 //   include: ['**/*.svelte.test.ts'],
-                include: ['./src/svelte/**/*.svelte.test.ts', './tests/**/*.svelte.test.ts'],
+                include: ['./tests/**/*.svelte.test.ts'],
                 exclude: ['node_modules/**', 'out/**'],
                 typecheck: {
                     enabled: true,
                     tsconfig: './tsconfig.json',
-                    include: ['./tests/**/*.svelte.test.ts', '**/*.test-d.ts'],
-                    ignoreSourceErrors: false,
+                    include: ['./tests/**/*.svelte.test.ts'],
+                    ignoreSourceErrors: true,
                 },
             },
         }

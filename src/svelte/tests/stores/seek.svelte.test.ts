@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import {
     getSeekOffset,
     OffsetSearchType,
@@ -6,7 +6,6 @@ import {
 import { radixSelections } from '../../src/stores/format/index.svelte'
 import { type RadixValues } from 'ext_types'
 import {
-    ErrorComponentType,
     ErrorState,
 } from '../../src/components/Error/Err.svelte.ts'
 import { ViewportDataState } from 'editor_components/DataDisplays/CustomByteDisplay/Viewport.svelte.ts'

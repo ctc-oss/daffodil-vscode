@@ -45,13 +45,15 @@ export class ViewportDataState {
             lower: this.fileOffsetState
         }
     })
-    private isFeedInitializedState = $derived.by<boolean>(() => {
-        if (this.feedDataLines.length === 0) return false
-        if (!this.feedDataLines[0].bytes) return false
-        return true
-    })
+    // private isFeedInitializedState = $derived.by<boolean>(() => {
+    //     if (this.feedDataLines.length === 0) return false
+    //     if (!this.feedDataLines[0].bytes) return false
+    //     return true
+    // })
+    // private isFeedInitializedState = $state<boolean>(false)
+
     private correctedFeedStartLineState = $derived.by<number>(() => {
-        if (displaySettings.bytesPerRow !== this.dataFeed[0].bytes.length) return offsetToLineNum(parseInt(this.dataFeed[0].offset, radixSelections.address), this.fileOffsetState, displaySettings.bytesPerRow)
+        if (displaySettings.bytesPerRow !== this.dataFeed[0].bytes.length) return offsetToLineNum(parseInt(this.dataFeed[0].offset, radixSelections.address), displaySettings.bytesPerRow, this.fileOffsetState)
         return Math.max(0, Math.min(getMaxTopLine(this), this.feedLineTop()))
     })
     private feedLineTopState = $derived.by<number>(() => {
@@ -63,14 +65,6 @@ export class ViewportDataState {
         //   }
         // }
     })
-    private feedDataLines = $derived.by<ViewportLineData[]>(() => {
-        // Initial population of data lines
-        // if (this.feedLineTopState === 0) {
-        //   return this.generateDataLines(0, { numLinesDisplayed: numDisplayLines(), radix: radixSelections.display })
-        // }
-        return this.generateDataLines(this.feedLineTop(), { numLinesDisplayed: numDisplayLines(), radix: radixSelections.display })
-    })
-    readonly isFeedInitialized = () => this.isFeedInitializedState
     readonly offsetMax = () => this.offsetMaxState
     readonly fileOffset = () => this.fileOffsetState
     readonly length = () => this.lengthState
