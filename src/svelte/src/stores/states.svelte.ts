@@ -14,5 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-/// <reference types="svelte" />
+let uiMsgId = $state<string>('')
+export const setUIMsgId = (id: string) => {
+  uiMsgId = id
+}
+export const getUIMsgId = () => uiMsgId
+export const isUIDebugAttached = (id: string) => {
+  return id.includes('dfdl-')
+}

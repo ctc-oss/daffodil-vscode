@@ -28,8 +28,15 @@ limitations under the License.
   import FlexContainer from '../../layouts/FlexContainer.svelte'
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
   import ViewportVisibilityIcon from '../../Icons/ViewportVisibilityIcon.svelte'
-  import { MessageCommand } from '../../../utilities/message'
+  import { vscode } from '../../../utilities/vscode'
+  import { getUIMsgId } from 'stores/states.svelte'
+  import {
+    fileMetricsState,
+    isRegularSizedFile,
+    saveable,
+  } from './FileMetrics.svelte.ts'
 
+  const { addListener } = vscode.getMessenger(getUIMsgId())
   /* DEBUG_ONLY_START */
   import { getDebugVarContext } from '../../Debug/'
   let bom = $state('utf-8')
@@ -39,19 +46,27 @@ limitations under the License.
       return bom
     },
   })
-
+  getDebugVarContext().add({
+    id: 'RegularFileSizeState',
+    valueStr: () => {
+      const size = fileMetricsState.computedSize
+      const stateVal = isRegularSizedFile()
+      return `Size (${size}) is regular ? ${stateVal}`
+    },
+  })
+  getDebugVarContext().add({
+    id: 'Can save',
+    valueStr: () => {
+      let ret = `Raw: ${fileMetricsState.changeCount > 0 ? 'true' : 'false'} ; CanUndo(): ${saveable()}`
+      return ret
+    },
+  })
   /* DEBUG_ONLY_END */
-  window.addEventListener('message', (msg) => {
-    switch (msg.data.command) {
-      case MessageCommand.fileInfo: {
-        if ('byteOrderMark' in msg.data.data) {
-          const { byteOrderMark } = msg.data.data
-          if (byteOrderMark === 'UTF-8') $editorEncoding = 'utf-8'
-          else if (byteOrderMark === 'UTF-16LE') $editorEncoding = 'utf-16le'
-          bom = byteOrderMark
-        }
-      }
-    }
+  addListener('fileInfo', (data) => {
+    if (!data.bom) return
+    bom = data.bom
+    if (bom === 'UTF-8') $editorEncoding = 'utf-8'
+    else if (bom === 'UTF-16LE') $editorEncoding = 'utf-16le'
   })
 </script>
 

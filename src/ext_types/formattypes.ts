@@ -15,10 +15,27 @@
  * limitations under the License.
  */
 
-import App from '../../components/dataEditor.svelte'
+export type Radixes = 'Hexadecimal' | 'Decimal' | 'Octal' | 'Binary'
 
-const app = new App({
-  target: document.body,
-})
+export type RadixValues = 16 | 10 | 8 | 2
 
-export default app
+export type BytesPerRow = 16 | 8 | 24
+
+export enum EditByteModes {
+  Single = 'single',
+  Multiple = 'multiple',
+}
+export type AvailableStrEncodings =
+  | 'hex'
+  | 'binary'
+  | 'ascii'
+  | 'latin1'
+  | 'utf-8'
+  | 'utf-16'
+
+export enum EditActionRestrictions {
+  None,
+  OverwriteOnly,
+}
+
+export type EditAction = { name: string; value: EditActionRestrictions }

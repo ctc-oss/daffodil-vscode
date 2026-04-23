@@ -25,7 +25,9 @@ const config = {
     sveltePreprocess({ sourceMap: true, typescript: true }),
   ],
   compilerOptions: {
+    runes: undefined,
     css: 'external',
+    rootDir: '.',
   },
   onwarn(w, defaultHandler) {
     if (w.code.includes('a11y')) return

@@ -14,38 +14,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { type MessageResponseMap } from 'ext_types'
+import {
+  isEditorMessageId,
+  isEditorResponseId,
+} from '../../../ext_types/messageIds'
 
-export enum MessageCommand {
-  clearChanges,
-  applyChanges,
-  editorOnChange,
-  fileInfo,
-  heartbeat,
-  profile,
-  redoChange,
-  replaceResults,
-  requestEditedData,
-  save,
-  saveAs,
-  saveSegment,
-  scrollViewport,
-  search,
-  replace,
-  searchResults,
-  setUITheme,
-  showMessage,
-  undoChange,
-  updateLogicalDisplay,
-  viewportRefresh,
+export type IncomingMessage = {
+  command: keyof MessageResponseMap
+  id: string
+  data: MessageResponseMap[keyof MessageResponseMap]
 }
 
-export enum MessageLevel {
-  Error,
-  Info,
-  Warn,
+function isEditorMessage(msg: any): msg is IncomingMessage {
+  return msg && isEditorMessageId(msg.command)
 }
+function isEditorResponse(msg: any): msg is IncomingMessage {
+  return msg && isEditorResponseId(msg.command)
+}
+function dispatchEditorEvent(event: MessageEvent) {
+  const msg = event.data
+  if (!isEditorResponse(msg)) return
 
-export type EditorMessage = {
-  command: MessageCommand
-  data: Record<string, any>
+  window.dispatchEvent(
+    new CustomEvent(msg.command, { detail: { id: msg.id, data: msg.data } })
+  )
 }
+window.addEventListener('message', dispatchEditorEvent)
