@@ -14,29 +14,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { IServerHeartbeat, IServerInfo } from '@omega-edit/client'
 
-export type ServerHeartbeat = IServerHeartbeat & { serverInfo: IServerInfo }
+import { MessageResponseMap } from './messageContent'
 
-export class HeartbeatInfo {
-  serverHeartbeat: ServerHeartbeat = {
-    latency: 0,
-    sessionCount: 0,
-    serverTimestamp: 0,
-    serverUptime: 0,
-    serverCpuCount: 0,
-    serverCpuLoadAverage: 0,
-    serverMaxMemory: 0,
-    serverCommittedMemory: 0,
-    serverUsedMemory: 0,
-    serverInfo: {
-      serverHostname: '',
-      serverProcessId: 0,
-      serverVersion: '',
-      jvmVersion: '',
-      jvmVendor: '',
-      jvmPath: '',
-      availableProcessors: 0,
-    },
-  }
+export * from './formattypes'
+export * from './messageContent'
+export * from './messages'
+
+export type EditorMessageListener<K extends keyof MessageResponseMap> = (
+  payload: MessageResponseMap[K]
+) => void
+
+export type EditorMessageListenerMap = {
+  [K in keyof MessageResponseMap]: EditorMessageListener<K>
 }

@@ -15,4 +15,8 @@
  * limitations under the License.
  */
 
-/// <reference types="svelte" />
+import { createContext } from 'svelte'
+import type { VSMessenger } from './vscode'
+
+export const [getUIMessegnerCtx, setUIMessegnerCtx] =
+  createContext<VSMessenger>()

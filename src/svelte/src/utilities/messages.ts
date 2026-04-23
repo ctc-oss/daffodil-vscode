@@ -14,29 +14,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { IServerHeartbeat, IServerInfo } from '@omega-edit/client'
+import { type MessageResponseMap } from 'ext_types'
+import {
+  isEditorMessageId,
+  isEditorResponseId,
+} from '../../../ext_types/messageIds'
 
-export type ServerHeartbeat = IServerHeartbeat & { serverInfo: IServerInfo }
-
-export class HeartbeatInfo {
-  serverHeartbeat: ServerHeartbeat = {
-    latency: 0,
-    sessionCount: 0,
-    serverTimestamp: 0,
-    serverUptime: 0,
-    serverCpuCount: 0,
-    serverCpuLoadAverage: 0,
-    serverMaxMemory: 0,
-    serverCommittedMemory: 0,
-    serverUsedMemory: 0,
-    serverInfo: {
-      serverHostname: '',
-      serverProcessId: 0,
-      serverVersion: '',
-      jvmVersion: '',
-      jvmVendor: '',
-      jvmPath: '',
-      availableProcessors: 0,
-    },
-  }
+export type IncomingMessage = {
+  command: keyof MessageResponseMap
+  id: string
+  data: MessageResponseMap[keyof MessageResponseMap]
 }
+
+function isEditorResponse(msg: any): msg is IncomingMessage {
+  return msg && isEditorResponseId(msg.command)
+}
+function dispatchEditorEvent(event: MessageEvent) {
+  const msg = event.data
+  if (!isEditorResponse(msg)) return
+
+  window.dispatchEvent(
+    new CustomEvent(msg.command, { detail: { id: msg.id, data: msg.data } })
+  )
+}
+window.addEventListener('message', dispatchEditorEvent)
