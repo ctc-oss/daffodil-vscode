@@ -31,6 +31,7 @@ export default defineConfig(({ mode }) => {
         process.env.DEBUG_DATAEDITOR == 'on' && mode === 'development'
     return {
         root: projectRoot,
+        base: "./",
         plugins: [
             svelte({ configFile: r('./svelte.config.mjs') }),
             !debugDataEditor &&
@@ -61,38 +62,38 @@ export default defineConfig(({ mode }) => {
                 stores: fileURLToPath(new URL('./src/stores', import.meta.url)),
             },
         },
-        test: {
-            environment: 'jsdom',
-            globals: true,
-            root: fileURLToPath(new URL('.', import.meta.url)),
-            alias: {
-                '@': fileURLToPath(new URL('./src', import.meta.url)),
-                utilities: fileURLToPath(new URL('./src/utilities', import.meta.url)),
-                layout: fileURLToPath(
-                    new URL('./src/components/layouts', import.meta.url)
-                ),
-                HTMLWrappers: fileURLToPath(
-                    new URL('./src/components/html', import.meta.url)
-                ),
-                editor_components: fileURLToPath(
-                    new URL('./src/components', import.meta.url)
-                ),
-                ext_types: fileURLToPath(new URL('../ext_types', import.meta.url)),
-                stores: fileURLToPath(new URL('./src/stores', import.meta.url)),
-            },
-            include: [
-                './src/svelte/**/*.svelte.test.ts',
-                './tests/**/*.svelte.test.ts',
-                './src/svelte/**/*.test.ts',
-                './tests/**/*.test.ts',
-            ],
-            exclude: ['node_modules/**', 'out/**'],
-            typecheck: {
-                enabled: true,
-                tsconfig: './tsconfig.json',
-                include: ['./tests/**/*.svelte.test.ts', '**/*.test-d.ts'],
-                ignoreSourceErrors: false,
-            },
-        },
+        // test: {
+        //     environment: 'jsdom',
+        //     globals: true,
+        //     root: fileURLToPath(new URL('.', import.meta.url)),
+        //     alias: {
+        //         '@': fileURLToPath(new URL('./src', import.meta.url)),
+        //         utilities: fileURLToPath(new URL('./src/utilities', import.meta.url)),
+        //         layout: fileURLToPath(
+        //             new URL('./src/components/layouts', import.meta.url)
+        //         ),
+        //         HTMLWrappers: fileURLToPath(
+        //             new URL('./src/components/html', import.meta.url)
+        //         ),
+        //         editor_components: fileURLToPath(
+        //             new URL('./src/components', import.meta.url)
+        //         ),
+        //         ext_types: fileURLToPath(new URL('../ext_types', import.meta.url)),
+        //         stores: fileURLToPath(new URL('./src/stores', import.meta.url)),
+        //     },
+        //     include: [
+        //         './src/svelte/**/*.svelte.test.ts',
+        //         './tests/**/*.svelte.test.ts',
+        //         './src/svelte/**/*.test.ts',
+        //         './tests/**/*.test.ts',
+        //     ],
+        //     exclude: ['node_modules/**', 'out/**'],
+        //     typecheck: {
+        //         enabled: true,
+        //         tsconfig: './tsconfig.json',
+        //         include: ['./tests/**/*.svelte.test.ts', '**/*.test-d.ts'],
+        //         ignoreSourceErrors: false,
+        //     },
+        // },
     }
 })

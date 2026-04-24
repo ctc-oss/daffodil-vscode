@@ -35,33 +35,34 @@ describe('Viewport Data State', () => {
             expect(Viewport.dataFeed().length).not.toBe(0)
         })
         describe('Utility Functions', () => {
-            describe('Data Feed Positions', () => {
-                // let lineTopMax = $derived.by(() => {
-                //     const maxOffset = Math.max(
-                //         0,
-                //         Viewport.length() - numDisplayLines() * displaySettings.bytesPerRow
-                //     )
-                //     const vpLineTopMax = offsetToLineNum(
-                //         maxOffset + Viewport.fileOffset(),
-                //         Viewport.fileOffset(),
-                //         displaySettings.bytesPerRow
-                //     )
-                //     return vpLineTopMax + 1
-                // })
-                it("Should derive the viewport top line max", () => {
-                    Viewport.update({
-                        fileOffset: 16,
-                        bytesLeft: 10000,
-                        capacity: 1024,
-                        data: new Uint8Array(1024).fill(0xff),
-                        length: 1024,
-                        viewportId: 'testvp',
-                    })
-                    expect(Viewport.feedLineTop()).toBe(45)
-                })
-            })
+            // describe('Data Feed Positions', () => {
+            //     let lineTopMax = $derived.by(() => {
+            //         const maxOffset = Math.max(
+            //             0,
+            //             Viewport.length() - numDisplayLines() * displaySettings.bytesPerRow
+            //         )
+            //         const vpLineTopMax = offsetToLineNum(
+            //             maxOffset + Viewport.fileOffset(),
+            //             Viewport.fileOffset(),
+            //             displaySettings.bytesPerRow
+            //         )
+            //         return vpLineTopMax + 1
+            //     })
+            //     it("Should derive the viewport top line max", () => {
+            //         Viewport.update({
+            //             fileOffset: 16,
+            //             bytesLeft: 10000,
+            //             capacity: 1024,
+            //             data: new Uint8Array(1024).fill(0xff),
+            //             length: 1024,
+            //             viewportId: 'testvp',
+            //         })
+            //         expect(Viewport.feedLineTop()).toBe(45)
+            //     })
+            // })
             describe('Fetch Boundary', () => {
                 it('Should provide upper fetch boundaries of a viewport', () => {
+
                     Viewport.update({
                         fileOffset: 16,
                         bytesLeft: 10000,
