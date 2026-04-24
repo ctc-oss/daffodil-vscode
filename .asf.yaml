@@ -27,11 +27,8 @@ github:
   collaborators:
     - hdalsania
     - lrbarber
-    - michael-hoke
-    - JeremyYao
     - naga-panchumarty
-    - CoverRyan
-    - duboisfordwork
+    - adedoyinNteligen
 notifications:
     commits:      commits@daffodil.apache.org
     issues:       commits@daffodil.apache.org
