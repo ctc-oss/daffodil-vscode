@@ -41,15 +41,15 @@ limitations under the License.
     },
   })
   getDebugVarContext().add({
-    id: "Highlights (Selection)",
+    id: 'Highlights (Selection)',
     valueStr: () => {
-      let ret = "["
-      $viewportByteIndicators.forEach((v,i,a) => {
-        if(v === 1) ret += ` ${i}`
+      let ret = '['
+      $viewportByteIndicators.forEach((v, i, a) => {
+        if (v === 1) ret += ` ${i}`
       })
-      ret += " ]"
+      ret += ' ]'
       return ret
-    }
+    },
   })
   /* DEBUG_ONLY_END */
   const eventDispatcher = createEventDispatcher()

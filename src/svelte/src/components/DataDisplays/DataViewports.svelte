@@ -15,10 +15,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
-  import ViewportFeed from "./CustomByteDisplay/ViewportFeed.svelte"
-
+  import ViewportFeed from './CustomByteDisplay/ViewportFeed.svelte'
 </script>
+
 <ViewportFeed />
+
 <!-- <DataLineFeed
   on:traverse-file
   on:seek

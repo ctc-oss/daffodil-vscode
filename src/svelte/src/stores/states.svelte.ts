@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { ViewportState } from 'editor_components/DataDisplays/CustomByteDisplay/ViewportState.svelte.ts'
+
 // import { ViewportDataState } from 'editor_components/DataDisplays/CustomByteDisplay/Viewport.svelte'
 // import { EditByteModes } from 'ext_types'
 
@@ -44,5 +46,5 @@ export const isUIDebugAttached = (id: string) => {
   return id.includes('dfdl-')
 }
 
-// const viewportState = $state<ViewportDataState>(new ViewportDataState(''))
-// export const currentViewport = () => viewportState
+const viewportState = $state<ViewportState>(new ViewportState(''))
+export const currentViewport = () => viewportState

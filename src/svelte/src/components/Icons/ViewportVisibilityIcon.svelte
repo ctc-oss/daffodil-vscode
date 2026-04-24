@@ -17,15 +17,10 @@ limitations under the License.
 
 <script lang="ts">
   import Tooltip from '../layouts/Tooltip.svelte'
-  import {
-    dataDislayLineAmount,
-    visableViewports,
-  } from '../../stores'
-  import {
-    BYTES_PER_ROW_MAX_LINE_NUM,
-  } from '../../stores/configuration'
+  import { dataDislayLineAmount, visableViewports } from '../../stores'
+  import { BYTES_PER_ROW_MAX_LINE_NUM } from '../../stores/configuration'
   import type { BytesPerRow } from 'ext_types'
-  import {  } from 'stores/format/index.svelte'
+  import {} from 'stores/format/index.svelte'
   import { displaySettings } from 'stores/displaySettings.svelte'
 
   export let dimension: number = 20
@@ -155,7 +150,10 @@ limitations under the License.
 <!-- BPR Setting Icon -->
 <span class="icon-container">
   <!-- svelte-ignore a11y-click-events-have-key-events -->
-  <Tooltip alwaysEnabled={true} description="Bytes per row: {displaySettings.bytesPerRow}">
+  <Tooltip
+    alwaysEnabled={true}
+    description="Bytes per row: {displaySettings.bytesPerRow}"
+  >
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <span
       class="setting-icon"

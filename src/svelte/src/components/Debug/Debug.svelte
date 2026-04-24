@@ -16,7 +16,11 @@ limitations under the License.
 -->
 <script lang="ts">
   import { currentViewport } from 'stores/states.svelte.ts'
-  import { type DebugVariable, getDebugVarContext, setDebugVarContext } from './Debug.svelte.ts'
+  import {
+    type DebugVariable,
+    getDebugVarContext,
+    setDebugVarContext,
+  } from './Debug.svelte.ts'
   import DebugOutput from './DebugOutput.svelte'
 
   let { children } = $props()
@@ -24,15 +28,14 @@ limitations under the License.
 
   let { get, remove } = setDebugVarContext()
   let testState = $state(new Uint8Array(64).fill(0xff))
-  
-	$effect(() => {
-		console.log('state changed', $state.snapshot(currentViewport()));
-	});
-  const tint = setInterval(()=>{
-    testState.fill(testState[0]-1)
-    if(testState[0] === 0x0f)
-      clearTimeout(tint)
-  },1500)
+
+  $effect(() => {
+    console.log('state changed', $state.snapshot(currentViewport()))
+  })
+  const tint = setInterval(() => {
+    testState.fill(testState[0] - 1)
+    if (testState[0] === 0x0f) clearTimeout(tint)
+  }, 1500)
 </script>
 
 {@render children()}

@@ -1,4 +1,15 @@
 <script lang="ts">
+  import { ViewportDataFeed } from './DataFeed.svelte'
+  type ViewportComponentProps = {
+    viewportFeed: ViewportDataFeed
+  }
+  const { viewportFeed }: ViewportComponentProps = $props()
+  let feedValid = $derived.by<boolean>(() => {
+    return true
+  })
+</script>
+
+<!-- <script lang="ts">
   import { getUIMsgId, currentViewport } from "stores/states.svelte"
   import { vscode } from "utilities/vscode"
   import { ViewportDataFeedState } from "./DataFeed.svelte"
@@ -22,4 +33,4 @@
             {byte.text ?? '.'}
         {/each}
     </div>
-{/each}
+{/each} -->

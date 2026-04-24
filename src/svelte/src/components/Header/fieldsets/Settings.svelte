@@ -20,19 +20,21 @@ limitations under the License.
     ENCODING_GROUPS,
     EDIT_ACTIONS,
   } from '../../../stores/configuration'
-  import {
-    editorActionsAllowed,
-  } from '../../../stores'
+  import { editorActionsAllowed } from '../../../stores'
   import FlexContainer from '../../layouts/FlexContainer.svelte'
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
   import ViewportVisibilityIcon from '../../Icons/ViewportVisibilityIcon.svelte'
   import { vscode } from '../../../utilities/vscode'
 
-  const {addListener} = vscode.getMessenger(getUIMsgId())
+  const { addListener } = vscode.getMessenger(getUIMsgId())
   /* DEBUG_ONLY_START */
   import { getDebugVarContext } from '../../Debug/'
   import { getUIMsgId } from 'stores/states.svelte'
-  import { fileMetricsState,isRegularSizedFile, saveable} from './FileMetrics.svelte.ts'
+  import {
+    fileMetricsState,
+    isRegularSizedFile,
+    saveable,
+  } from './FileMetrics.svelte.ts'
   import { editorState, radixSelections } from 'stores/format/index.svelte.ts'
   let bom = $state('utf-8')
   getDebugVarContext().add({
@@ -47,22 +49,22 @@ limitations under the License.
       const size = fileMetricsState.computedSize
       const stateVal = isRegularSizedFile()
       return `Size (${size}) is regular ? ${stateVal}`
-    }
+    },
   })
   getDebugVarContext().add({
-    id: "Can save",
-    valueStr: () => { 
-      let ret = `Raw: ${fileMetricsState.changeCount > 0 ? "true" : 'false'} ; CanUndo(): ${saveable()}`
+    id: 'Can save',
+    valueStr: () => {
+      let ret = `Raw: ${fileMetricsState.changeCount > 0 ? 'true' : 'false'} ; CanUndo(): ${saveable()}`
       return ret
-    }
+    },
   })
   /* DEBUG_ONLY_END */
-addListener('fileInfo', (data)=>{
-    if(!data.bom) return 
+  addListener('fileInfo', (data) => {
+    if (!data.bom) return
     bom = data.bom
     if (bom === 'UTF-8') editorState.encoding = 'utf-8'
     else if (bom === 'UTF-16LE') editorState.encoding = 'utf-16le'
-})
+  })
 </script>
 
 <fieldset>
@@ -70,7 +72,11 @@ addListener('fileInfo', (data)=>{
   <FlexContainer --dir="column">
     <FlexContainer --dir="row" --align-items="center">
       <label for="radix">Display Radix:</label>
-      <select id="radix" class={$UIThemeCSSClass} bind:value={radixSelections.display}>
+      <select
+        id="radix"
+        class={$UIThemeCSSClass}
+        bind:value={radixSelections.display}
+      >
         <option value={RADIX_OPTIONS.Hexadecimal}>Hexadecimal</option>
         <option value={RADIX_OPTIONS.Decimal}>Decimal</option>
         <option value={RADIX_OPTIONS.Octal}>Octal</option>

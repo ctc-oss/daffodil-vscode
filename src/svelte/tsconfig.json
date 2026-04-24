@@ -23,16 +23,17 @@
     "target": "es2015",
     "allowImportingTsExtensions": true,
     "noEmit": true,
-
+    "baseUrl": "./",
     "inlineSources": true,
     "paths": {
-      "utilities/*": ["./src/utilities/*"],
-      "layout/*": ["./src/components/layouts/*"],
-      "HTMLWrappers/*": ["./src/components/html/*"],
-      "editor_components/*": ["./src/components/*"],
+      "utilities/*": ["src/utilities/*"],
+      "layout/*": ["src/components/layouts/*"],
+      "HTMLWrappers/*": ["src/components/html/*"],
+      "editor_components/*": ["src/components/*"],
       "ext_types": ["../ext_types"],
+      "ext_types/*": ["../ext_types/*"],
       "types": ["../types/*"],
-      "stores/*": ["./src/stores/*"]
+      "stores/*": ["src/stores/*"]
     },
     "useDefineForClassFields": true,
     "resolveJsonModule": true,
@@ -43,13 +44,22 @@
     "esModuleInterop": true,
     "verbatimModuleSyntax": true
   },
+  // "include": [
+  //   "tests/**/*.svelte.test.ts",
+  //   "src/**/*.ts",
+  //   "src/**/*.svelte",
+  //   "src/tests/**/*.test.ts",
+  //   "../types/**/*.d.ts",
+  //   "src/**/*.svelte.test.ts",
+  //   "src/svelte/tests/**.*.svelte.test.ts",
+  //   "src/svelte/tests/**/*.ts"
+  // ],
   "include": [
-    "src/**/*.ts",
+    "src/**/.ts",
     "src/**/*.svelte.ts",
     "src/**/*.svelte",
-    "src/tests/**/*.test.ts",
-    "../types/**/*.d.ts",
-    "./tests/**/*.svelte.test.ts"
+    "tests/**/*.svelte.test.ts",
+    "tests/**/*.svelte.ts"
   ],
   "exclude": ["node_modules/*"],
   "strict": true /* enable all strict type-checking options */,

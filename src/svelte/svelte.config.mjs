@@ -21,14 +21,11 @@ import { sveltePreprocess } from 'svelte-preprocess'
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
   preprocess: [
-
     vitePreprocess(),
     sveltePreprocess({ sourceMap: true, typescript: true }),
   ],
-  vitePlugin: {
-    inspector: true
-  },
   compilerOptions: {
+    runes: undefined,
     css: 'external',
     rootDir: '.',
   },

@@ -40,14 +40,16 @@ limitations under the License.
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
   import ToggleableButton from '../../Inputs/Buttons/ToggleableButton.svelte'
   import { EditActionRestrictions } from 'ext_types'
-  import { OffsetSearchType, clear_queryable_results } from './SearchReplace.svelte.ts'
-  import {getSearchQuery} from './Search.svelte.ts'
+  import {
+    OffsetSearchType,
+    clear_queryable_results,
+  } from './SearchReplace.svelte.ts'
+  import { getSearchQuery } from './Search.svelte.ts'
   import Tooltip from '../../layouts/Tooltip.svelte'
   import { getUIMsgId } from 'stores/states.svelte'
   import { getDebugVarContext } from 'editor_components/Debug/Debug.svelte.ts'
   import { editorState, radixSelections } from 'stores/format/index.svelte.ts'
 
-  
   const eventDispatcher = createEventDispatcher()
   const { postMessage, addListener } = vscode.getMessenger(getUIMsgId())
   const searchState = getSearchQuery()
@@ -56,10 +58,14 @@ limitations under the License.
   }
 
   /* DEBUG_ONLY_START */
-  getDebugVarContext()
-    .add({id: 'Search State', valueStr: () => getSearchQuery().toString()})
-  getDebugVarContext()
-    .add({id: 'Search Results', valueStr: () => getSearchQuery().resultsStr()})
+  getDebugVarContext().add({
+    id: 'Search State',
+    valueStr: () => getSearchQuery().toString(),
+  })
+  getDebugVarContext().add({
+    id: 'Search Results',
+    valueStr: () => getSearchQuery().resultsStr(),
+  })
   /* DEBUG_ONLY_END */
   type SearchDirection = 'Home' | 'End' | 'Forward' | 'Backward'
 
@@ -101,7 +107,10 @@ limitations under the License.
     searchLength: number,
     isReverse: boolean
   ) {
-    searchState.at(searchOffset,searchLength, {caseInsensitive, reverse: isReverse})
+    searchState.at(searchOffset, searchLength, {
+      caseInsensitive,
+      reverse: isReverse,
+    })
     // $searchQuery.processing = true
     // postMessage('search', {
     //   searchStr: $searchQuery.input,
@@ -135,7 +144,11 @@ limitations under the License.
   function searchPrev() {
     // start search from the match offset to the beginning of the file
     direction = 'Backward'
-    search(0, searchState.currentMatchOffset()+$searchQuery.byteLength-1, true)
+    search(
+      0,
+      searchState.currentMatchOffset() + $searchQuery.byteLength - 1,
+      true
+    )
   }
 
   function searchStart() {
@@ -192,7 +205,7 @@ limitations under the License.
 
   function scrollToMatch() {
     const offset = searchState.currentMatchOffset()
-    if ( offset >= 0) {
+    if (offset >= 0) {
       $seekOffsetInput = offset.toString(radixSelections.address)
       eventDispatcher('seek')
     }
@@ -224,30 +237,32 @@ limitations under the License.
     }
     $replaceQuery.processing = false
   })
-  addListener('search', (response)=>{searchState.update(response, ()=>{
+  addListener('search', (response) => {
+    searchState.update(response, () => {
       switch (direction) {
-      case 'Home':
-        hasNext = searchState.hasOverflow()
-        hasPrev = false
-        break
-      case 'End':
-        hasNext = false
-        hasPrev = searchState.hasOverflow()
-        break
-      case 'Forward':
-        hasNext = searchState.hasOverflow()
-        hasPrev = justReplaced ? preReplaceHasPrev : true
-        justReplaced = false
-        break
-      case 'Backward':
-        hasNext = true
-        hasPrev = searchState.hasOverflow()
-        break
-    }
-    scrollToMatch()
-    showSearchOptions = searchState.isActive()
-    // viewportByteIndicators.updateSearchIndications(searchState)
-  })})
+        case 'Home':
+          hasNext = searchState.hasOverflow()
+          hasPrev = false
+          break
+        case 'End':
+          hasNext = false
+          hasPrev = searchState.hasOverflow()
+          break
+        case 'Forward':
+          hasNext = searchState.hasOverflow()
+          hasPrev = justReplaced ? preReplaceHasPrev : true
+          justReplaced = false
+          break
+        case 'Backward':
+          hasNext = true
+          hasPrev = searchState.hasOverflow()
+          break
+      }
+      scrollToMatch()
+      showSearchOptions = searchState.isActive()
+      // viewportByteIndicators.updateSearchIndications(searchState)
+    })
+  })
   // addListener('search', (data) => {
   //   const { results } = data
   //   if (results.length <= 0) {

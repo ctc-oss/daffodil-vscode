@@ -26,17 +26,23 @@ limitations under the License.
   import ISO6391 from 'iso-639-1'
   import { getUIMsgId } from 'stores/states.svelte'
   import { vscode } from 'utilities/vscode'
-  import { canRedo, canRevert, canUndo, fileMetricsState, saveable } from './FileMetrics.svelte.ts'
-  
+  import {
+    canRedo,
+    canRevert,
+    canUndo,
+    fileMetricsState,
+    saveable,
+  } from './FileMetrics.svelte.ts'
+
   const eventDispatcher = createEventDispatcher()
-  
-  const {postMessage, addListener} = vscode.getMessenger(getUIMsgId())
+
+  const { postMessage, addListener } = vscode.getMessenger(getUIMsgId())
 
   let displayOpts = false
   let isProfilerOpen = false
   let startOffset: number = 0
   let length: number = 0
-  
+
   function saveAs() {
     postMessage('saveAs')
     displayOpts = false
@@ -57,23 +63,23 @@ limitations under the License.
     }
   }
 
-  addListener(
-    'fileInfo',
-    (msg) => {
-        fileMetricsState.name = msg.filename
-        fileMetricsState.language = msg.language
-        fileMetricsState.type = msg.contentType
-    }
-  )
-  addListener(
-    'counts',
-    (msg) => {
-        fileMetricsState.changeCount = msg.applied >= 0 ? msg.applied : fileMetricsState.changeCount
-        fileMetricsState.computedSize = msg.computedFileSize >= 0 ? msg.computedFileSize : fileMetricsState.computedSize
-        fileMetricsState.undoCount = msg.undos >= 0 ? msg.undos : fileMetricsState.undoCount
-        if(fileMetricsState.diskSize === 0) fileMetricsState.diskSize = fileMetricsState.computedSize
-    }
-  )
+  addListener('fileInfo', (msg) => {
+    fileMetricsState.name = msg.filename
+    fileMetricsState.language = msg.language
+    fileMetricsState.type = msg.contentType
+  })
+  addListener('counts', (msg) => {
+    fileMetricsState.changeCount =
+      msg.applied >= 0 ? msg.applied : fileMetricsState.changeCount
+    fileMetricsState.computedSize =
+      msg.computedFileSize >= 0
+        ? msg.computedFileSize
+        : fileMetricsState.computedSize
+    fileMetricsState.undoCount =
+      msg.undos >= 0 ? msg.undos : fileMetricsState.undoCount
+    if (fileMetricsState.diskSize === 0)
+      fileMetricsState.diskSize = fileMetricsState.computedSize
+  })
   addListener('saveAs', (resp) => {
     fileMetricsState.name = resp.newFilePath
     fileMetricsState.computedSize = resp.computedFileSize
@@ -134,7 +140,11 @@ limitations under the License.
         <span slot="default">&nbsp;Save As</span>
       </Button>
     {:else}
-      <Button fn={toggleSaveDisplay} isDisabled={!saveable()} description="Save">
+      <Button
+        fn={toggleSaveDisplay}
+        isDisabled={!saveable()}
+        description="Save"
+      >
         <span slot="left" class="btn-icon material-symbols-outlined">save</span>
         <span slot="default">Save&hellip;</span>
       </Button>

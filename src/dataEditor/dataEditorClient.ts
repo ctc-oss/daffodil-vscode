@@ -236,7 +236,7 @@ export class DataEditorClient implements vscode.Disposable {
         })
       )
     }
-    
+
     return editor
   }
 
@@ -300,10 +300,12 @@ export class DataEditorClient implements vscode.Disposable {
     return this.omegaSessionId
   }
 
-  public isActive(): boolean { 
-    return OPEN_EDITORS.get(this.fileToEdit) !== undefined 
+  public isActive(): boolean {
+    return OPEN_EDITORS.get(this.fileToEdit) !== undefined
   }
-  public currentFile(): string { return this.fileToEdit }
+  public currentFile(): string {
+    return this.fileToEdit
+  }
   private async setupDataEditor() {
     assert(
       checkpointPath && checkpointPath.length > 0,

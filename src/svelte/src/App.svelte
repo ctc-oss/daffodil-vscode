@@ -58,15 +58,17 @@ limitations under the License.
     currentViewport,
     getUIMsgId,
     setUIMsgId,
-  } from './stores/states.svelte'
+  } from './stores/states.svelte.ts'
   import { vscode } from './utilities/vscode'
-  import { isRegularSizedFile } from './components/Header/fieldsets/FileMetrics.svelte.ts'
+  import { isRegularSizedFile } from 'editor_components/Header/fieldsets/FileMetrics.svelte.ts'
   import { viewportByteIndicators } from 'utilities/highlights.ts'
   import { editorState } from 'stores/format/index.svelte.ts'
-  import { getMaxTopLine } from 'editor_components/DataDisplays/CustomByteDisplay/Viewport.svelte.ts'
+  // import { getMaxTopLine } from 'editor_components/DataDisplays/CustomByteDisplay/Viewport.svelte.ts'
   import { displaySettings } from 'stores/displaySettings.svelte.ts'
   import { onMount } from 'svelte'
   import { getSeekOffset } from 'editor_components/Header/fieldsets/Seek.svelte.ts'
+  import ViewportTest from './components/DataDisplays/CustomByteDisplay/ViewportTest.svelte'
+  import { getMaxTopLine } from 'editor_components/DataDisplays/CustomByteDisplay/ViewportState.svelte.ts'
   setUIMsgId(
     document.getElementById('app')?.attributes['extension_msg_id'].value
   )
@@ -333,6 +335,7 @@ limitations under the License.
 <Help />
 <hr />
 <ServerMetrics />
+<ViewportTest />
 
 <!-- </body> -->
 

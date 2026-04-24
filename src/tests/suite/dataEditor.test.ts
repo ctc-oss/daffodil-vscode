@@ -143,8 +143,8 @@ suite('Data Editor Test Suite', () => {
 
   suite('Data Editor', () => {
     test('data editor opens', async () => {
-        // const mockEditor: MockDataEditor = 
-        // await vscode.commands.executeCommand(DATA_EDITOR_COMMAND, TEST_SCHEMA)
+      // const mockEditor: MockDataEditor =
+      // await vscode.commands.executeCommand(DATA_EDITOR_COMMAND, TEST_SCHEMA)
 
       const dataEditWebView: DataEditorClient =
         await vscode.commands.executeCommand(DATA_EDITOR_COMMAND, TEST_SCHEMA)
@@ -159,7 +159,9 @@ suite('Data Editor Test Suite', () => {
       // Listen for the dispose event
       let isDisposed = false
       const disposalListener: vscode.Disposable = {
-        dispose: () => { isDisposed = true }
+        dispose: () => {
+          isDisposed = true
+        },
       }
       dataEditWebView.addDisposable(disposalListener)
 

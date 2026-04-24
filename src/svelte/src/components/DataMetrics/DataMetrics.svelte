@@ -27,7 +27,7 @@ limitations under the License.
   import { vscode } from 'utilities/vscode'
   import { fileMetricsState } from 'editor_components/Header/fieldsets/FileMetrics.svelte.ts'
 
-  const {postMessage, addListener} = vscode.getMessenger(getUIMsgId())
+  const { postMessage, addListener } = vscode.getMessenger(getUIMsgId())
 
   const PROFILE_DOS_EOL = 256
   const MAX_BYTE_VALUE = 255
@@ -151,10 +151,10 @@ limitations under the License.
   }
 
   function saveSegmentAs() {
-    postMessage('saveSegment',{
-        offset: startOffset,
-        length: length,
-      })
+    postMessage('saveSegment', {
+      offset: startOffset,
+      length: length,
+    })
   }
 
   function requestSessionProfile(startOffset: number, length: number) {
@@ -163,9 +163,9 @@ limitations under the License.
       0
     )
     postMessage('profile', {
-        startOffset: startOffset,
-        length: length,
-      })
+      startOffset: startOffset,
+      length: length,
+    })
   }
 
   function handleInputEnter(e: CustomEvent) {
@@ -277,35 +277,38 @@ limitations under the License.
 
   onMount(() => {
     addListener('profile', (data) => {
-        const {numAscii,byteProfile,characterCount,contentType,language,length,startOffset} = data
-            asciiCount = numAscii
-            profileBytes = byteProfile
-            content = contentType
-            lang = language
-          // character count data
-          characterCountData.byteOrderMark = characterCount
-            .byteOrderMark as string
-          characterCountData.byteOrderMarkBytes = characterCount
-            .byteOrderMarkBytes as number
-          characterCountData.singleByteCount = characterCount
-            .singleByteCount as number
-          characterCountData.doubleByteCount = characterCount
-            .doubleByteCount as number
-          characterCountData.tripleByteCount = characterCount
-            .tripleByteCount as number
-          characterCountData.quadByteCount = characterCount
-            .quadByteCount as number
-          characterCountData.invalidBytes = characterCount
-            .invalidBytes as number
+      const {
+        numAscii,
+        byteProfile,
+        characterCount,
+        contentType,
+        language,
+        length,
+        startOffset,
+      } = data
+      asciiCount = numAscii
+      profileBytes = byteProfile
+      content = contentType
+      lang = language
+      // character count data
+      characterCountData.byteOrderMark = characterCount.byteOrderMark as string
+      characterCountData.byteOrderMarkBytes =
+        characterCount.byteOrderMarkBytes as number
+      characterCountData.singleByteCount =
+        characterCount.singleByteCount as number
+      characterCountData.doubleByteCount =
+        characterCount.doubleByteCount as number
+      characterCountData.tripleByteCount =
+        characterCount.tripleByteCount as number
+      characterCountData.quadByteCount = characterCount.quadByteCount as number
+      characterCountData.invalidBytes = characterCount.invalidBytes as number
 
-          setStatusMessage(
-            `Profiled bytes from ${startOffset} to ${startOffset + length}`
-          )
+      setStatusMessage(
+        `Profiled bytes from ${startOffset} to ${startOffset + length}`
+      )
     })
-    length = length < 0 
-      ? fileMetricsState.computedSize
-      : length
-      
+    length = length < 0 ? fileMetricsState.computedSize : length
+
     endOffset = startOffset + length
     requestSessionProfile(startOffset, endOffset)
   })
@@ -537,7 +540,8 @@ limitations under the License.
       ></label
     >
     <label for="ascii-count"
-      >&nbsp;ASCII Count: <span id="ascii-count" class="nowrap">{asciiCount}</span
+      >&nbsp;ASCII Count: <span id="ascii-count" class="nowrap"
+        >{asciiCount}</span
       ></label
     >
     <label for="ascii-percent"

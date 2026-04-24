@@ -26,7 +26,6 @@ import {
 
 describe('FileMetricsState Runes', () => {
   describe('regularSizedFile', () => {
-
     it('should report boolean value derived from computedSize', () => {
       ;[
         { size: 1024, expect: true },

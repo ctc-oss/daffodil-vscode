@@ -3,7 +3,7 @@ import {
   type AvailableStrEncodings,
   type RadixValues,
 } from '../../../../ext_types'
-export type RadixSelections = { display: RadixValues, address: RadixValues }
+export type RadixSelections = { display: RadixValues; address: RadixValues }
 /*
   States that are intended to be mutated from Component bindings, i.e, `bind:value={}`
   must be wrapped as an object (below) or mutated via functions. Function mutation is invalid
@@ -11,7 +11,7 @@ export type RadixSelections = { display: RadixValues, address: RadixValues }
 */
 export const radixSelections = $state<RadixSelections>({
   display: 16,
-  address: 16
+  address: 16,
 })
 export type EditorState = {
   encoding: AvailableStrEncodings

@@ -30,7 +30,7 @@ limitations under the License.
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
   import { OffsetSearchType } from '../../Header/fieldsets/SearchReplace.svelte.ts'
   import { byteDivWidthFromRadix } from '../../../utilities/display'
-  import {radixSelections } from 'stores/format/index.svelte.ts'
+  import { radixSelections } from 'stores/format/index.svelte.ts'
   import type { BytesPerRow, RadixValues } from 'ext_types'
   import { displaySettings } from 'stores/displaySettings.svelte.ts'
   let bitIndexStr = '01234567'
