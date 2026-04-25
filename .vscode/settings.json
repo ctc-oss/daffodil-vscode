@@ -41,5 +41,5 @@
     "editor.defaultFormatter": "vscode.typescript-language-features",
     "editor.formatOnSave": true
   },
-  "vitest.rootConfig": "src/svelte/vitest.config.mjs"
+  "vitest.rootConfig": "src/svelte/vite.config.mjs"
 }

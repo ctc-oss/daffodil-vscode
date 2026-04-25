@@ -89,7 +89,7 @@ export default defineConfig(({ mode }) => {
       alias: {
         $root: debugDataEditor
           ? r('./src/App.debug.svelte')
-          : r('./src/App.svelte'),
+          : r('./src/TestApp.svelte'),
         '@': fileURLToPath(new URL('./src', import.meta.url)),
         utilities: fileURLToPath(new URL('./src/utilities', import.meta.url)),
         layout: fileURLToPath(
@@ -103,6 +103,36 @@ export default defineConfig(({ mode }) => {
         ),
         ext_types: fileURLToPath(new URL('../ext_types', import.meta.url)),
         stores: fileURLToPath(new URL('./src/stores', import.meta.url)),
+      },
+    },
+    test: {
+      environment: 'jsdom',
+      globals: true,
+      root: fileURLToPath(new URL('.', import.meta.url)),
+      alias: {
+        '@': fileURLToPath(new URL('./src', import.meta.url)),
+        utilities: fileURLToPath(new URL('./src/utilities', import.meta.url)),
+        layout: fileURLToPath(
+          new URL('./src/components/layouts', import.meta.url)
+        ),
+        HTMLWrappers: fileURLToPath(
+          new URL('./src/components/html', import.meta.url)
+        ),
+        editor_components: fileURLToPath(
+          new URL('./src/components', import.meta.url)
+        ),
+        ext_types: fileURLToPath(new URL('../ext_types', import.meta.url)),
+        stores: fileURLToPath(new URL('./src/stores', import.meta.url)),
+      },
+      //   include: ['**/*.svelte.test.ts'],
+      include: ['./tests/**/*.svelte.test.ts'],
+      exclude: ['node_modules/**', 'out/**'],
+      typecheck: {
+        enabled: true,
+        tsconfig: './tsconfig.json',
+        // include: ['./src/svelte/tests/**/*.svelte.test.ts', "./src/svelte/tests/**/*.ts"],
+        include: ['./tests/**/*.svelte.test.ts', './tests/**/*.ts'],
+        ignoreSourceErrors: true,
       },
     },
   }
