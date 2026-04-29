@@ -4,25 +4,9 @@
     viewportFeed: ViewportDataFeed
   }
   const { viewportFeed }: ViewportComponentProps = $props()
-  let feedValid = $derived.by<boolean>(() => {
-    return true
-  })
 </script>
 
-<!-- <script lang="ts">
-  import { getUIMsgId, currentViewport } from "stores/states.svelte"
-  import { vscode } from "utilities/vscode"
-  import { ViewportDataFeedState } from "./DataFeed.svelte"
-
-
-  const {addListener} = vscode.getMessenger(getUIMsgId())
-  const viewportData = currentViewport()
-  const viewportFeed = new ViewportDataFeedState(viewportData)
-
-  addListener('viewportRefresh', (response) => {viewportData.update(response)})
-</script>
-
-{#each viewportFeed.dataFeed() as bytesLine, i}
+{#each viewportFeed.dataFeed as bytesLine, i}
     <div class={`line ${bytesLine.highlight}`}>
         <div class='address' id='address'>
             <b>{bytesLine.offset}</b>
@@ -33,4 +17,4 @@
             {byte.text ?? '.'}
         {/each}
     </div>
-{/each} -->
+{/each}

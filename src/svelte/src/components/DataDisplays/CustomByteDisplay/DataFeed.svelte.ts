@@ -40,6 +40,7 @@ export class ViewportDataFeed {
     // return Math.max(0, Math.min(getMaxTopLine(this), this.feedLineTop()))
     // })
     #dataFeed = $derived.by<ViewportLineData[]>(() => {
+        if (!this.viewportRef.valid) return []
         const sourceOffset = offsetToLineNum(this.viewportRef.fileOffset)
 
         const ret = this.generateFeed(sourceOffset, numDisplayLines())
@@ -58,9 +59,7 @@ export class ViewportDataFeed {
         // return ret
     })
 
-    feed() {
-        return this.#dataFeed
-    }
+    get dataFeed() { return this.#dataFeed }
 
     protected generateFeed(startLineIndex: number, rowCount: number, endLineIndex?: number) {
         const bytesPerRow = displaySettings.bytesPerRow

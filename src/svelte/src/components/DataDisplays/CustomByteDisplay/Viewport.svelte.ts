@@ -69,7 +69,8 @@ export class ViewportState {
                     radixSelections.address),
                 displaySettings.bytesPerRow,
                 this.#fileOffsetState
-                    
+            )
+
         return Math.max(0, Math.min(getMaxTopLine(this), this.feedLineTop()))
     })
     private feedLineTopState = $derived.by<number>(() => {

@@ -4,14 +4,18 @@
   import { type ViewportRefreshResponse } from 'ext_types'
   import ViewportFeed from './ViewportFeed.svelte'
 
-  const viewportData: ViewportState = new ViewportState('testvp')
+  const viewportData: ViewportState = $state<ViewportState>(
+    new ViewportState('testvp')
+  )
   const viewportFeed: ViewportDataFeed = new ViewportDataFeed(viewportData)
   const isFeedValid = $derived.by<boolean>(() => {
-    if (viewportData.valid) return false
+    if (!viewportData.valid) return false
     return true
   })
 
   function getRandomData() {
+    // viewportData.reset()
+    // return
     let data = new Uint8Array(1024).fill(0x00)
     data = data.map((v, i) => {
       let ret = v + data.byteLength - i
@@ -20,18 +24,18 @@
       return ret
     })
     const respStub: ViewportRefreshResponse = {
-      fileOffset: viewportData.fileOffset,
-      bytesLeft: viewportData.bytesLeft,
-      capacity: viewportData.capacity,
+      fileOffset: 0,
+      bytesLeft: 0,
+      capacity: 1024,
       data,
-      length: viewportData.length,
+      length: 1024,
       viewportId: viewportData.viewportId,
     }
     viewportData.update(respStub)
   }
 </script>
 
-<button onclick={getRandomData}>Random Data</button>
+<button onclick={() => getRandomData()}>Random Data</button>
 <h4>Is Viewport Valid: {isFeedValid}</h4>
 
 {#if isFeedValid}

@@ -2,11 +2,13 @@ import {
     getOffsetDivisibleBy,
     offsetToLineNum,
     ViewportDataFeed,
+    byte_value_string
 } from 'editor_components/DataDisplays/CustomByteDisplay/DataFeed.svelte.ts'
 import { ViewportState } from 'editor_components/DataDisplays/CustomByteDisplay/ViewportState.svelte.ts'
 import { createRefreshResponse } from './utils/viewportFns.svelte'
 import { describe, it, expect } from 'vitest'
 import { displaySettings } from 'stores/displaySettings.svelte'
+import { radixSelections } from 'stores/format/index.svelte'
 // import { viewport } from "stores/index";
 
 describe('Data Feed', () => {
@@ -15,7 +17,7 @@ describe('Data Feed', () => {
 
     describe("Reactivity of reference data", () => {
         it('should react to reference data updates', () => {
-            const bytes = new Uint8Array(1024).fill(0x00)
+            let bytes = new Uint8Array(1024).fill(0x00)
             viewport.update(
                 createRefreshResponse({
                     data: bytes,
@@ -26,9 +28,10 @@ describe('Data Feed', () => {
                     viewportId: 'feedtest',
                 })
             )
-            expect(dataFeed.feed()).not.toBeUndefined()
-            expect(dataFeed.feed().length).eq(displaySettings.numDisplayLines)
+            expect(dataFeed.dataFeed).not.toBeUndefined()
+            expect(dataFeed.dataFeed.length).eq(displaySettings.numDisplayLines)
 
+            bytes = bytes.map((value, i) => { return value ^= (i + value) / bytes.length - i })
             viewport.update(
                 createRefreshResponse({
                     data: bytes,
@@ -40,6 +43,16 @@ describe('Data Feed', () => {
                 })
             )
 
+            viewport.data.subarray(0, displaySettings.bytesPerRow).forEach((value, i) => {
+                expect(value).toEqual(bytes[i])
+                const feedRow = dataFeed.dataFeed[0]
+                expect(feedRow.bytes[i]).toEqual({
+                    offset: viewport.fileOffset + i,
+                    text: byte_value_string(viewport.data[i], radixSelections.display),
+                    value: viewport.data[i]
+                })
+                expect(feedRow.bytes[i])
+            })
         })
     })
 })
