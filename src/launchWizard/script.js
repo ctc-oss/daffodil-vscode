@@ -41,6 +41,7 @@ function getConfigIndex() {
 }
 
 function getConfigValues() {
+  const tunables = getTunablesFromTable()
   var configSelectionBox = document.getElementById('configSelected')
   var configSelectedValue =
     configSelectionBox.options[configSelectionBox.selectedIndex].value
@@ -94,7 +95,6 @@ function getConfigValues() {
       : document.getElementById('rootNamespace').value
 
   const daffodilDebugClasspath = getDaffodilDebugClasspathArray()
-
   return {
     name,
     data,
@@ -122,6 +122,7 @@ function getConfigValues() {
     daffodilDebugClasspath,
     rootName,
     rootNamespace,
+    tunables,
   }
 }
 
@@ -275,6 +276,7 @@ function save() {
     configSelectedValue === 'New Config' ? 'create' : 'update'
 
   const configValues = getConfigValues()
+  const tunables = getTunablesFromTable()
 
   var obj = {
     version: '0.2.0',
@@ -295,6 +297,7 @@ function save() {
           type: configValues.infosetOutputType,
           path: configValues.infosetOutputFilePath,
         },
+        tunables: tunables,
         tdmlConfig: {
           action: configValues.tdmlAction,
           // Additional fields are added below
@@ -346,6 +349,55 @@ function save() {
     updateOrCreate: updateOrCreate,
   })
 }
+// Function for adding row to tunables table
+function addTunableRow() {
+  const tableBody = document.getElementById('tunablesTableBody')
+
+  const row = document.createElement('tr')
+
+  row.innerHTML = `
+    <td><input class="file-input" /></td>
+    <td><input class="file-input" /></td>
+    <td><button onclick="this.closest('tr').remove()">X</button></td>
+  `
+
+  tableBody.appendChild(row)
+}
+
+function getTunablesFromTable() {
+  const rows = document.querySelectorAll('#tunablesTableBody tr')
+  const tunables = {}
+
+  rows.forEach((row) => {
+    const key = row.children[0].querySelector('input')?.value?.trim()
+    const value = row.children[1].querySelector('input')?.value
+
+    if (!key) return
+
+    tunables[key] = value
+  })
+
+  return tunables
+}
+
+// function to pull tunables from config and render them in the tunables table, if there are any
+function renderTunables(tunables = {}) {
+  const tableBody = document.getElementById('tunablesTableBody')
+  // clear existing UI
+  tableBody.innerHTML = ''
+
+  Object.entries(tunables).forEach(([key, value]) => {
+    const row = document.createElement('tr')
+
+    row.innerHTML = `
+      <td><input class="file-input" value="${key}" /></td>
+      <td><input class="file-input" value="${value}" /></td>
+      <td><button onclick="this.closest('tr').remove()">X</button></td>
+    `
+
+    tableBody.appendChild(row)
+  })
+}
 
 // Function to copy selected config
 function copyConfig() {
@@ -370,6 +422,7 @@ function copyConfig() {
           type: configValues.infosetOutputType,
           path: configValues.infosetOutputFilePath,
         },
+        tunables: tunables,
         tdmlConfig: {
           action: configValues.tdmlAction,
           name: configValues.tdmlName,
@@ -465,6 +518,7 @@ async function updateConfigValues(config) {
   document.getElementById('dfdlDebuggerLogLevel').value =
     config.dfdlDebugger.logging.level
 
+  renderTunables(config.tunables || {})
   updateInfosetOutputType()
   updateTDMLAction()
 
@@ -506,6 +560,23 @@ async function updateDaffodilDebugClasspath(message) {
       case 'daffodilDebugClasspathUpdate':
         await updateDaffodilDebugClasspath(message)
         break
+    }
+  })
+
+  //  IMPORTANT: tell extension we are ready
+  // updateConfig was not getting used before i added this. It may have been working before because the extension was sending the config values before the webview was ready, so the first message was getting lost. Now, we wait to send the message until after the webview is ready, so we know for sure that the config values will be received and rendered in the webview when it loads.
+  // Without this, tunables table would not pull from launch.json
+  //Other fields worked however, maybe because they were different data types?
+  //Confirm if this is a good addition to the code or if there is a better way to ensure the config values are received and rendered in the webview on load
+  window.addEventListener('DOMContentLoaded', () => {
+    // vscode is injected by extension
+    if (typeof vscode !== 'undefined') {
+      vscode.postMessage({
+        command: 'updateConfigValue',
+        configIndex: 0,
+      })
+    } else {
+      console.error('vscode API not found')
     }
   })
 })()

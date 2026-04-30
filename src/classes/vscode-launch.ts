@@ -35,6 +35,7 @@ export interface VSCodeLaunchConfigArgs {
   stopOnEntry: boolean
   useExistingServer: boolean
   trace: boolean
+  tunables?: Record<string, string>
   openDataEditor: boolean
   openInfosetView: boolean
   openInfosetDiffView: boolean

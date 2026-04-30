@@ -755,6 +755,27 @@ class LaunchWizard {
         <input style="${tdmlPathVisOrHiddenStyle}" class="file-input" value="${tdmlPath}" id="tdmlPath">
       </div>
 
+      <div id="tunablesDiv" class="setting-div" style="margin-top: 15px;">
+        <p>Tunables:</p>
+        <p class="setting-description">Key/value configuration options</p>
+
+        <table style="width: 100%; border-collapse: collapse; margin-top: 5px;">
+          <thead>
+            <tr>
+              <th style="text-align: left;">Key</th>
+              <th style="text-align: left;">Value</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tunablesTableBody">
+            <!-- rows later -->
+          </tbody>
+        </table>
+
+          <button id="addTunableBtn" onclick="addTunableRow()" style="margin-top: 10px;">
+            + Add Tunable
+          </button>
+
       <div id="dataEditorDiv" class="setting-div">
         <p>Data Editor Settings:</p>
         
@@ -769,9 +790,9 @@ class LaunchWizard {
           ${dataEditorLogLevelSelect}
         </select>
       </div>
-
       <br/>
       <button class="save-button" type="button" onclick="save()">Save</button>
+     <script src="scripts.js"></script>
     </body>
   </html>`
   }
