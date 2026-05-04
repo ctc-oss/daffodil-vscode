@@ -776,6 +776,28 @@ class LaunchWizard {
             + Add Tunable
           </button>
 
+          
+      <div id="VariablesDiv" class="setting-div" style="margin-top: 15px;">
+        <p>Variables:</p>
+        <p class="setting-description">Key/value configuration options</p>
+
+        <table style="width: 100%; border-collapse: collapse; margin-top: 5px;">
+          <thead>
+            <tr>
+              <th style="text-align: left;">Key</th>
+              <th style="text-align: left;">Value</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="variablesTableBody">
+            <!-- rows later -->
+          </tbody>
+        </table>
+
+          <button id="addVariableBtn" onclick="addVariableRow()" style="margin-top: 10px;">
+            + Add Variable
+          </button>
+
       <div id="dataEditorDiv" class="setting-div">
         <p>Data Editor Settings:</p>
         

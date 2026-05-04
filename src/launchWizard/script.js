@@ -42,6 +42,7 @@ function getConfigIndex() {
 
 function getConfigValues() {
   const tunables = getTunablesFromTable()
+  const variables = getVariablesFromTable()
   var configSelectionBox = document.getElementById('configSelected')
   var configSelectedValue =
     configSelectionBox.options[configSelectionBox.selectedIndex].value
@@ -123,6 +124,7 @@ function getConfigValues() {
     rootName,
     rootNamespace,
     tunables,
+    variables,
   }
 }
 
@@ -277,6 +279,7 @@ function save() {
 
   const configValues = getConfigValues()
   const tunables = getTunablesFromTable()
+  const variables = getVariablesFromTable()
 
   var obj = {
     version: '0.2.0',
@@ -298,6 +301,7 @@ function save() {
           path: configValues.infosetOutputFilePath,
         },
         tunables: tunables,
+        variables: variables,
         tdmlConfig: {
           action: configValues.tdmlAction,
           // Additional fields are added below
@@ -399,6 +403,56 @@ function renderTunables(tunables = {}) {
   })
 }
 
+// Function for adding row to variables table
+function addVariableRow() {
+  const tableBody = document.getElementById('variablesTableBody')
+
+  const row = document.createElement('tr')
+
+  row.innerHTML = `
+    <td><input class="file-input" /></td>
+    <td><input class="file-input" /></td>
+    <td><button onclick="this.closest('tr').remove()">X</button></td>
+  `
+
+  tableBody.appendChild(row)
+}
+
+function getVariablesFromTable() {
+  const rows = document.querySelectorAll('#variablesTableBody tr')
+  const variables = {}
+
+  rows.forEach((row) => {
+    const key = row.children[0].querySelector('input')?.value?.trim()
+    const value = row.children[1].querySelector('input')?.value
+
+    if (!key) return
+
+    variables[key] = value
+  })
+
+  return variables
+}
+
+// function to pull tunables from config and render them in the tunables table, if there are any
+function renderVariables(variables = {}) {
+  const tableBody = document.getElementById('variablesTableBody')
+  // clear existing UI
+  tableBody.innerHTML = ''
+
+  Object.entries(variables).forEach(([key, value]) => {
+    const row = document.createElement('tr')
+
+    row.innerHTML = `
+      <td><input class="file-input" value="${key}" /></td>
+      <td><input class="file-input" value="${value}" /></td>
+      <td><button onclick="this.closest('tr').remove()">X</button></td>
+    `
+
+    tableBody.appendChild(row)
+  })
+}
+
 // Function to copy selected config
 function copyConfig() {
   const configValues = getConfigValues()
@@ -423,6 +477,7 @@ function copyConfig() {
           path: configValues.infosetOutputFilePath,
         },
         tunables: tunables,
+        variables: variables,
         tdmlConfig: {
           action: configValues.tdmlAction,
           name: configValues.tdmlName,
@@ -519,6 +574,7 @@ async function updateConfigValues(config) {
     config.dfdlDebugger.logging.level
 
   renderTunables(config.tunables || {})
+  renderVariables(config.variables || {})
   updateInfosetOutputType()
   updateTDMLAction()
 
