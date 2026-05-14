@@ -6,7 +6,7 @@ import {
 import { radixSelections } from '../../src/stores/format/index.svelte'
 import { type RadixValues } from 'ext_types'
 import { ErrorState } from '../../src/components/Error/Err.svelte.ts'
-import { ViewportDataState } from 'editor_components/DataDisplays/CustomByteDisplay/Viewport.svelte.ts'
+import { ViewportState } from 'editor_components/DataDisplays/CustomByteDisplay/ViewportState.svelte.ts'
 
 describe('Seek Offset State', () => {
   describe('Input Values', () => {
@@ -54,7 +54,7 @@ describe('Seek Offset State', () => {
   describe('Utility Functions', () => {
     describe('Seek Offset Fetching', () => {
       const seekOffset = getSeekOffset()
-      const Viewport = new ViewportDataState('fetching')
+      const Viewport = new ViewportState('fetching')
 
       it('Should determine if a given offset will require server fetching of data', () => {
         Viewport.update({
@@ -69,7 +69,7 @@ describe('Seek Offset State', () => {
         expect(seekOffset.willRequireFetch(Viewport)).toBe(true)
         seekOffset.inputStr = '0x8000'
         expect(seekOffset.willRequireFetch(Viewport)).toBe(true)
-        seekOffset.inputStr = (Viewport.fileOffset() + 256).toString(16)
+        seekOffset.inputStr = (Viewport.fileOffset + 256).toString(16)
         expect(seekOffset.willRequireFetch(Viewport)).toBe(false)
       })
     })
