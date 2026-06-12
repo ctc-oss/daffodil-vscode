@@ -19,12 +19,14 @@ import * as assert from 'assert'
 import * as path from 'path'
 import * as vscode from 'vscode'
 import fs from 'fs'
+import net from 'net'
 import { TEST_SCHEMA } from './common'
 import { after, before } from 'mocha'
 import {
   createSimpleFileLogger,
   getClientVersion,
   getServerInfo,
+  resetClient,
   setLogger,
   startServer,
   stopProcessUsingPID,
@@ -43,6 +45,24 @@ const logLevel = 'debug'
 
 function getTestPidFile(serverPort: number) {
   return path.join(APP_DATA_PATH, `test-serv-${serverPort}.pid`)
+}
+
+// Ask the OS for an unused TCP port so the data editor command can start its
+// own Ωedit server on a dedicated port, avoiding conflicts with any server
+// already bound to the default port (see issue #1175).
+function getFreePort(): Promise<number> {
+  return new Promise((resolve, reject) => {
+    const srv = net.createServer()
+    srv.unref()
+    srv.on('error', reject)
+    srv.listen(0, OMEGA_EDIT_HOST, () => {
+      const address = srv.address()
+      const port = typeof address === 'object' && address ? address.port : 0
+      srv.close(() =>
+        port > 0 ? resolve(port) : reject(new Error('failed to get free port'))
+      )
+    })
+  })
 }
 
 suite('Data Editor Test Suite', () => {
@@ -121,6 +141,43 @@ suite('Data Editor Test Suite', () => {
   })
 
   suite('Data Editor', () => {
+    // The data editor command starts its own Ωedit server on the configured
+    // port (default 9000). The shared Ωedit client is a process-global
+    // singleton, and the Editor Service suite above starts/stops a server on
+    // `testPort` without resetting that client. If the default port happens to
+    // be occupied, the command reuses the stale client still pointing at the
+    // stopped server and fails with ECONNREFUSED. Reset the client and pin the
+    // editor to a dedicated free port so this suite is self-contained.
+    let dataEditorPort = 0
+
+    before(async () => {
+      resetClient()
+      dataEditorPort = await getFreePort()
+      await vscode.workspace
+        .getConfiguration()
+        .update(
+          'dataEditor',
+          { port: dataEditorPort, logging: { file: '', level: logLevel } },
+          vscode.ConfigurationTarget.Global
+        )
+    })
+
+    after(async () => {
+      // Stop the Ωedit server the data editor command started, if it's still
+      // running, and clear the shared client so later suites start clean.
+      const dataEditorPidFile = path.join(
+        APP_DATA_PATH,
+        `serv-${dataEditorPort}.pid`
+      )
+      if (fs.existsSync(dataEditorPidFile)) {
+        const pid = parseInt(fs.readFileSync(dataEditorPidFile).toString())
+        if (!Number.isNaN(pid)) {
+          await stopProcessUsingPID(pid)
+        }
+      }
+      resetClient()
+    })
+
     test('data editor opens', async () => {
       const dataEditWebView: DataEditorClient =
         await vscode.commands.executeCommand(DATA_EDITOR_COMMAND, TEST_SCHEMA)
