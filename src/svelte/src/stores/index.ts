@@ -39,7 +39,8 @@ import {
   OffsetSearchType,
   ReplaceQuery,
   SearchQuery,
-} from '../components/Header/fieldsets/SearchReplace'
+  // SearchQuery,
+} from '../components/Header/fieldsets/SearchReplace.svelte.ts'
 import {
   EditByteModes,
   type RadixValues,
@@ -373,7 +374,7 @@ export const requestable = derived(
 export const originalDataSegment = derived(
   [viewport, selectionDataStore],
   ([$viewport, $selectionData]) => {
-    if (!$viewport.data) return new Uint8Array(0)
+    if (!$viewport.data) return []
     if (!isRegularSizedFile()) return $viewport.data
 
     return $viewport.data.slice(

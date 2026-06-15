@@ -14,12 +14,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import { ViewportState } from 'editor_components/DataDisplays/CustomByteDisplay/ViewportState.svelte.ts'
+
+// import { ViewportDataState } from 'editor_components/DataDisplays/CustomByteDisplay/Viewport.svelte'
+// import { EditByteModes } from 'ext_types'
+
+/// Unique WebviewPanel Message ID
 let uiMsgId = $state<string>('')
+
+/**
+ * Sets the UI message ID
+ * @param id ID string
+ */
 export const setUIMsgId = (id: string) => {
-  if (!id) throw new Error('Cannot set an undefined UI Message ID')
   uiMsgId = id
 }
+
+/**
+ * Gets the UI Message ID string
+ * @returns `string` UI Message ID
+ */
 export const getUIMsgId = () => uiMsgId
+
+/**
+ * Checks a `string` value for the DFDL debug prefix
+ * @param id ID to check
+ * @returns `boolean` `true` if `id` contains DFDL debug prefix, otherwise `false`
+ */
 export const isUIDebugAttached = (id: string) => {
   return id.includes('dfdl-')
 }
+
+const viewportState = $state<ViewportState>(new ViewportState(''))
+export const currentViewport = () => viewportState

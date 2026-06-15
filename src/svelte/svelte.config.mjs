@@ -18,8 +18,8 @@
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte'
 import { sveltePreprocess } from 'svelte-preprocess'
 
-/** @type {import('@sveltejs/vite-plugin-svelte').SvelteConfig} */
-export default {
+/** @type {import('@sveltejs/kit').Config} */
+const config = {
   preprocess: [
     vitePreprocess(),
     sveltePreprocess({ sourceMap: true, typescript: true }),
@@ -29,16 +29,10 @@ export default {
     css: 'external',
     rootDir: '.',
   },
-
   onwarn(w, defaultHandler) {
-    if (
-      ![
-        'a11y_no_static_element_interactions',
-        'a11y_click_events_have_key_events',
-        'css_unused_selector',
-      ].includes(w.code)
-    ) {
-      defaultHandler(w)
-    }
+    if (w.code.includes('a11y')) return
+    defaultHandler(w)
   },
 }
+
+export default config

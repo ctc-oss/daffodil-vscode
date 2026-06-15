@@ -62,7 +62,7 @@ export const StrEncodingByteWidths: StrEncodingByteWidths = {
   ascii: 1,
   latin1: 1,
   'utf-8': 1 | 2 | 4,
-  'utf-16': 2 | 4,
+  'utf-16le': 2 | 4,
 }
 
 export const EDIT_ACTIONS: EditAction[] = [

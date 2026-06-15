@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+/// <reference types="vitest/config"/>
+
 import { defineConfig } from 'vite'
 import path from 'node:path'
 import fs from 'node:fs'
@@ -26,6 +28,7 @@ import { pipeline } from 'stream/promises'
 import { Transform } from 'stream'
 import cliProgress from 'cli-progress'
 import pc from 'picocolors' // same color lib used by Vite
+import { svelte } from '@sveltejs/vite-plugin-svelte'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -173,8 +176,12 @@ async function copyToPkgDirPlugin() {
     { from: 'package.json', to: `${pkg_dir}/package.json` },
     { from: 'yarn.lock', to: `${pkg_dir}/yarn.lock` },
     {
-      from: 'node_modules/@omega-edit/server/out',
-      to: `${pkg_dir}/node_modules/@omega-edit/server/out`,
+      from: 'node_modules/@omega-edit/server/out/bin',
+      to: `${pkg_dir}/node_modules/@omega-edit/server/out/bin`,
+    },
+    {
+      from: 'node_modules/@omega-edit/server/out/lib',
+      to: `${pkg_dir}/node_modules/@omega-edit/server/out/lib`,
     },
     {
       from: 'node_modules/@vscode/webview-ui-toolkit',
@@ -231,7 +238,33 @@ export default defineConfig(({ mode }) => {
       },
       extensions: ['.ts', '.js'],
     },
-
+    test: {
+      // typecheck:{
+      //   enabled: true,
+      //   tsconfig: './tsconfig.json'
+      // },
+      environment: 'jsdom',
+      globals: true,
+      include: ['**/*.svelte.test.ts'],
+      exclude: ['node_modules/**/*'],
+      projects: [
+        {
+          resolve: {
+            alias: {
+            //   ext_types: path.resolve(__dirname, 'ext_types'),
+            ...localModuleAliases
+            },
+          },
+          plugins: [svelte({ configFile: 'src/svelte/svelte.config.mjs' })],
+          test: {
+            extends: true,
+            name: 'svelte',
+            root: './src/svelte',
+            include: ['**/*.svelte.test.ts'],
+          },
+        },
+      ],
+    },
     build: {
       sourcemap: true,
 
@@ -246,7 +279,7 @@ export default defineConfig(({ mode }) => {
         input: {
           extension: path.resolve(__dirname, 'src/adapter/extension.ts'),
         },
-        external: ['vscode', '@omega-edit/client', ...builtinModules, /^node:.*/],
+        external: ['vscode', ...builtinModules, /^node:.*/],
         output: {
           entryFileNames: 'extension.js',
           format: 'cjs',
@@ -265,6 +298,14 @@ export default defineConfig(({ mode }) => {
             copyToPkgDirPlugin(),
             downloadAndExtractDefaultVersionOfDaffodil(mode),
           ]
-        : [copyDebuggerOutAfterBuild()],
+        : [
+            svelte({
+              configFile: path.resolve(
+                __dirname,
+                'src/svelte/svelte.config.mjs'
+              ),
+            }),
+            copyDebuggerOutAfterBuild(),
+          ],
   }
 })

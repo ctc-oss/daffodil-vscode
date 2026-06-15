@@ -17,7 +17,6 @@
 
 import { describe, it, expect } from 'vitest'
 import {
-  canRedo,
   canRevert,
   canUndo,
   fileMetricsState,
@@ -65,8 +64,8 @@ describe('FileMetricsState Runes', () => {
         { count: 2, expect: true },
         { count: 0, expect: false },
       ].forEach((testValues) => {
-        fileMetricsState.undoCount = testValues.count
-        expect(canRedo()).toEqual(testValues.expect)
+        fileMetricsState.changeCount = testValues.count
+        expect(canUndo()).toBe(testValues.expect)
       })
     })
   })
