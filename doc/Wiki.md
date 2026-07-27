@@ -47,6 +47,7 @@ The purpose of Apache Daffodil™ Extension for Visual Studio Code is to ease th
    * [DFDL Schema Authoring Features](#dfdl-schema-authoring-features)
 - [Debugging a DFDL Schema Using the Apache Daffodil™ Extension for Visual Studio Code’s Bundled Daffodil Data Parse Debugger](#debugging-a-dfdl-schema-using-the-apache-daffodil-extension-for-visual-studio-codes-bundled-daffodil-data-parse-debugger)
    * [Debug Configuration](#debug-configuration)
+  * [Schema Compile and Parser Cache Reuse](#schema-compile-and-parser-cache-reuse)
    * [Dropdown for Log Level](#dropdown-for-log-level)
    * [Root element and namespace auto suggestions/finding](#root-element-and-namespace-auto-suggestionsfinding)
    * [Launch a DFDL Parse Debugging Session](#launch-a-dfdl-parse-debugging-session)
@@ -268,6 +269,49 @@ XPath expressions can be code-completed.
 # Debugging a DFDL Schema Using the Apache Daffodil™ Extension for Visual Studio Code’s Bundled Daffodil Data Parse Debugger
 
 ## Debug Configuration
+
+## Schema Compile and Parser Cache Reuse
+
+The extension supports a compile-first workflow similar to many language extensions.
+
+### Compile Schema Command
+
+Use the `Daffodil Debug: Compile Schema` command to compile a `.dfdl.xsd` schema before launching debug. You can run this command from:
+
+- Command Palette
+- Command Explorer (`DFDL Command Panel`)
+- Schema file context actions
+
+This command validates the schema and writes a serialized parser artifact.
+
+### Debug Reuse Behavior
+
+During debug launch, if `validateSchemaBeforeDebug` (`Validate Schema Before Debug` in launch configuration) is enabled, the extension checks for a previously compiled parser cache entry and reuses it when inputs are unchanged. If the cache is missing or stale, it recompiles and refreshes the cache.
+
+The cache key includes:
+
+- Normalized schema path
+- Schema last-modified timestamp and file size
+- Root name and root namespace
+- Tunables
+- External variables
+- Extension/backend build version
+
+### Cache Location and Platform Notes
+
+The cache is stored in an OS temp-directory subfolder:
+
+- `.../daffodil-vscode/saved-parsers/<hash>.bin`
+
+This location is cross-platform (Windows, Linux, and macOS), but temp directories can be cleaned by the OS or system tools. If cleaned, run `Compile Schema` again or launch debug to regenerate the cache artifact.
+
+### Log Messages
+
+Backend logs indicate cache behavior during launch, for example:
+
+- `Loaded cached parser from ...`
+- `No cached parser found at ...`
+- `Compiling schema and saving parser cache at ...`
 
 Debugging a DFDL Schema needs both the DFDL Schema to use and a data file to parse. Instead of having to select the DFDL Schema and the data file each time from a file picker, a "launch configuration" can be created, which is a JSON description of the debugging session.
 

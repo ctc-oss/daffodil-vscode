@@ -26,6 +26,19 @@
 
 This file outlines the release notes and known issues for the "daffodil-vscode" extension.
 
+## 1.6.0
+  ### Debugger:
+  - Added a dedicated `Compile Schema` command to compile/validate `.dfdl.xsd` schemas before debugging.
+    - The command is available from the Command Palette, DFDL Command Explorer panel, and schema file context actions.
+  - Added `validateSchemaBeforeDebug` launch configuration support (shown as `Validate Schema Before Debug` in the launch wizard).
+    - When enabled, debug launch validates schema compilation before starting a session.
+  - Added parser cache serialization/reload behavior for debug startup.
+    - Debug can reuse a previously compiled parser artifact when schema inputs are unchanged, reducing repeated compilation overhead.
+    - Cache invalidation considers schema path/metadata, root settings, tunables, external variables, and build version.
+  ### Documentation:
+  - Updated `doc/Wiki.md` with `Compile Schema` command usage, cache reuse behavior, and debug validation details.
+  - Updated `doc/Introduction-to-Daffodil-VS-Code-Extension.md` with compile-versus-debug workflow guidance and launch option behavior.
+
 ## 1.5.0
   ### Debugger:
   - Added support for multiple versions of the Daffodil parser (i.e., Daffodil 3.10.0, 3.11.0, and 4.0.0). 
