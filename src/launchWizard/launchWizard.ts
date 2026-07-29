@@ -22,6 +22,7 @@ import { DFDLDebugger } from '../classes/dfdlDebugger'
 import { VSCodeLaunchConfigArgs } from '../classes/vscode-launch'
 import { DataEditorConfig } from '../classes/dataEditor'
 import { parse as jsoncParse } from 'jsonc-parser'
+import * as path from 'path'
 
 let launchWizard: LaunchWizard | undefined
 
@@ -31,8 +32,8 @@ const defaultConf = getConfig({
   type: 'dfdl',
   schema: {
     path: '${command:AskForSchemaName}',
-    rootName: 'null',
-    rootNamespace: 'null',
+    rootName: null,
+    rootNamespace: null,
   },
 })
 
@@ -278,6 +279,20 @@ async function createWizard(ctx: vscode.ExtensionContext) {
   let launchWiz = new LaunchWizard(ctx)
   let panel = launchWiz.getPanel()
   panel.webview.html = launchWiz.getWebViewContent()
+
+  //Read in list of valid
+
+  const tunablesPath = path.join(
+    ctx.extensionPath,
+    'constants',
+    'tunables.json'
+  )
+
+  const tunables = JSON.parse(fs.readFileSync(tunablesPath, 'utf8'))
+  panel.webview.postMessage({
+    command: 'loadTunables',
+    tunables: tunables,
+  })
 
   panel.webview.onDidReceiveMessage(
     async (message) => {
@@ -754,7 +769,59 @@ class LaunchWizard {
         <p id="tdmlPathLabel" style="${tdmlPathVisOrHiddenStyle}" class="setting-description">TDML File Path:</p>
         <input style="${tdmlPathVisOrHiddenStyle}" class="file-input" value="${tdmlPath}" id="tdmlPath">
       </div>
+      
+      <div id="tunablesDiv" class="setting-div" style="margin-top: 15px;">
+        <p>Tunables:</p>
+        <p class="setting-description">Key/value configuration options</p>
 
+        <table style="width: 100%; border-collapse: collapse; margin-top: 5px;">
+          <thead>
+            <tr>
+              <th style="text-align: left;">Key</th>
+              <th style="text-align: left;">Value</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tunablesTableBody">
+            <!-- rows later -->
+          </tbody>
+        </table>
+
+        <button id="addTunableBtn" onclick="addTunableRow()" style="margin-top: 10px;">
+          + Add Tunable
+        </button>
+      </div>
+
+      <div id="tunableErrorContainer"
+      style="color:red;font-size:12px;">
+       </div>
+
+      <div id="VariablesDiv" class="setting-div" style="margin-top: 15px;">
+        <p>Variables:</p>
+        <p class="setting-description">Key/value configuration options</p>
+
+        <table style="width: 100%; border-collapse: collapse; margin-top: 5px;">
+          <style>
+            td {
+              vertical-align: top;
+            }
+          </style>
+          <thead>
+            <tr>
+              <th style="text-align: left;">Key</th>
+              <th style="text-align: left;">Value</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="variablesTableBody">
+            <!-- rows later -->
+          </tbody>
+        </table>
+
+        <button id="addVariableBtn" onclick="addVariableRow()" style="margin-top: 10px;">
+          + Add Variable
+        </button>
+      </div>
       <div id="dataEditorDiv" class="setting-div">
         <p>Data Editor Settings:</p>
         
@@ -769,7 +836,6 @@ class LaunchWizard {
           ${dataEditorLogLevelSelect}
         </select>
       </div>
-
       <br/>
       <button class="save-button" type="button" onclick="save()">Save</button>
     </body>

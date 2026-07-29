@@ -41,6 +41,8 @@ function getConfigIndex() {
 }
 
 function getConfigValues() {
+  const tunables = getTunablesFromTable()
+  const variables = getVariablesFromTable()
   var configSelectionBox = document.getElementById('configSelected')
   var configSelectedValue =
     configSelectionBox.options[configSelectionBox.selectedIndex].value
@@ -85,16 +87,16 @@ function getConfigValues() {
     'dfdlDebuggerLogLevel'
   ).value
   const rootName =
-    document.getElementById('rootName').value == 'null'
+    document.getElementById('rootName').value.trim() === ''
       ? null
       : document.getElementById('rootName').value
+
   const rootNamespace =
-    document.getElementById('rootNamespace').value == 'null'
+    document.getElementById('rootNamespace').value.trim() === ''
       ? null
       : document.getElementById('rootNamespace').value
 
   const daffodilDebugClasspath = getDaffodilDebugClasspathArray()
-
   return {
     name,
     data,
@@ -122,6 +124,8 @@ function getConfigValues() {
     daffodilDebugClasspath,
     rootName,
     rootNamespace,
+    tunables,
+    variables,
   }
 }
 
@@ -275,6 +279,8 @@ function save() {
     configSelectedValue === 'New Config' ? 'create' : 'update'
 
   const configValues = getConfigValues()
+  const tunables = getTunablesFromTable()
+  const variables = getVariablesFromTable()
 
   var obj = {
     version: '0.2.0',
@@ -295,6 +301,8 @@ function save() {
           type: configValues.infosetOutputType,
           path: configValues.infosetOutputFilePath,
         },
+        tunables: tunables,
+        variables: variables,
         tdmlConfig: {
           action: configValues.tdmlAction,
           // Additional fields are added below
@@ -340,13 +348,228 @@ function save() {
       )
   }
 
+  // Blocks save if tunable isnt valid. This means we have to always make sure the tunable list is valid.
+  // should we just warn the user that it will case errors and let them submit
+  validateTunablesTable()
+
+  const hasErrors = [
+    ...document.querySelectorAll('#tunablesTableBody .tunable-error'),
+  ].some((el) => el.textContent.trim())
+
+  if (hasErrors) {
+    console.warn('Cannot save: invalid tunables present')
+    return
+  }
+
   vscode.postMessage({
     command: 'saveConfig',
     data: JSON.stringify(obj, null, 4),
     updateOrCreate: updateOrCreate,
   })
 }
+// Function for adding row to tunables table
+function addTunableRow() {
+  const tableBody = document.getElementById('tunablesTableBody')
 
+  const row = document.createElement('tr')
+
+  row.innerHTML = `
+  <td style="position: relative; vertical-align: top;">
+    <input class="file-input" />
+    <div class="tunable-error" 
+         style="color:red;font-size:12px;position:absolute;top:100%;left:0;">
+    </div>
+  </td>
+  <td style="vertical-align: top;">
+    <input class="file-input" />
+  </td>
+  <td style="vertical-align: top;">
+    <button onclick="removeTunableRow(this)">X</button>
+  </td>
+  `
+
+  tableBody.appendChild(row)
+}
+function getTunablesFromTable() {
+  const rows = document.querySelectorAll('#tunablesTableBody tr')
+  const tunables = {}
+
+  rows.forEach((row) => {
+    const key = row.children[0].querySelector('input')?.value?.trim()
+    const value = row.children[1].querySelector('input')?.value
+
+    if (!key) return
+
+    tunables[key] = value
+  })
+
+  return tunables
+}
+
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
+function removeTunableRow(btn) {
+  const row = btn.closest('tr')
+  row.remove()
+  validateTunablesTable()
+}
+
+// function to pull tunables from config and render them in the tunables table, if there are any
+function renderTunables(tunables = {}) {
+  const tableBody = document.getElementById('tunablesTableBody')
+  tableBody.innerHTML = ''
+
+  Object.entries(tunables).forEach(([key, value]) => {
+    const row = document.createElement('tr')
+
+    row.innerHTML = row.innerHTML = `
+    <td>
+      <input class="file-input" value="${escapeHtml(key)}" />
+      <div class="tunable-error" style="color:red;font-size:12px;"></div>
+    </td>
+  
+    <td>
+      <input class="file-input" value="${escapeHtml(value)}" />
+    </td>
+  
+    <td>
+      <button onclick="this.closest('tr').remove(); validateTunablesTable();">X</button>
+    </td>
+  `
+
+    tableBody.appendChild(row)
+  })
+}
+
+// Function for adding row to variables table
+function addVariableRow() {
+  const tableBody = document.getElementById('variablesTableBody')
+
+  const row = document.createElement('tr')
+
+  row.innerHTML = `
+    <td><input class="file-input" /></td>
+    <td><input class="file-input" /></td>
+    <td><button onclick="this.closest('tr').remove()">X</button></td>
+  `
+
+  tableBody.appendChild(row)
+}
+
+function getVariablesFromTable() {
+  const rows = document.querySelectorAll('#variablesTableBody tr')
+  const variables = {}
+
+  rows.forEach((row) => {
+    const key = row.children[0].querySelector('input')?.value?.trim()
+    const value = row.children[1].querySelector('input')?.value
+
+    if (!key) return
+
+    variables[key] = value
+  })
+
+  return variables
+}
+
+// function to pull variables from config and render them in the tunables table, if there are any.
+
+function renderVariables(variables = {}) {
+  const tableBody = document.getElementById('variablesTableBody')
+
+  // Clear existing UI
+  tableBody.innerHTML = ''
+
+  Object.entries(variables).forEach(([key, value]) => {
+    const row = document.createElement('tr')
+
+    row.innerHTML = `
+      <td><input class="file-input" value="${escapeHtml(key)}" /></td>
+      <td><input class="file-input" value="${escapeHtml(value)}" /></td>
+      <td><button onclick="this.closest('tr').remove()">X</button></td>
+    `
+
+    tableBody.appendChild(row)
+  })
+}
+let VALID_TUNABLES = {}
+
+// Validates tunables. validates against list of tunables and the value expected
+function validateTunablesTable() {
+  const rows = document.querySelectorAll('#tunablesTableBody tr')
+  const errorContainer = document.getElementById('tunableErrorContainer')
+
+  errorContainer.innerText = ''
+
+  let hasError = false
+  const errors = []
+
+  for (const row of rows) {
+    const keyInput = row.children[0].querySelector('input')
+    const valueInput = row.children[1].querySelector('input')
+
+    if (!keyInput || !valueInput) continue
+
+    const key = keyInput.value.trim()
+    const value = valueInput.value.trim()
+
+    let error = ''
+
+    // Reset styles
+    keyInput.style.color = 'white'
+    valueInput.style.color = 'white'
+
+    // Validate key
+    if (key && !VALID_TUNABLES[key]) {
+      const match = Object.keys(VALID_TUNABLES).find(
+        (t) => t.toLowerCase() === key.toLowerCase()
+      )
+
+      keyInput.style.color = 'red'
+      valueInput.style.color = 'red'
+
+      error = match
+        ? `Invalid tunable "${key}". Did you mean "${match}"?`
+        : `Invalid tunable "${key}"`
+    }
+    // Validate value
+    else if (key && value) {
+      const expectedType = VALID_TUNABLES[key]
+
+      if (expectedType === 'boolean') {
+        if (value !== 'true' && value !== 'false') {
+          valueInput.style.color = 'red'
+          error = 'Value must be boolean (true/false)'
+        }
+      } else if (expectedType === 'number') {
+        if (isNaN(Number(value))) {
+          valueInput.style.color = 'red'
+          error = 'Value must be a number'
+        }
+      } else if (expectedType?.type === 'enum') {
+        if (!expectedType.values.includes(value)) {
+          valueInput.style.color = 'red'
+          error = `Value must be one of: ${expectedType.values.join(', ')}`
+        }
+      }
+    }
+
+    if (error) {
+      hasError = true
+      errors.push(error)
+    }
+  }
+
+  errorContainer.innerText = errors.join('\n')
+  return !hasError
+}
 // Function to copy selected config
 function copyConfig() {
   const configValues = getConfigValues()
@@ -370,6 +593,8 @@ function copyConfig() {
           type: configValues.infosetOutputType,
           path: configValues.infosetOutputFilePath,
         },
+        tunables: configValues.tunables,
+        variables: configValues.variables,
         tdmlConfig: {
           action: configValues.tdmlAction,
           name: configValues.tdmlName,
@@ -465,6 +690,14 @@ async function updateConfigValues(config) {
   document.getElementById('dfdlDebuggerLogLevel').value =
     config.dfdlDebugger.logging.level
 
+  renderTunables(config.tunables || {})
+  renderVariables(config.variables || {})
+  document
+    .getElementById('tunablesTableBody')
+    ?.addEventListener('blur', validateTunablesTable, true) // remove true and change blur to input if we want this to validate on each key
+
+  // catches any invalid tunables on load.
+  validateTunablesTable()
   updateInfosetOutputType()
   updateTDMLAction()
 
@@ -494,6 +727,10 @@ async function updateDaffodilDebugClasspath(message) {
     const message = event.data
 
     switch (message.command) {
+      case 'loadTunables':
+        VALID_TUNABLES = message.tunables
+        // validateTunablesTable()
+        break
       case 'updateConfValues':
         await updateConfigValues(message.configValues)
         break
@@ -506,6 +743,22 @@ async function updateDaffodilDebugClasspath(message) {
       case 'daffodilDebugClasspathUpdate':
         await updateDaffodilDebugClasspath(message)
         break
+    }
+  })
+
+  // Wait for the webview to signal readiness before sending config.
+  // Prevents the initial config message from being lost, ensuring launch.json
+  // values are rendered on load.
+  window.addEventListener('DOMContentLoaded', () => {
+    // vscode is injected by extension
+    if (typeof vscode !== 'undefined') {
+      const configIndex = getConfigIndex()
+      vscode.postMessage({
+        command: 'updateConfigValue',
+        configIndex: configIndex,
+      })
+    } else {
+      console.error('vscode API not found')
     }
   })
 })()
