@@ -303,7 +303,7 @@ The cache is stored in an OS temp-directory subfolder:
 
 - `.../daffodil-vscode/saved-parsers/<hash>.bin`
 
-This location is cross-platform (Windows, Linux, and macOS), but temp directories can be cleaned by the OS or system tools. If cleaned, run `Compile Schema` again or launch debug to regenerate the cache artifact.
+This location is cross-platform (Windows, Linux, and macOS), and the cache is retained until temp cleanup occurs or a failed compile removes it. If the temp directory is cleaned, run `Compile Schema` again or launch debug to regenerate the cache artifact.
 
 ### Log Messages
 

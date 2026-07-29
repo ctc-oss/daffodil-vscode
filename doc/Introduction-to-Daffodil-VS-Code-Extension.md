@@ -166,7 +166,7 @@ The cache identity is based on:
 - External variables
 - Extension/backend build version
 
-Cache files are stored in an OS temp-directory subfolder (`daffodil-vscode/saved-parsers`). This works on Windows, Linux, and macOS. If the OS cleans temp files, rerun `Compile Schema` (or debug once) to regenerate cache files.
+Cache files are stored in an OS temp-directory subfolder (`daffodil-vscode/saved-parsers`). This works on Windows, Linux, and macOS, and the cache is retained until temp cleanup occurs or a failed compile removes it. If the OS cleans temp files, rerun `Compile Schema` (or debug once) to regenerate cache files.
 
 
 |<div style="width:200px"></div>|<div style="width:205px"></div>|
