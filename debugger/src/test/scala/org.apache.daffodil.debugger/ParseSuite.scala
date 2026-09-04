@@ -112,6 +112,13 @@ class ParseSuite extends FunSuite {
     infosetOutputPath = "testPath/infoset.xml"
   }
 
+  test("Build TDML metadata includes runtime values") {
+    val metadata = Parse.buildTDMLMetadata()
+    assert(metadata.contains("extensionVersion"))
+    assert(metadata.contains("osType"))
+    assert(metadata.contains("osVersion"))
+  }
+
   test("Parse failed - invalid tdmlConfig - no name") {
     tdmlAction = "generate"
     buildJson()
