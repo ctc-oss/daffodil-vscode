@@ -45,6 +45,11 @@ suite('Utils Test Suite', () => {
       name: 'Default Test Case',
       path: '${command:AskForValidatedTDMLPath}',
     },
+    metadata: {
+      vscodeVersion: '',
+      extensionVersion: '',
+      daffodilVersion: '3.11.0',
+    },
     stopOnEntry: true,
     useExistingServer: false,
     trace: true,

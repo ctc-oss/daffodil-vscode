@@ -151,6 +151,9 @@ export function getConfig(jsonArgs: object): vscode.DebugConfiguration {
   const launchConfigArgs: VSCodeLaunchConfigArgs = JSON.parse(
     JSON.stringify(jsonArgs)
   )
+  const extensionVersion =
+    vscode.extensions.getExtension('asf.apache-daffodil-vscode')?.packageJSON
+      ?.version ?? ''
   // NOTE: Don't make this a static value as extension configuration may change while the extension is loaded.
   const defaultConf = vscode.workspace.getConfiguration()
 
@@ -189,6 +192,12 @@ export function getConfig(jsonArgs: object): vscode.DebugConfiguration {
         file: '',
       },
     }),
+    metadata: {
+      vscodeVersion: vscode.version,
+      extensionVersion,
+      daffodilVersion:
+        (launchConfigArgs as any).dfdlDebugger?.daffodilVersion ?? '',
+    },
     dfdlDebugger: defaultConf.get('dfdlDebugger', {
       daffodilVersion: '3.11.0',
       timeout: '10s',
