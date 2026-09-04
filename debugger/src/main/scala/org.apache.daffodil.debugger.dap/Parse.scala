@@ -59,6 +59,19 @@ trait Parse {
 object Parse {
   implicit val logger: Logger[IO] = Slf4jLogger.getLogger
 
+  def buildTDMLMetadata(): Map[String, String] = {
+    val values = Map(
+      "vscodeVersion" -> Option(System.getenv("VSCODE_VERSION"))
+        .orElse(Option(System.getenv("VSCODE_CLI_VERSION")))
+        .getOrElse(""),
+      "extensionVersion" -> Option(DAPBuildInfo.version).getOrElse(""),
+      "osType" -> Option(System.getProperty("os.name")).getOrElse(""),
+      "osVersion" -> Option(System.getProperty("os.version")).getOrElse("")
+    )
+
+    values.filter { case (_, value) => value.nonEmpty }
+  }
+
   case class Exception(diagnostics: List[SDiagnostic])
       extends RuntimeException(
         diagnostics
@@ -647,7 +660,7 @@ object Parse {
         ).onFinalize(
           infosetOutput match {
             case Debugee.LaunchArgs.InfosetOutput.File(path) =>
-              IO(TDML.generate(path, schemaPath, dataPath, name, tdmlPath))
+              IO(TDML.generate(path, schemaPath, dataPath, name, tdmlPath, buildTDMLMetadata()))
             case _ =>
               // This case should never be hit. Validation is being done on launch config prior to
               //   this section of code attempting to run a DFDL operation. If the user is trying to
