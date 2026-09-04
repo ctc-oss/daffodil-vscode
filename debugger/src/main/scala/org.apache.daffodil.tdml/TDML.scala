@@ -202,6 +202,7 @@ object TDML {
     val entries = Seq(
       metadata.get("vscodeVersion").map(value => s"        <ns1:vscodeVersion>${escapeXml(value)}</ns1:vscodeVersion>"),
       metadata.get("extensionVersion").map(value => s"        <ns1:extensionVersion>${escapeXml(value)}</ns1:extensionVersion>"),
+      metadata.get("daffodilVersion").map(value => s"        <ns1:daffodilVersion>${escapeXml(value)}</ns1:daffodilVersion>"),
       metadata.get("osType").map(value => s"        <ns1:osType>${escapeXml(value)}</ns1:osType>"),
       metadata.get("osVersion").map(value => s"        <ns1:osVersion>${escapeXml(value)}</ns1:osVersion>")
     ).flatten
