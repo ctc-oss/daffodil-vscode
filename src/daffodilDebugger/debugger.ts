@@ -32,6 +32,7 @@ import {
   getTestCaseDisplayData,
   getTmpTDMLFilePath,
   readTDMLFileContents,
+  resolveTDMLReference,
 } from '../tdmlEditor/utilities/tdmlXmlUtils'
 import { outputChannel } from '../adapter/activateDaffodilDebug'
 
@@ -224,8 +225,19 @@ async function getTDMLConfig(
           testSuiteData.testCases.forEach((testCase) => {
             if (testCase.testCaseName === config.tdmlConfig.name) {
               // Behave the same as the backend - if there are multiple data documents, ignore any past the first
-              config.data = testCase.dataDocuments[0]
-              config.schema.path = testCase.testCaseModel
+              if (testCase.dataDocuments[0]) {
+                config.data = resolveTDMLReference(
+                  config.tdmlConfig.path,
+                  testCase.dataDocuments[0]
+                )
+              }
+
+              if (testCase.testCaseModel) {
+                config.schema.path = resolveTDMLReference(
+                  config.tdmlConfig.path,
+                  testCase.testCaseModel
+                )
+              }
             }
           })
         })

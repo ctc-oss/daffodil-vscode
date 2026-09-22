@@ -17,7 +17,7 @@
 
 import { readFileSync, writeFileSync } from 'fs'
 import os from 'os'
-import { join, resolve, sep, relative, dirname } from 'path'
+import { join, resolve, sep, relative, dirname, isAbsolute } from 'path'
 import { Element, ElementCompact, js2xml, xml2js } from 'xml-js'
 import * as vscode from 'vscode'
 
@@ -89,6 +89,19 @@ export function getTmpTDMLFilePath() {
 
 export function getDefaultTDMLTestCaseName() {
   return 'Default Test Case'
+}
+
+export function resolveTDMLReference(
+  tdmlPath: string,
+  reference: string
+): string {
+  if (!reference) {
+    return reference
+  }
+
+  return isAbsolute(reference)
+    ? reference
+    : resolve(dirname(tdmlPath), reference)
 }
 
 /*
