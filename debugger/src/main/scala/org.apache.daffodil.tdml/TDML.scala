@@ -185,7 +185,7 @@ object TDML {
     addEnvironmentElement(tdmlPath, metadata)
   }
 
-  private def addEnvironmentElement(tdmlPath: String, metadata: Map[String, String]): Unit = {
+  private def addEnvironmentElement(tdmlPath: String, metadata: Map[String, String]): Unit =
     if (metadata.nonEmpty) {
       val content = new String(Files.readAllBytes(Paths.get(tdmlPath)), StandardCharsets.UTF_8)
       val closingTag = "</ns1:parserTestCase>"
@@ -196,18 +196,22 @@ object TDML {
         val _ = Files.write(Paths.get(tdmlPath), updated.getBytes(StandardCharsets.UTF_8))
       }
     }
-  }
 
   private def buildEnvironmentBlock(metadata: Map[String, String]): String = {
     val entries = Seq(
       metadata.get("vscodeVersion").map(value => s"        <ns1:vscodeVersion>${escapeXml(value)}</ns1:vscodeVersion>"),
-      metadata.get("extensionVersion").map(value => s"        <ns1:extensionVersion>${escapeXml(value)}</ns1:extensionVersion>"),
-      metadata.get("daffodilVersion").map(value => s"        <ns1:daffodilVersion>${escapeXml(value)}</ns1:daffodilVersion>"),
+      metadata
+        .get("extensionVersion")
+        .map(value => s"        <ns1:extensionVersion>${escapeXml(value)}</ns1:extensionVersion>"),
+      metadata
+        .get("daffodilVersion")
+        .map(value => s"        <ns1:daffodilVersion>${escapeXml(value)}</ns1:daffodilVersion>"),
       metadata.get("osType").map(value => s"        <ns1:osType>${escapeXml(value)}</ns1:osType>"),
       metadata.get("osVersion").map(value => s"        <ns1:osVersion>${escapeXml(value)}</ns1:osVersion>")
     ).flatten
 
-    if (entries.isEmpty) "" else {
+    if (entries.isEmpty) ""
+    else {
       val inner = entries.mkString(System.lineSeparator(), System.lineSeparator(), System.lineSeparator())
       s"      <ns1:environment>$inner      </ns1:environment>${System.lineSeparator()}"
     }
