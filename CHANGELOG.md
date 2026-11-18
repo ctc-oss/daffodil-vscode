@@ -27,21 +27,54 @@
 This file outlines the release notes and known issues for the "daffodil-vscode" extension.
 
 ## 1.6.0
-  ### Debugger:
-  - Updated Scala 3 debugger compatibility for Apache Daffodil 4.x runtimes.
-    - Added support for Daffodil 4.0.0, 4.1.0, and 4.2.0 infoset runtime API shapes.
-    - Added runtime compatibility regression coverage for infoset walker API detection on Scala 3.
-    - Aligned Scala 3 target to 3.3.7 based on Daffodil release notes guidance.
-  - Added a dedicated `Compile Schema` command to compile/validate `.dfdl.xsd` schemas before debugging.
-    - The command is available from the Command Palette, DFDL Command Explorer panel, and schema file context actions.
-  - Added `validateSchemaBeforeDebug` launch configuration support (shown as `Validate Schema Before Debug` in the launch wizard).
-    - When enabled, debug launch validates schema compilation before starting a session.
-  - Added parser cache serialization/reload behavior for debug startup.
-    - Debug can reuse a previously compiled parser artifact when schema inputs are unchanged, reducing repeated compilation overhead.
-    - Cache invalidation considers schema path/metadata, root settings, tunables, external variables, and build version.
-  ### Documentation:
-  - Updated `doc/Wiki.md` with `Compile Schema` command usage, cache reuse behavior, and debug validation details.
-  - Updated `doc/Introduction-to-Daffodil-VS-Code-Extension.md` with compile-versus-debug workflow guidance and launch option behavior.
+
+### Debugger and Launch Configuration
+
+- Added a **Compile Schema** command to compile and validate `.dfdl.xsd` schemas before debugging. The command is available from the Command Palette, DFDL Command Explorer and schema-file context actions.
+- Added **Validate Schema Before Debug** (`validateSchemaBeforeDebug`) and serialized parser-cache reuse. Debug sessions can reuse a compiled parser when schema metadata, root settings, tunables, external variables and build version are unchanged. Missing or stale cache entries are recompiled. 
+- Expanded Scala 3 debugger compatibility for Apache Daffodil **4.1.0 and 4.2.0**, alongside 4.0.0, including infoset runtime API compatibility coverage. Updated the Scala 3 dependency to **3.3.8**. 
+- Implemented **Step Into** and **Step Out** debugger controls. 
+- Added support for adding, editing and removing **variables and tunables** in the launch configuration wizard. Corrected root-name and root-namespace values being saved as strings or empty strings instead of null values. 
+- Added tunable-name and value validation using the allowed-tunables list. The wizard prevents saving invalid entries; configurations edited manually offer the choice to cancel or ignore invalid tunables when launching. 
+- Changed unrecognized external variables from fatal launch errors to warnings, allowing debugging to continue while skipping those variables. 
+- Fixed **Open Infoset View** and **Open Infoset Diff View** availability in Daffodil Explorer when the active tab is not the schema editor.
+- Shortened oversized debugger error popups to the first 200 characters and directed users to `daffodil-debugger.log` for the full message.
+
+### Data Editor
+
+- Upgraded to **Ωedit 2.0**, including its native server runtime, updated client APIs, heartbeat metrics, logging configuration and packaged-server layout. This removes the Data Editor server's JVM dependency; the Daffodil debugger still requires Java. The upgrade also resolved lingering Data Editor processes after VS Code exits.
+
+- Fixed opening a second Data Editor during debugging so the command prompts for the desired file instead of defaulting to the debug configuration's data file.
+- Fixed debugger byte highlighting appearing in unrelated Data Editor tabs and duplicate editor windows when rerunning the same file.
+- Corrected search-result highlighting and cleared stale highlighting when reverting edits.
+
+### TDML
+
+- Added **Zip TDML file** to package a TDML file and its associated test artifacts for sharing. The archive is written alongside the TDML file. Nested or included schema files are not yet supported by this operation. 
+- Added environment metadata to generated TDML files, recording VS Code, extension and Daffodil versions, plus operating system and version. TDML execution attempts to use the recorded Daffodil version and warns before falling back to the default when it is unavailable. 
+
+### Developer Experience, Testing and Maintenance
+
+- Introduced a **type-safe message registry** for communication between the extension, Data Editor and Svelte UI, replacing loosely structured message payloads and improving routing to the intended editor instance.
+- Updated Svelte state handling and Svelte test execution for Vitest compatibility, while retaining Mocha where the VS Code test environment requires it. Resolved Svelte test execution failures on Fedora with Node.js 22.
+- Added fetch retry handling and adjusted test timeouts to improve CI reliability, including runs without cached Daffodil CLI downloads. Updated nightly-test retry handling and the SBT setup workflow.
+- Reduced redundant CI workflow runs and corrected documentation-checkbox validation, including matching the pull-request template wording and avoiding the failing push-to-main check.
+- Updated JavaScript, Scala, build-tool and GitHub Actions dependencies, including changes addressing reported dependency vulnerabilities.
+- Updated distribution licensing information and copyright notices.
+- Put underlying Daffodil into verbose mode (level 1) so that dfdlx:trace output is visible. It can be found in the VSCode terminal window and the debugger log file (specified in launch.json).
+
+### Documentation
+
+- Moved the main user guide and introductory guide into the repository's **`doc/` directory** so documentation can be reviewed with code changes. 
+- Added IntelliSense architecture and provider documentation, covering element completion, attribute hover, closing tags, slash completion, shared utilities and DFDL-related data files.
+- Documented schema compilation, parser caching, debugger stepping, Data Editor debug settings, variable/tunable configuration and extension-setting defaults for new launch configurations.
+- Documented the pull-request review and merge process, including two approvals from PMC members or committers. Removed CI job badges from the marketplace-facing README and restored missing screenshots in the introductory guide.
+
+### Known Limitations
+
+- TDML ZIP creation does not include nested or included schema files.
+- TDML operations do not support artifacts located on different Windows drives.
+- The current user guide still lists intermittent nightly-test failures associated with GitHub runners. Retry improvements should not be interpreted as a guarantee that all nightly failures are resolved.
 
 ## 1.5.0
   ### Debugger:
