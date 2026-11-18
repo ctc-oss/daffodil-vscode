@@ -505,8 +505,8 @@ If you want to be able to set breakpoints in the schema file, make sure that the
 
 ![{2559195A-206E-4051-97DD-630850F0A4DC}](https://github.com/user-attachments/assets/6eaeecaa-1f16-4cd8-b6d7-c60cd01a2838)
 
-## dfdlx:trace
-The dfdlx:trace function is an extension to the dfdl specification implemented by Daffodil. This function allows users to output runtime values similarly to adding printf functions in C code. These output value are placed into the log file specified for the dfdlDebuggerin the launch.json configuration.
+## Debugging Expressions
+The [dfdlx:trace](https://daffodil.apache.org/dfdl-extensions/#dfdlxtracevalue-label) function is an extension to the dfdl specification implemented by Daffodil. This function allows users to output runtime values similarly to adding printf functions in C code. **This is currently the only way to debug DFDL expressions.**  These output values are placed into the log file specified for the dfdlDebugger in the launch.json configuration and can also be found in the output directed into the debugger's terminal window.
 
 Note that when the desired trace value is static, the user currently needs to make some change to the schema to force it to be recompiled for each run/parse in order for the trace value to be output to the log.
 
